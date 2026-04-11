@@ -2,7 +2,6 @@
 
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { Page, User } from '../types';
 import { PencilIcon } from './icons/PencilIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
@@ -171,21 +170,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
             setErrors(prev => ({ ...prev, bio: "Please write a bio first."}));
             return;
         }
-        setIsImprovingBio(true);
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const prompt = `You are a profile writing assistant for a luxury lifestyle app. Rewrite the following user bio to be more engaging, sophisticated, and impressive. Keep it concise (2-3 sentences). BIO: \n\n"${bio}"`;
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: prompt,
-            });
-            setBio(response.text.trim());
-        } catch (error) {
-            console.error("Error improving bio:", error);
-            showToast("Sorry, I couldn't improve the bio at this time.", "error");
-        } finally {
-            setIsImprovingBio(false);
-        }
+        showToast("AI bio assistant is temporarily unavailable.", "error");
     };
 
     const handleRemoveImage = (index: number) => {
@@ -446,7 +431,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
             </h2>
             <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
-                    <InfoInput label="Height" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 5'11\"" />
+                    <InfoInput label="Height" value={height} onChange={(e) => setHeight(e.target.value)} placeholder={`e.g., 5'11"`} />
                     <InfoInput label="Build" value={build} onChange={(e) => setBuild(e.target.value)} placeholder="e.g., Athletic" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">

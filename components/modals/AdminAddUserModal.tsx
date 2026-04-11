@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { User, UserRole, UserAccessLevel } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 import { Spinner } from '../icons/Spinner';
@@ -119,21 +118,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
           setErrors(prev => ({ ...prev, bio: "Please write a bio first."}));
           return;
       }
-      setIsImprovingBio(true);
-      try {
-          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const prompt = `You are a profile writing assistant for a luxury lifestyle app. Rewrite the following user bio to be more engaging, sophisticated, and impressive. Keep it concise (2-3 sentences). BIO: \n\n"${newUser.bio}"`;
-          const response = await ai.models.generateContent({
-              model: 'gemini-2.5-flash',
-              contents: prompt,
-          });
-          handleChange('bio', response.text.trim());
-      } catch (error) {
-          console.error("Error improving bio:", error);
-          setErrors(prev => ({ ...prev, bio: "Couldn't improve bio at this time."}));
-      } finally {
-          setIsImprovingBio(false);
-      }
+      setErrors(prev => ({ ...prev, bio: "AI bio assistant is temporarily unavailable."}));
   };
   
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

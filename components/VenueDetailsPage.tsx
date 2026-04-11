@@ -1,6 +1,5 @@
 
 import React, { useState, useMemo } from 'react';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { Venue, User, UserRole, Promoter, UserAccessLevel, GuestlistJoinRequest } from '../types';
 import { HeartIcon } from './icons/HeartIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
@@ -99,84 +98,11 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
   ];
 
   const handleGenerateImage = async () => {
-      setIsImageGenerating(true);
-      try {
-          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const prompt = `A professional, high-resolution photograph of a luxurious ${venue.category} in ${venue.location} called "${venue.name}". The vibe is ${venue.vibe} and they play ${venue.musicType} music. The image should be vibrant and show the main area of the venue.`;
-          const response = await ai.models.generateContent({
-              model: 'gemini-2.5-flash-image',
-              contents: { parts: [{ text: prompt }] },
-              config: { responseModalities: [Modality.IMAGE] },
-          });
-
-          for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-              const base64ImageBytes: string = part.inlineData.data;
-              const imageUrl = `data:image/png;base64,${base64ImageBytes}`;
-              onUpdateVenue({...venue, coverImage: imageUrl});
-              break;
-            }
-          }
-      } catch (error) {
-          console.error("Error generating image:", error);
-          alert("Failed to generate image. Please check the console for details.");
-      } finally {
-          setIsImageGenerating(false);
-      }
+      alert("AI image generation is temporarily unavailable. Please upload a cover image manually.");
   };
 
   const handleGenerateVideo = async () => {
-    setIsVideoGenerating(true);
-    let messageIndex = 0;
-    setVideoLoadingMessage(videoLoadingMessages[messageIndex]);
-    const messageInterval = setInterval(() => {
-        messageIndex = (messageIndex + 1) % videoLoadingMessages.length;
-        setVideoLoadingMessage(videoLoadingMessages[messageIndex]);
-    }, 8000);
-
-    try {
-        await window.aistudio.hasSelectedApiKey() || await window.aistudio.openSelectKey();
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `A 5-second, high-energy video tour of "${venue.name}", a ${venue.vibe} nightclub in ${venue.location}. Show dynamic shots of the dance floor, luxury VIP tables, and stylish crowd. Music type is ${venue.musicType}. Cinematic, professional quality.`;
-
-        let operation = await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt: prompt,
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: '16:9',
-            }
-        });
-
-        while (!operation.done) {
-            await new Promise(resolve => setTimeout(resolve, 10000));
-            operation = await ai.operations.getVideosOperation({ operation: operation });
-        }
-        
-        clearInterval(messageInterval);
-
-        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-        if (downloadLink) {
-            setVideoLoadingMessage("Downloading video...");
-            const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-            const videoBlob = await response.blob();
-            const videoUrl = URL.createObjectURL(videoBlob);
-            onUpdateVenue({ ...venue, videoTourUrl: videoUrl });
-        } else {
-            throw new Error("Video generation completed but no download link was provided.");
-        }
-
-    } catch (error: any) {
-        console.error("Error generating video:", error);
-        if (error.message?.includes("Requested entity was not found")) {
-            await window.aistudio.openSelectKey();
-        }
-        alert("Failed to generate video. Please check the console for details.");
-        clearInterval(messageInterval);
-    } finally {
-        setIsVideoGenerating(false);
-    }
+      alert("AI video generation is temporarily unavailable.");
   };
 
   const handleScan = (data: string) => {
