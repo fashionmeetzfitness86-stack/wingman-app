@@ -1,0 +1,9 @@
+{
+  "name": "WINGMAN",
+  "description": "A luxury lifestyle and entertainment platform helping users experience Miami’s nightlife, events, venues, and connections through verified Wingmen.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
