@@ -21,6 +21,7 @@ const initialFormState = {
     role: UserRole.USER,
     accessLevel: UserAccessLevel.GENERAL,
     status: 'active' as 'active' | 'blocked' | 'suspended',
+    approvalStatus: 'pending' as 'pending' | 'approved' | 'rejected',
     profilePhoto: '',
     bio: '',
     city: 'Miami',

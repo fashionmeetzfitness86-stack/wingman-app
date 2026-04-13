@@ -16,6 +16,8 @@ export const users: User[] = [
     phoneNumber: '+15550101',
     preferences: { music: ['House', 'Hip Hop'], activities: ['Nightclub', 'Dining'], personality: 'Social', timeOfDay: 'Nighttime' },
     status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active',
     friends: [102]
   },
   {
@@ -31,6 +33,8 @@ export const users: User[] = [
     phoneNumber: '+15550102',
     preferences: { music: ['Pop', 'EDM'], activities: ['Pool Party', 'Lounge'], personality: 'Energetic', timeOfDay: 'Both' },
     status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active',
     friends: [101]
   },
   {
@@ -46,6 +50,8 @@ export const users: User[] = [
     phoneNumber: '+15550103',
     preferences: { music: ['Top 40'], activities: ['Dining'], personality: 'Observer', timeOfDay: 'Daytime' },
     status: 'active',
+    approvalStatus: 'pending',
+    subscriptionStatus: 'free_tier',
     friends: []
   },
   {
@@ -60,6 +66,8 @@ export const users: User[] = [
     instagramHandle: 'alex_g',
     phoneNumber: '+15550104',
     status: 'active',
+    approvalStatus: 'pending',
+    subscriptionStatus: 'free_tier',
     bio: 'Logged in via Google',
     preferences: { music: ['Tech House'], activities: ['Rooftop'], personality: 'Chill', timeOfDay: 'Nighttime' }
   },
@@ -75,24 +83,27 @@ export const users: User[] = [
     instagramHandle: 'sarah_fb',
     phoneNumber: '+15550105',
     status: 'active',
+    approvalStatus: 'rejected',
+    subscriptionStatus: 'suspended',
     bio: 'Logged in via Facebook',
     preferences: { music: ['Hip Hop', 'R&B'], activities: ['Nightclub'], personality: 'Social', timeOfDay: 'Both' }
   },
-  {
-    id: 1, // Matches Promoter Anderson in App.tsx
+    id: 1, // Wingman host — THE single host of all experiences
     name: 'Anderson',
     email: 'anderson@example.com',
     profilePhoto: 'https://i.pravatar.cc/150?u=1',
     accessLevel: UserAccessLevel.PROMO,
-    role: UserRole.PROMOTER,
+    role: UserRole.WINGMAN, // Updated: now the Wingman host role
     city: 'Miami',
     joinDate: '2022-11-01',
     instagramHandle: 'anderson_promo',
     phoneNumber: '+15550999',
-    status: 'active'
+    status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active'
   },
   {
-    id: 999, // Admin
+    id: 999, // Super Admin
     name: 'Admin User',
     email: 'admin@wingman.com',
     profilePhoto: 'https://i.pravatar.cc/150?u=999',
@@ -100,7 +111,9 @@ export const users: User[] = [
     role: UserRole.ADMIN,
     city: 'Miami',
     joinDate: '2022-01-01',
-    status: 'active'
+    status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active'
   }
 ];
 
@@ -280,16 +293,84 @@ export const events: Event[] = [
 export const suggestedEvents = [events[0], events[13], events[15]];
 export const timelineEvents = [events[1], events[2], events[14], events[16]];
 
-// Mock Experiences
+// Mock Experiences — VIP scheduled experiences hosted by the Wingman
 export const experiences: Experience[] = [
     {
-        id: 1, title: 'Sunset Yacht Cruise', category: 'Yacht', description: 'Cruise around Biscayne Bay', coverImage: 'https://picsum.photos/seed/yacht/800/600', location: 'Miami Marina', duration: '4 Hours',
-        pricing: { unit: 'group', general: 2500 }, access: 'open'
+        id: 1,
+        title: 'Sunset Yacht Cruise',
+        category: 'Yacht',
+        description: 'Cruise around Biscayne Bay on a private yacht with an open bar, sunset views, and curated music. The ultimate VIP on-water experience.',
+        coverImage: 'https://picsum.photos/seed/yacht/800/600',
+        location: 'Miami Marina',
+        duration: '4 Hours',
+        pricing: { unit: 'person', general: 600 },
+        access: 'invite-only',
+        capacity: 12,
+        hostId: 1,
+        // VIP Platform fields
+        scheduledDate: '2025-04-19',
+        scheduledTime: '6:00 PM',
+        spotsRemaining: 5,
+        flatRate: 600,
+        isSoldOut: false,
     },
     {
-        id: 2, title: 'Private Island Dinner', category: 'Dining', description: 'Exclusive dining experience', coverImage: 'https://picsum.photos/seed/island/800/600', location: 'Private Island', duration: '3 Hours',
-        pricing: { unit: 'person', general: 500 }, access: 'invite-only'
-    }
+        id: 2,
+        title: 'Private Island Dinner',
+        category: 'Dining',
+        description: 'An exclusive candlelit dinner on a private island accessible only by boat. Chef-curated tasting menu, fine wine, and unforgettable ambiance.',
+        coverImage: 'https://picsum.photos/seed/island/800/600',
+        location: 'Private Island, Biscayne Bay',
+        duration: '3 Hours',
+        pricing: { unit: 'person', general: 600 },
+        access: 'invite-only',
+        capacity: 8,
+        hostId: 1,
+        // VIP Platform fields
+        scheduledDate: '2025-04-26',
+        scheduledTime: '8:00 PM',
+        spotsRemaining: 3,
+        flatRate: 600,
+        isSoldOut: false,
+    },
+    {
+        id: 3,
+        title: 'Rooftop Nightlife Experience',
+        category: 'Nightlife',
+        description: 'Skip the line and join an elite crew at the most exclusive rooftop venue in Miami. VIP table, bottle service, and a curated guest list.',
+        coverImage: 'https://picsum.photos/seed/rooftop/800/600',
+        location: 'Brickell, Miami',
+        duration: '5 Hours',
+        pricing: { unit: 'person', general: 600 },
+        access: 'invite-only',
+        capacity: 15,
+        hostId: 1,
+        // VIP Platform fields
+        scheduledDate: '2025-04-25',
+        scheduledTime: '10:00 PM',
+        spotsRemaining: 0,
+        flatRate: 600,
+        isSoldOut: true,
+    },
+    {
+        id: 4,
+        title: 'VIP Beach Day',
+        category: 'Adventure',
+        description: 'Private cabana access, premium beach setup, chef-prepared lunch, and Wingman-curated activities on South Beach. Exclusive access only.',
+        coverImage: 'https://picsum.photos/seed/beach/800/600',
+        location: 'South Beach, Miami',
+        duration: '6 Hours',
+        pricing: { unit: 'person', general: 600 },
+        access: 'invite-only',
+        capacity: 10,
+        hostId: 1,
+        // VIP Platform fields
+        scheduledDate: '2025-05-03',
+        scheduledTime: '11:00 AM',
+        spotsRemaining: 7,
+        flatRate: 600,
+        isSoldOut: false,
+    },
 ];
 
 // Mock Notifications
