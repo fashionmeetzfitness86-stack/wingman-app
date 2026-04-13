@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from '../types';
+import { User, UserRole } from '../types';
 import { PencilSquareIcon } from './icons/PencilSquareIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UserMinusIcon } from './icons/UserMinusIcon';
@@ -13,9 +13,19 @@ interface AdminUserListItemProps {
     onBlock: (user: User) => void;
     onViewProfile: (user: User) => void;
     onViewAnalytics?: (user: User) => void;
+    onApprove?: (userId: number) => void;
+    onReject?: (userId: number) => void;
 }
 
-export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEdit, onBlock, onViewProfile, onViewAnalytics }) => {
+export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEdit, onBlock, onViewProfile, onViewAnalytics, onApprove, onReject }) => {
+    const getApprovalBadge = (status?: string) => {
+        switch (status) {
+            case 'approved': return 'bg-green-900/50 text-green-300 border border-green-700/50';
+            case 'rejected': return 'bg-red-900/50 text-red-400 border border-red-700/50';
+            case 'pending':  return 'bg-amber-900/50 text-amber-300 border border-amber-700/50';
+            default:         return 'bg-gray-800 text-gray-500 border border-gray-700';
+        }
+    };
     const getAccessLevelColor = (level: string) => {
         switch (level) {
             case 'Access Male': return 'bg-blue-900/50 text-blue-300';
@@ -50,11 +60,33 @@ export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEd
                             </span>
                         </div>
                         <div>
+                            <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full capitalize ${getApprovalBadge(user.approvalStatus)}`}>
+                                {user.approvalStatus ?? 'unreviewed'}
+                            </span>
+                        </div>
+                        <div>
                             <p className="text-sm text-gray-400">{user.joinDate}</p>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
+                    {/* Approve / Reject — only shown for regular users in pending state */}
+                    {user.approvalStatus === 'pending'
+                        && user.role !== UserRole.ADMIN
+                        && user.role !== UserRole.WINGMAN
+                        && onApprove && (
+                        <button onClick={() => onApprove(user.id)} className="px-2 py-1 text-xs font-bold bg-green-700 hover:bg-green-600 text-white rounded transition-colors" title="Approve user">
+                            Approve
+                        </button>
+                    )}
+                    {user.approvalStatus === 'pending'
+                        && user.role !== UserRole.ADMIN
+                        && user.role !== UserRole.WINGMAN
+                        && onReject && (
+                        <button onClick={() => onReject(user.id)} className="px-2 py-1 text-xs font-bold bg-red-800 hover:bg-red-700 text-white rounded transition-colors" title="Reject user">
+                            Reject
+                        </button>
+                    )}
                     {onViewAnalytics && (
                         <button onClick={() => onViewAnalytics(user)} className="p-2 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded-md transition-colors" aria-label={`View analytics for ${user.name}`} title="View Analytics">
                             <ChartBarIcon className="w-5 h-5" />

@@ -130,6 +130,18 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                         <option value="blocked">Blocked</option>
                     </select>
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Approval Status</label>
+                    <select
+                        value={editedUser.approvalStatus ?? 'pending'}
+                        onChange={(e) => handleChange('approvalStatus', e.target.value as 'pending' | 'approved' | 'rejected')}
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                    >
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
                 {editedUser.role === UserRole.PROMOTER && (
                     <div className="border-t border-gray-700 pt-4">
                         <h3 className="text-lg font-semibold text-white mb-2">Subscription Management</h3>

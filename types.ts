@@ -3,6 +3,7 @@ export enum UserRole {
   ADMIN = 'Admin',
   PROMOTER = 'Promoter',
   USER = 'User',
+  WINGMAN = 'Wingman', // New: single host role for the curated experience model
 }
 
 export type SpenderCategory = '<$5k' | '$5k+' | '$10k+' | '$20k+';
@@ -33,6 +34,7 @@ export interface User {
   dob?: string; // YYYY-MM-DD
   ethnicity?: string;
   status: 'active' | 'blocked' | 'suspended';
+  approvalStatus?: 'pending' | 'approved' | 'rejected'; // Gating: must be 'approved' + active subscription to book
   appearance?: {
     height: string;
     eyeColor: string;
@@ -273,6 +275,13 @@ export interface Experience {
   bedrooms?: number;
   bathrooms?: number;
   venueId?: number;
+  // --- VIP Experience Platform fields ---
+  scheduledDate?: string;      // 'YYYY-MM-DD' — when the experience is happening
+  scheduledTime?: string;      // e.g. '8:00 PM'
+  spotsRemaining?: number;     // Live count, decrements on each confirmed booking
+  flatRate?: number;           // Default $600 flat per-person price
+  isSoldOut?: boolean;         // True when spotsRemaining === 0
+  hostId?: number;             // ID of the Wingman/host user
 }
 
 export interface ConfirmedExperienceBookingDetails {

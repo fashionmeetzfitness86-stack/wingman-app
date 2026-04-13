@@ -809,6 +809,25 @@ export const App: React.FC = () => {
             isPush: true
         }, ...prev]);
     };
+
+    // --- Pass 2: Booking access guard ---
+    // canBook = true only when the current user is approved AND has an active subscription.
+    // Used to gate booking actions — browsing remains unrestricted.
+    const canBook =
+        currentUser?.approvalStatus === 'approved' &&
+        currentUser?.subscriptionStatus === 'active';
+
+    // --- Pass 2: User approval handlers ---
+    // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.
+    const handleApproveUser = (userId: number) => {
+        setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'approved' as const } : u));
+        showToast('User approved successfully', 'success');
+    };
+
+    const handleRejectUser = (userId: number) => {
+        setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'rejected' as const } : u));
+        showToast('User rejected', 'success');
+    };
     
     const handleToggleCampaignStatus = (campaignId: string) => {
         setPushCampaigns(prev => prev.map(c => 
@@ -1159,7 +1178,15 @@ export const App: React.FC = () => {
                     allRsvps={[]} 
                     onPreviewUser={(u) => setPreviewUser(u)} 
                     eventInvitations={mockEventInvitations} 
-                    onSendPushNotification={(n) => showToast('Push notification sent', 'success')} 
+                    onSendPushNotification={(n) => showToast('Push notification sent', 'success')}
+                    pushCampaigns={pushCampaigns}
+                    onCreatePushCampaign={handleCreatePushCampaign}
+                    onToggleCampaignStatus={handleToggleCampaignStatus}
+                    onDeleteCampaign={handleDeleteCampaign}
+                    onBulkDeleteEvents={(ids) => { setAppEvents(prev => prev.filter(e => !ids.includes(e.id))); showToast(`${ids.length} events deleted`, 'success'); }}
+                    onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
+                    onApproveUser={handleApproveUser}
+                    onRejectUser={handleRejectUser}
                 />;
             case 'promoterDashboard':
                 const myPromoter = appPromoters.find(p => p.id === currentUser.id);

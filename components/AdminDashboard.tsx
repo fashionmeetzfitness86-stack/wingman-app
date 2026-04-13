@@ -66,6 +66,8 @@ interface AdminDashboardProps {
     onDeleteCampaign: (campaignId: string) => void;
     onBulkDeleteEvents?: (eventIds: (number | string)[]) => void;
     onBulkUpdateEvents?: (eventIds: (number | string)[], updates: Partial<Event>) => void;
+    onApproveUser?: (userId: number) => void;   // Pass 2: approval gate
+    onRejectUser?: (userId: number) => void;    // Pass 2: approval gate
 }
 
 
@@ -101,6 +103,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const [userRoleFilter, setUserRoleFilter] = useState('all');
     const [userAccessLevelFilter, setUserAccessLevelFilter] = useState('all');
     const [userStatusFilter, setUserStatusFilter] = useState('all');
+    const [userApprovalFilter, setUserApprovalFilter] = useState('all'); // Pass 2: clean approval signal
     const [eventTypeFilter, setEventTypeFilter] = useState('all');
     const [eventVenueFilter, setEventVenueFilter] = useState('all');
     const [venueLocationFilter, setVenueLocationFilter] = useState('all');
@@ -121,6 +124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         setUserRoleFilter('all');
         setUserAccessLevelFilter('all');
         setUserStatusFilter('all');
+        setUserApprovalFilter('all');
         setEventTypeFilter('all');
         setEventVenueFilter('all');
         setVenueLocationFilter('all');
@@ -135,6 +139,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                props.pendingGroups.length +
                props.invitationRequests.filter(req => req.status === 'pending').length;
     }, [props.promoterApplications, props.pendingGroups, props.invitationRequests]);
+
+    // Pass 4: count of users awaiting approval — drives badge on Users tab
+    const pendingApprovalsCount = useMemo(() => {
+        return users.filter(u =>
+            (u.approvalStatus === 'pending' || u.approvalStatus === undefined) &&
+            u.role !== UserRole.ADMIN &&
+            u.role !== UserRole.WINGMAN
+        ).length;
+    }, [users]);
     
     const filteredPromoters = useMemo(() => promoters.filter(p => {
         const searchMatch = searchTerm === '' || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.handle.toLowerCase().includes(searchTerm.toLowerCase()) || p.city.toLowerCase().includes(searchTerm.toLowerCase());
@@ -148,8 +161,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         const roleMatch = userRoleFilter === 'all' || u.role === userRoleFilter;
         const accessLevelMatch = userAccessLevelFilter === 'all' || u.accessLevel === userAccessLevelFilter;
         const statusMatch = userStatusFilter === 'all' || u.status === userStatusFilter;
-        return searchMatch && roleMatch && accessLevelMatch && statusMatch;
-    }), [users, searchTerm, userRoleFilter, userAccessLevelFilter, userStatusFilter]);
+        const approvalMatch = userApprovalFilter === 'all' || (u.approvalStatus ?? 'pending') === userApprovalFilter;
+        return searchMatch && roleMatch && accessLevelMatch && statusMatch && approvalMatch;
+    }), [users, searchTerm, userRoleFilter, userAccessLevelFilter, userStatusFilter, userApprovalFilter]);
 
     const filteredEvents = useMemo(() => events.filter(e => {
         const searchMatch = searchTerm === '' || e.title.toLowerCase().includes(searchTerm.toLowerCase()) || e.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -216,6 +230,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             <FilterDropdown label="Role" value={userRoleFilter} onChange={setUserRoleFilter} options={Object.values(UserRole)} />
                             <FilterDropdown label="Access" value={userAccessLevelFilter} onChange={setUserAccessLevelFilter} options={Object.values(UserAccessLevel)} />
                             <FilterDropdown label="Status" value={userStatusFilter} onChange={setUserStatusFilter} options={['active', 'blocked']} />
+                            <FilterDropdown label="Approval" value={userApprovalFilter} onChange={setUserApprovalFilter} options={['pending', 'approved', 'rejected']} />
                         </>
                     );
                 case 'events':
@@ -255,8 +270,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoters' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Promoters
                 </button>
-                <button onClick={() => setActiveTab('users')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Users
+                    {pendingApprovalsCount > 0 && (
+                        <span className="absolute top-1 right-0 w-5 h-5 bg-amber-500 text-black text-xs font-bold rounded-full flex items-center justify-center">
+                            {pendingApprovalsCount}
+                        </span>
+                    )}
                 </button>
                 <button onClick={() => setActiveTab('events')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'events' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Events
@@ -268,7 +288,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                     Store
                 </button>
                  <button onClick={() => setActiveTab('management')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'management' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
-                    Management
+                    Approvals
                     {pendingRequestsCount > 0 && (
                         <span className="absolute top-1 right-0 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">{pendingRequestsCount}</span>
                     )}
@@ -331,10 +351,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 )}
                 {activeTab === 'users' && (
                     <div className="space-y-3">
+                        {/* Pass 4: Pending approvals queue strip — only renders when there are users to action */}
+                        {pendingApprovalsCount > 0 && (
+                            <div className="flex items-center justify-between bg-amber-900/20 border border-amber-700/40 rounded-xl px-4 py-3 mb-2 animate-fade-in">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                                    <p className="text-sm font-semibold text-amber-300">
+                                        {pendingApprovalsCount} user{pendingApprovalsCount !== 1 ? 's' : ''} awaiting approval
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setUserApprovalFilter('pending')}
+                                    className="text-xs font-bold text-amber-400 border border-amber-400/40 rounded-full px-3 py-1 hover:bg-amber-400/10 transition-colors"
+                                >
+                                    Review
+                                </button>
+                            </div>
+                        )}
                         <div className="flex justify-end mb-4">
                             <button onClick={props.onAddUser} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">Create User</button>
                         </div>
-                        {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={(u) => setUserForAnalytics(u)} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
+                        {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={(u) => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
                     </div>
                 )}
                 {activeTab === 'events' && (
