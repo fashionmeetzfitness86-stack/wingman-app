@@ -74,7 +74,7 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                             className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                             style={{ background: 'rgba(236,72,153,0.12)' }}
                         >
-                            <ShieldCheckIcon className="w-5 h-5" style={{ color: '#EC4899' }} />
+                            <ShieldCheckIcon className="w-5 h-5 text-[#EC4899]" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white">Request Platform Access</h2>
@@ -99,7 +99,7 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                                 className="w-16 h-16 rounded-full flex items-center justify-center"
                                 style={{ background: 'rgba(236,72,153,0.12)' }}
                             >
-                                <ShieldCheckIcon className="w-8 h-8" style={{ color: '#EC4899' }} />
+                                <ShieldCheckIcon className="w-8 h-8 text-[#EC4899]" />
                             </div>
                             <div>
                                 <p className="font-bold text-white text-lg mb-1">Request Submitted</p>
