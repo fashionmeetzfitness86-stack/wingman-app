@@ -12,6 +12,7 @@ interface HomeScreenProps {
   onNavigate: (page: Page) => void;
   currentUser: User;
   onOpenMenu?: () => void;
+  onRequestAccess?: () => void;
 }
 
 const ExclusivityPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
@@ -21,7 +22,7 @@ const ExclusivityPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ i
   </div>
 );
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess }) => {
     const isAdmin   = currentUser.role === UserRole.ADMIN;
     const isWingman = currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.PROMOTER;
     const isApproved = currentUser.approvalStatus === 'approved';
@@ -174,7 +175,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                         </div>
                         {!(isApproved && hasActiveSub) && (
                             <button
-                                onClick={() => onNavigate('promoterApplication')}
+                                onClick={() => onRequestAccess?.()}
                                 className="text-xs font-bold rounded-full px-3 py-1.5 transition-colors ml-3 whitespace-nowrap"
                                 style={{
                                     color: '#EC4899',

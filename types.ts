@@ -63,6 +63,21 @@ export interface UserWithAnalytics extends User {
     spenderCategory: SpenderCategory;
 }
 
+// Membership / platform access request — independent from PromoterApplication.
+// Submitted by users who want approved access to book experiences.
+// Approving sets the user's approvalStatus to 'approved' in App state.
+export interface MembershipRequest {
+    id: number;
+    userId: number;
+    userName: string;
+    userEmail: string;
+    userPhoto: string;
+    instagramHandle?: string;
+    message: string;            // "Why do you want access?"
+    submittedAt: string;        // ISO date string
+    status: 'pending' | 'approved' | 'rejected';
+}
+
 export enum UserAccessLevel {
   GENERAL = 'General Access',
   ACCESS_MALE = 'Access Male',

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Promoter, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, PromoterApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign } from '../types';
+import { Promoter, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, PromoterApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest } from '../types';
 import { ManagementTab } from './admin/ManagementTab';
 import { AnalyticsTab } from './admin/AnalyticsTab';
 import { AdminPromoterListItem } from './AdminPromoterListItem';
@@ -68,6 +68,9 @@ interface AdminDashboardProps {
     onBulkUpdateEvents?: (eventIds: (number | string)[], updates: Partial<Event>) => void;
     onApproveUser?: (userId: number) => void;   // Pass 2: approval gate
     onRejectUser?: (userId: number) => void;    // Pass 2: approval gate
+    membershipRequests: MembershipRequest[];                        // New verification system
+    onApproveMembershipRequest: (requestId: number) => void;
+    onRejectMembershipRequest: (requestId: number) => void;
 }
 
 
@@ -137,8 +140,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const pendingRequestsCount = useMemo(() => {
         return props.promoterApplications.filter(a => a.status === 'pending').length +
                props.pendingGroups.length +
-               props.invitationRequests.filter(req => req.status === 'pending').length;
-    }, [props.promoterApplications, props.pendingGroups, props.invitationRequests]);
+               props.invitationRequests.filter(req => req.status === 'pending').length +
+               props.membershipRequests.filter(r => r.status === 'pending').length;
+    }, [props.promoterApplications, props.pendingGroups, props.invitationRequests, props.membershipRequests]);
 
     // Pass 4: count of users awaiting approval — drives badge on Users tab
     const pendingApprovalsCount = useMemo(() => {
@@ -431,6 +435,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         eventInvitations={props.eventInvitations}
                         onPreviewUser={props.onPreviewUser}
                         onSendDirectInvites={props.onSendDirectInvites}
+                        membershipRequests={props.membershipRequests}
+                        onApproveMembershipRequest={props.onApproveMembershipRequest}
+                        onRejectMembershipRequest={props.onRejectMembershipRequest}
                      />
                 )}
                  {activeTab === 'pushNotifications' && (

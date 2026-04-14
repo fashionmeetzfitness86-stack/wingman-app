@@ -1,5 +1,5 @@
 import React from 'react';
-import { PromoterApplication, AccessGroup, EventInvitationRequest, User, Event, Page, CartItem, EventInvitation } from '../../types';
+import { PromoterApplication, AccessGroup, EventInvitationRequest, User, Event, Page, CartItem, EventInvitation, MembershipRequest } from '../../types';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CloseIcon } from '../icons/CloseIcon';
 import { SendInvitations } from './SendInvitations';
@@ -21,7 +21,58 @@ interface ManagementTabProps {
     eventInvitations: EventInvitation[];
     onPreviewUser: (user: User) => void;
     onSendDirectInvites: (eventId: number, userIds: number[]) => void;
+    membershipRequests: MembershipRequest[];
+    onApproveMembershipRequest: (requestId: number) => void;
+    onRejectMembershipRequest: (requestId: number) => void;
 }
+// Member access request card — visually distinct from ApplicationCard (no promoter fields)
+const MemberAccessCard: React.FC<{
+    request: MembershipRequest;
+    onApprove: () => void;
+    onReject: () => void;
+}> = ({ request, onApprove, onReject }) => (
+    <div className="bg-gray-800 rounded-xl p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+                <img
+                    src={request.userPhoto}
+                    alt={request.userName}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                />
+                <div className="min-w-0">
+                    <p className="font-bold text-white truncate">{request.userName}</p>
+                    <p className="text-xs text-gray-500 truncate">{request.userEmail}</p>
+                    {request.instagramHandle && (
+                        <p className="text-xs text-gray-400 mt-0.5">@{request.instagramHandle}</p>
+                    )}
+                </div>
+            </div>
+            <span className={`flex-shrink-0 px-2 py-1 text-xs font-semibold rounded-full ${
+                request.status === 'pending'  ? 'bg-[#EC4899]/15 text-pink-300' :
+                request.status === 'approved' ? 'bg-green-900/50 text-green-300' :
+                'bg-red-900/50 text-red-300'
+            }`}>
+                {request.status}
+            </span>
+        </div>
+        <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-[#EC4899]/30 pl-3 italic">
+            "{request.message}"
+        </p>
+        <p className="text-xs text-gray-600">
+            Submitted {new Date(request.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
+        {request.status === 'pending' && (
+            <div className="flex gap-3 pt-1">
+                <button onClick={onReject} className="w-full flex items-center justify-center gap-2 bg-red-600/20 text-red-400 font-bold py-2 rounded-lg text-sm hover:bg-red-600/40 transition-colors">
+                    <CloseIcon className="w-4 h-4" /> Reject
+                </button>
+                <button onClick={onApprove} className="w-full flex items-center justify-center gap-2 bg-green-500/20 text-green-400 font-bold py-2 rounded-lg text-sm hover:bg-green-500/40 transition-colors">
+                    <CheckIcon className="w-4 h-4" /> Approve Access
+                </button>
+            </div>
+        )}
+    </div>
+);
 
 const ApplicationCard: React.FC<{
     app: PromoterApplication;
@@ -60,9 +111,9 @@ const ApplicationCard: React.FC<{
 
 
 export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
-    const { 
-        promoterApplications, 
-        onApprovePromoterApplication, 
+    const {
+        promoterApplications,
+        onApprovePromoterApplication,
         onRejectPromoterApplication,
         pendingGroups,
         onApproveGroup,
@@ -71,8 +122,14 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
         onRejectRequest,
         users,
         events,
-        onNavigate
+        onNavigate,
+        membershipRequests,
+        onApproveMembershipRequest,
+        onRejectMembershipRequest,
     } = props;
+
+    const pendingMembershipRequests = membershipRequests.filter(r => r.status === 'pending');
+    const processedMembershipRequests = membershipRequests.filter(r => r.status !== 'pending');
 
     const pendingApplications = promoterApplications.filter(a => a.status === 'pending');
     const processedApplications = promoterApplications.filter(a => a.status !== 'pending');
@@ -80,7 +137,46 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
 
     return (
         <div className="space-y-12">
+
+            {/* ── Member Access Requests (new system) ───────────── */}
             <div>
+                <div className="flex items-center gap-3 mb-4">
+                    <h3 className="text-xl font-bold">Member Access Requests</h3>
+                    {pendingMembershipRequests.length > 0 && (
+                        <span className="bg-[#EC4899] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {pendingMembershipRequests.length} pending
+                        </span>
+                    )}
+                </div>
+                <div className="space-y-3">
+                    {pendingMembershipRequests.length > 0
+                        ? pendingMembershipRequests.map(r => (
+                            <MemberAccessCard
+                                key={r.id}
+                                request={r}
+                                onApprove={() => onApproveMembershipRequest(r.id)}
+                                onReject={() => onRejectMembershipRequest(r.id)}
+                            />
+                        ))
+                        : <div className="bg-gray-800 p-8 rounded-xl text-center text-gray-500 text-sm">No pending member access requests.</div>
+                    }
+                </div>
+                {processedMembershipRequests.length > 0 && (
+                    <details className="mt-4">
+                        <summary className="cursor-pointer text-sm font-semibold text-gray-500 hover:text-gray-300 transition-colors">
+                            View Processed Requests ({processedMembershipRequests.length})
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                            {processedMembershipRequests.map(r => (
+                                <MemberAccessCard key={r.id} request={r} onApprove={() => {}} onReject={() => {}} />
+                            ))}
+                        </div>
+                    </details>
+                )}
+            </div>
+
+            {/* ── Promoter Applications (existing, unchanged) ─── */}
+            <div className="border-t border-gray-800 pt-8">
                 <h3 className="text-xl font-bold mb-4">Promoter Applications ({pendingApplications.length} pending)</h3>
                 <div className="space-y-3">
                     {pendingApplications.length > 0 ? pendingApplications.map(app => (
