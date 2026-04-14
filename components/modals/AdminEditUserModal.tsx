@@ -100,7 +100,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                     <select
                         value={editedUser.role}
                         onChange={(e) => handleChange('role', e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
                     >
                         {Object.values(UserRole).map(role => (
                             <option key={role} value={role}>{role}</option>
@@ -112,7 +112,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                     <select
                         value={editedUser.accessLevel}
                         onChange={(e) => handleChange('accessLevel', e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
                     >
                         {Object.values(UserAccessLevel).map(level => (
                             <option key={level} value={level}>{level}</option>
@@ -124,7 +124,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                     <select
                         value={editedUser.status}
                         onChange={(e) => handleChange('status', e.target.value as 'active' | 'blocked')}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
                     >
                         <option value="active">Active</option>
                         <option value="blocked">Blocked</option>
@@ -135,7 +135,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                     <select
                         value={editedUser.approvalStatus ?? 'pending'}
                         onChange={(e) => handleChange('approvalStatus', e.target.value as 'pending' | 'approved' | 'rejected')}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
                     >
                         <option value="pending">Pending</option>
                         <option value="approved">Approved</option>
@@ -150,7 +150,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                             <select
                                 value={getWaiverValue(editedUser.waiveSubscriptionUntil)}
                                 onChange={(e) => handleWaiverChange(e.target.value as keyof typeof WAIVER_OPTIONS)}
-                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400"
+                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
                             >
                                 {Object.entries(WAIVER_OPTIONS).map(([key, label]) => (
                                     <option key={key} value={key}>{label}</option>
@@ -162,7 +162,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
             </div>
             <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                 <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                <button onClick={handleSave} className="bg-amber-400 text-black font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                <button onClick={handleSave} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
             </div>
         </div>
     </div>

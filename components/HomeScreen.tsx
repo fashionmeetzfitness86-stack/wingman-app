@@ -14,10 +14,9 @@ interface HomeScreenProps {
   onOpenMenu?: () => void;
 }
 
-// Small inline pill for exclusivity cues
 const ExclusivityPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
   <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-    <span className="text-amber-400">{icon}</span>
+    <span style={{ color: '#EC4899' }}>{icon}</span>
     <span className="text-xs font-semibold text-gray-300 whitespace-nowrap">{label}</span>
   </div>
 );
@@ -48,11 +47,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     </h1>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* Admin / Wingman dashboard shortcut — invisible to regular users */}
                     {(isAdmin || isWingman) && (
                         <button
                             onClick={handleDashboardShortcut}
-                            className="text-xs font-semibold text-amber-400 border border-amber-400/30 bg-amber-400/10 rounded-full px-3 py-1.5 hover:bg-amber-400/20 transition-colors"
+                            className="text-xs font-semibold rounded-full px-3 py-1.5 transition-colors"
+                            style={{
+                                color: '#EC4899',
+                                border: '1px solid rgba(236,72,153,0.3)',
+                                background: 'rgba(236,72,153,0.08)'
+                            }}
                             aria-label="Open dashboard"
                         >
                             {isAdmin ? 'Admin HQ' : 'Wingman HQ'}
@@ -70,32 +73,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                 </div>
             </header>
 
-            {/* ── Hero ───────────────────────────────────────────── */}
+            {/* ── Hero ────────────────────────────────────────────── */}
             <main className="flex-grow px-6 pt-6 pb-8 flex flex-col">
 
-                {/* Headline block */}
                 <div className="mb-8">
-                    <p className="text-xs font-bold tracking-widest text-amber-400 uppercase mb-3">
+                    <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#EC4899' }}>
                         Members Only Platform
                     </p>
-                    <h2 className="font-poppins font-black text-4xl md:text-5xl leading-tight text-white mb-4"
+                    <h2
+                        className="font-poppins font-black text-4xl md:text-5xl leading-tight text-white mb-4"
                         style={{ letterSpacing: '-0.03em' }}
                     >
                         Exclusive<br />
                         Experiences.<br />
-                        <span className="text-amber-400">Limited Access.</span>
+                        <span style={{ color: '#EC4899' }}>Limited Access.</span>
                     </h2>
                     <p className="text-gray-400 text-base leading-relaxed max-w-sm">
                         Browse upcoming Wingman experiences, reserve your spot, and access curated VIP events — available to approved members only.
                     </p>
                 </div>
 
-                {/* ── Primary CTAs ───────────────────────────────── */}
+                {/* ── Primary CTAs ──────────────────────────────────── */}
                 <div className="flex flex-col gap-3 mb-8">
-                    {/* Primary: Browse Experiences */}
                     <button
                         onClick={() => onNavigate('exclusiveExperiences')}
-                        className="w-full flex items-center justify-between bg-amber-400 text-black font-bold text-base rounded-2xl px-5 py-4 shadow-lg shadow-amber-400/20 hover:bg-amber-300 active:scale-[0.98] transition-all"
+                        className="w-full flex items-center justify-between font-bold text-base rounded-2xl px-5 py-4 active:scale-[0.98] transition-all text-white"
+                        style={{
+                            background: '#EC4899',
+                            boxShadow: '0 8px 24px rgba(236,72,153,0.30)'
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#db2777')}
+                        onMouseLeave={e => (e.currentTarget.style.background = '#EC4899')}
                         aria-label="Browse upcoming VIP experiences"
                         id="home-browse-experiences"
                     >
@@ -103,10 +111,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                             <SparkleIcon className="w-5 h-5" />
                             Browse Experiences
                         </span>
-                        <span className="text-black/50 text-xl">→</span>
+                        <span className="text-white/60 text-xl">→</span>
                     </button>
 
-                    {/* Secondary: My Bookings */}
                     <button
                         onClick={() => onNavigate('bookings')}
                         className="w-full flex items-center justify-between bg-white/5 border border-white/10 text-white font-semibold text-base rounded-2xl px-5 py-4 hover:bg-white/10 active:scale-[0.98] transition-all"
@@ -121,7 +128,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     </button>
                 </div>
 
-                {/* ── Exclusivity Cues ───────────────────────────── */}
+                {/* ── Exclusivity Cues ──────────────────────────────── */}
                 <div className="flex flex-wrap gap-2 mb-10">
                     <ExclusivityPill
                         icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
@@ -141,17 +148,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     />
                 </div>
 
-                {/* ── Membership Status Hint ─────────────────────── */}
+                {/* ── Membership Status ─────────────────────────────── */}
                 {!isAdmin && !isWingman && (
-                    <div className={`rounded-2xl px-4 py-3 border flex items-center justify-between ${
-                        isApproved && hasActiveSub
-                            ? 'bg-green-900/20 border-green-700/30'
-                            : 'bg-amber-900/20 border-amber-700/30'
-                    }`}>
+                    <div
+                        className="rounded-2xl px-4 py-3 border flex items-center justify-between"
+                        style={
+                            isApproved && hasActiveSub
+                                ? { background: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.25)' }
+                                : { background: 'rgba(236,72,153,0.07)', borderColor: 'rgba(236,72,153,0.25)' }
+                        }
+                    >
                         <div>
-                            <p className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${
-                                isApproved && hasActiveSub ? 'text-green-400' : 'text-amber-400'
-                            }`}>
+                            <p
+                                className="text-xs font-bold uppercase tracking-wide mb-0.5"
+                                style={{ color: isApproved && hasActiveSub ? '#22c55e' : '#EC4899' }}
+                            >
                                 {isApproved && hasActiveSub ? 'Access Active' : 'Access Pending'}
                             </p>
                             <p className="text-xs text-gray-400">
@@ -164,7 +175,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                         {!(isApproved && hasActiveSub) && (
                             <button
                                 onClick={() => onNavigate('promoterApplication')}
-                                className="text-xs font-bold text-amber-400 border border-amber-400/40 rounded-full px-3 py-1.5 hover:bg-amber-400/10 transition-colors ml-3 whitespace-nowrap"
+                                className="text-xs font-bold rounded-full px-3 py-1.5 transition-colors ml-3 whitespace-nowrap"
+                                style={{
+                                    color: '#EC4899',
+                                    border: '1px solid rgba(236,72,153,0.4)'
+                                }}
                             >
                                 Apply
                             </button>
@@ -172,7 +187,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     </div>
                 )}
 
-                {/* ── Tertiary: Event Timeline (demoted) ─────────── */}
+                {/* ── Tertiary link ─────────────────────────────────── */}
                 <button
                     onClick={() => onNavigate('eventTimeline')}
                     className="mt-4 w-full flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm py-2 transition-colors"
