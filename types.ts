@@ -299,6 +299,62 @@ export interface Experience {
   hostId?: number;             // ID of the Wingman/host user
 }
 
+// ─── Recurring Event System ───────────────────────────────────────────────────
+
+export type ExperienceType = 'Nightclub' | 'Dinner' | 'Yacht';
+
+/** One entry in the master weekly schedule (day + venue + rules) */
+export interface WeeklyScheduleEntry {
+  id: string;                        // e.g. 'tue-nightclub-mr-jones'
+  dayOfWeek: 0|1|2|3|4|5|6;         // 0=Sun … 6=Sat
+  experienceType: ExperienceType;
+  title: string;                     // e.g. 'Wingman @ Mr. Jones'
+  venue: string;
+  address: string;
+  time: string;                      // e.g. '10:00 PM'
+  pricePerPerson: number;
+  totalCapacity: number;
+  bookingRules: {
+    maxPerBooking?: number;          // Dinner: 2
+    minMenPerBooking?: number;       // Nightclub: 2
+  };
+  coverImage: string;
+  isActive: boolean;
+  adminNotes?: string;
+}
+
+/** A concrete dated occurrence of a WeeklyScheduleEntry */
+export interface EventInstance {
+  instanceId: string;                // e.g. 'tue-nightclub-mr-jones-2025-04-22'
+  scheduleId: string;                // ref to WeeklyScheduleEntry.id
+  title: string;
+  venue: string;
+  address: string;
+  experienceType: ExperienceType;
+  date: string;                      // 'YYYY-MM-DD'
+  time: string;
+  pricePerPerson: number;
+  totalCapacity: number;
+  spotsBooked: number;               // live counter
+  bookingRules: WeeklyScheduleEntry['bookingRules'];
+  coverImage: string;
+  status: 'available' | 'limited' | 'sold-out' | 'cancelled';
+  isCancelledByAdmin?: boolean;
+  adminNotes?: string;
+}
+
+/** A user's confirmed booking for an EventInstance */
+export interface InstanceBooking {
+  id: string;
+  instanceId: string;
+  userId: number;
+  partySize: number;                 // how many spots consumed
+  totalPaid: number;
+  bookedAt: string;                  // ISO timestamp
+  guestName: string;
+  guestEmail: string;
+}
+
 export interface ConfirmedExperienceBookingDetails {
   experienceTitle: string;
   total: number;

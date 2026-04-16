@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest } from './types';
+import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
 import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
 
 // Component Imports
@@ -11,6 +11,7 @@ import { PromoterProfile } from './components/PromoterProfile';
 import { BookATablePage } from './components/BookATablePage';
 import { EventTimeline } from './components/EventTimeline';
 import { ExclusiveExperiencesPage } from './components/ExclusiveExperiencesPage';
+import { WingmanEventFeed } from './components/WingmanEventFeed';
 import { ChallengesPage } from './components/ChallengesPage';
 import { FriendsZonePage } from './components/FriendsZonePage';
 import { StorePage } from './components/StorePage';
@@ -218,6 +219,19 @@ export const App: React.FC = () => {
     // Membership access requests — separate system from PromoterApplication
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
     const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
+
+    // ── Recurring Event System ────────────────────────────────────────────────
+    const [instanceBookings, setInstanceBookings] = useState<InstanceBooking[]>([]);
+    // bookedMap: { [instanceId]: total spots booked across all users }
+    const bookedMap = useMemo(() => {
+        const m: Record<string, number> = {};
+        for (const b of instanceBookings) {
+            m[b.instanceId] = (m[b.instanceId] ?? 0) + b.partySize;
+        }
+        return m;
+    }, [instanceBookings]);
+    // cancelMap: { [instanceId]: true } — admin-cancelled instances
+    const [cancelMap, setCancelMap] = useState<Record<string, boolean>>({});
 
     // Chat State
     const [guestlistChats, setGuestlistChats] = useState<GuestlistChat[]>(mockGuestlistChats);
@@ -1069,19 +1083,28 @@ export const App: React.FC = () => {
                     onBookEvent={handleBookEvent}
                 />;
             case 'exclusiveExperiences':
-                return <ExclusiveExperiencesPage 
-                    currentUser={currentUser} 
-                    onBookExperience={(exp) => setActiveModal({ type: 'experienceBooking', experience: exp })} 
-                    venueFilter={pageParams.venue || null} 
-                    onClearFilter={() => handleNavigate('exclusiveExperiences')} 
-                    experienceRequests={experienceInvitationRequests}
-                    onRequestAccess={handleRequestExperienceAccess}
-                    venues={appVenues}
-                    onJoinGuestlist={handleOpenGuestlistModal}
-                    likedExperienceIds={likedExperienceIds}
-                    onToggleLikeExperience={handleToggleLikeExperience}
-                    bookmarkedExperienceIds={bookmarkedExperienceIds}
-                    onToggleBookmarkExperience={handleToggleBookmarkExperience}
+                return <WingmanEventFeed
+                    currentUser={currentUser}
+                    bookedMap={bookedMap}
+                    instanceBookings={instanceBookings}
+                    onBook={(booking) => {
+                        const newBooking: InstanceBooking = {
+                            ...booking,
+                            id: `ib-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                            bookedAt: new Date().toISOString(),
+                        };
+                        setInstanceBookings(prev => [...prev, newBooking]);
+                        showToast(`Booked! ${booking.partySize} spot${booking.partySize !== 1 ? 's' : ''} confirmed.`, 'success');
+                    }}
+                    cancelMap={cancelMap}
+                    onAdminCancel={(id) => {
+                        setCancelMap(prev => ({ ...prev, [id]: true }));
+                        showToast('Event instance cancelled.', 'success');
+                    }}
+                    onAdminRestore={(id) => {
+                        setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; });
+                        showToast('Event instance restored.', 'success');
+                    }}
                 />;
             case 'challenges':
                 return <ChallengesPage 
