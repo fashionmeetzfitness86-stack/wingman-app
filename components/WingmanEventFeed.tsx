@@ -76,7 +76,7 @@ const TYPE_CONFIG: Record<ExperienceType, { icon: React.ReactNode; color: string
 
 const STATUS_CONFIG = {
   'available': { label: 'Available',  color: '#22c55e', dot: '#22c55e' },
-  'limited':   { label: 'Limited',    color: '#F59E0B', dot: '#F59E0B' },
+  'limited':   { label: 'Limited',    color: '#E040FB', dot: '#E040FB' },
   'sold-out':  { label: 'Sold Out',   color: '#EF4444', dot: '#EF4444' },
   'cancelled': { label: 'Cancelled',  color: '#6B7280', dot: '#6B7280' },
 };
@@ -93,6 +93,7 @@ interface WingmanEventFeedProps {
   bookmarkedInstanceIds: string[];
   onToggleBookmark: (instanceId: string) => void;
   onBook: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
+  onNavigateToPlans?: () => void;
   cancelMap: Record<string, boolean>;
   onAdminCancel?: (instanceId: string) => void;
   onAdminRestore?: (instanceId: string) => void;
@@ -152,14 +153,17 @@ const EventCard: React.FC<{
             aria-label={isBookmarked ? 'Remove from watchlist' : 'Save to watchlist'}
           >
             <IconBookmark className="w-4 h-4" filled={isBookmarked}
-              style={{ color: isBookmarked ? '#EC4899' : 'white' } as React.CSSProperties}
+              style={{ color: isBookmarked ? '#E040FB' : 'rgba(255,255,255,0.7)' } as React.CSSProperties}
             />
           </button>
         </div>
 
         {/* Booked badge */}
         {isBooked && (
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-[#EC4899] rounded-full px-2.5 py-1 text-xs font-bold text-white">
+          <div
+            className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}
+          >
             <IconCheck className="w-3.5 h-3.5" /> Booked
           </div>
         )}
@@ -177,21 +181,32 @@ const EventCard: React.FC<{
           <span>{instance.time}</span>
         </div>
 
-        {/* Capacity bar */}
+        {/* Capacity bar + urgency label */}
         <div className="mb-3">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-500 flex items-center gap-1">
+            <span className="text-xs flex items-center gap-1" style={{
+              color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
+              fontWeight: spotsLeft <= 2 ? 700 : 400,
+            }}>
               <IconUsers className="w-3 h-3" />
-              {spotsLeft > 0 ? `${spotsLeft} of ${instance.totalCapacity} spots left` : 'No spots left'}
+              {spotsLeft <= 0
+                ? 'No spots left'
+                : spotsLeft === 1
+                ? '🔴 1 spot left!'
+                : spotsLeft === 2
+                ? '⚡ 2 spots left'
+                : spotsLeft <= 5
+                ? `${spotsLeft} spots left`
+                : `${spotsLeft} of ${instance.totalCapacity} spots`}
             </span>
             <span className="text-xs font-bold" style={{ color: sc.color }}>{sc.label}</span>
           </div>
-          <div className="h-1.5 rounded-full bg-gray-800 overflow-hidden">
+          <div className="h-1 rounded-full bg-gray-800/60 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${pct}%`,
-                background: pct >= 100 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22c55e'
+                background: pct >= 100 ? '#EF4444' : pct >= 90 ? '#EF4444' : pct >= 70 ? '#E040FB' : '#22c55e'
               }}
             />
           </div>
@@ -205,16 +220,17 @@ const EventCard: React.FC<{
           </div>
           <button
             onClick={e => { e.stopPropagation(); onOpen(); }}
-            className="text-xs font-bold rounded-full px-4 py-2 transition-all"
+            disabled={instance.status === 'sold-out' || instance.status === 'cancelled'}
+            className="text-xs font-bold rounded-full px-4 py-2 transition-all disabled:cursor-not-allowed"
             style={
               isBooked
-                ? { background: 'rgba(236,72,153,0.12)', color: '#EC4899', border: '1px solid rgba(236,72,153,0.3)' }
+                ? { background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
                 : instance.status === 'sold-out' || instance.status === 'cancelled'
-                ? { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }
-                : { background: '#EC4899', color: '#fff' }
+                ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)' }
+                : { background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 4px 12px rgba(224,64,251,0.25)' }
             }
           >
-            {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Book Now'}
+            {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve Spot'}
           </button>
         </div>
       </div>
@@ -231,10 +247,11 @@ const BookingModal: React.FC<{
   existingBooking?: InstanceBooking;
   onClose: () => void;
   onConfirm: (partySize: number) => void;
+  onNavigateToPlans?: () => void;
   isAdmin: boolean;
   onAdminCancel?: () => void;
   onAdminRestore?: () => void;
-}> = ({ instance, currentUser, isBooked, existingBooking, onClose, onConfirm, isAdmin, onAdminCancel, onAdminRestore }) => {
+}> = ({ instance, currentUser, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans, isAdmin, onAdminCancel, onAdminRestore }) => {
   const [partySize, setPartySize] = useState(1);
   const [step, setStep] = useState<'detail' | 'confirm' | 'done'>(isBooked ? 'done' : 'detail');
   const [ruleError, setRuleError] = useState('');
@@ -407,26 +424,33 @@ const BookingModal: React.FC<{
             </div>
           )}
 
-          {/* ── Step: Done ── */}
+          {/* ── Step: Done (reserved — pending payment) ── */}
           {step === 'done' && (
             <div className="flex flex-col items-center py-6 gap-4 text-center">
               <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(34,197,94,0.12)' }}>
-                <IconCheck className="w-8 h-8 text-green-400" />
+                style={{ background: 'rgba(236,72,153,0.12)' }}>
+                <IconCheck className="w-8 h-8" style={{ color: '#EC4899' } as React.CSSProperties} />
               </div>
               <div>
-                <p className="font-bold text-white text-lg mb-1">
-                  {isBooked && step === 'done' && !existingBooking ? 'Booking Confirmed!' : 'You\'re already booked!'}
+                <p className="font-bold text-white text-lg mb-1">Spot Reserved! 🎉</p>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {existingBooking
+                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — fully paid`
+                    : 'Your spot is held. Go to My Plans to complete your payment and lock in your booking.'}
                 </p>
-                {existingBooking && (
-                  <p className="text-sm text-gray-400">
-                    {existingBooking.partySize} spot{existingBooking.partySize !== 1 ? 's' : ''} · ${existingBooking.totalPaid.toLocaleString()} paid
-                  </p>
-                )}
               </div>
+              {!existingBooking && onNavigateToPlans && (
+                <button
+                  onClick={() => { onClose(); onNavigateToPlans(); }}
+                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
+                  style={{ background: '#EC4899', boxShadow: '0 8px 24px rgba(236,72,153,0.25)' }}
+                >
+                  Go to My Plans →
+                </button>
+              )}
               <button onClick={onClose}
-                className="text-sm font-semibold text-white border border-gray-700 rounded-full px-6 py-2.5 hover:bg-gray-800 transition-colors">
-                Close
+                className="text-sm font-semibold text-gray-500 hover:text-gray-300 transition-colors">
+                {existingBooking ? 'Close' : 'I\'ll pay later'}
               </button>
             </div>
           )}
@@ -472,6 +496,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   bookmarkedInstanceIds,
   onToggleBookmark,
   onBook,
+  onNavigateToPlans,
   cancelMap,
   onAdminCancel,
   onAdminRestore,
@@ -731,6 +756,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           existingBooking={getUserBooking(selected)}
           onClose={() => setSelected(null)}
           onConfirm={canBook ? handleBook : () => {}}
+          onNavigateToPlans={onNavigateToPlans}
           isAdmin={isAdmin}
           onAdminCancel={onAdminCancel ? () => { onAdminCancel(selected.instanceId); setSelected(null); } : undefined}
           onAdminRestore={onAdminRestore ? () => { onAdminRestore(selected.instanceId); setSelected(null); } : undefined}

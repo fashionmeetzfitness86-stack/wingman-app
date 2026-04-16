@@ -16,9 +16,11 @@ interface HomeScreenProps {
 }
 
 const ExclusivityPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
-  <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-    <span style={{ color: '#EC4899' }}>{icon}</span>
-    <span className="text-xs font-semibold text-gray-300 whitespace-nowrap">{label}</span>
+  <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+  >
+    <span style={{ color: '#E040FB' }}>{icon}</span>
+    <span className="text-xs font-semibold text-gray-400 whitespace-nowrap">{label}</span>
   </div>
 );
 
@@ -41,8 +43,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                 <div className="flex items-center gap-3">
                     <WingmanLogo className="w-9 h-9" />
                     <h1
-                        className="font-poppins font-black text-3xl tracking-tighter text-[var(--color-foreground)]"
-                        style={{ letterSpacing: '-0.05em' }}
+                        className="font-black text-3xl tracking-tighter text-white"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '-0.04em' }}
                     >
                         WINGMAN
                     </h1>
@@ -53,9 +55,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                             onClick={handleDashboardShortcut}
                             className="text-xs font-semibold rounded-full px-3 py-1.5 transition-colors"
                             style={{
-                                color: '#EC4899',
-                                border: '1px solid rgba(236,72,153,0.3)',
-                                background: 'rgba(236,72,153,0.08)'
+                                color: '#E040FB',
+                                border: '1px solid rgba(224,64,251,0.3)',
+                                background: 'rgba(224,64,251,0.06)'
                             }}
                             aria-label="Open dashboard"
                         >
@@ -68,44 +70,54 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                             className="p-2 rounded-full text-white hover:bg-white/10 transition-colors"
                             aria-label="Open menu"
                         >
-                            <MenuIcon className="w-7 h-7" />
+                            <MenuIcon className="w-6 h-6" />
                         </button>
                     )}
                 </div>
             </header>
 
             {/* ── Hero ────────────────────────────────────────────── */}
-            <main className="flex-grow px-6 pt-6 pb-8 flex flex-col">
+            <main className="flex-grow px-6 pt-4 pb-8 flex flex-col">
 
                 <div className="mb-8">
-                    <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#EC4899' }}>
-                        Members Only Platform
+                    <p className="text-[11px] font-bold tracking-widest uppercase mb-3"
+                        style={{
+                            background: 'linear-gradient(90deg, #E040FB, #00D4FF)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                        }}
+                    >
+                        Members Only
                     </p>
                     <h2
-                        className="font-poppins font-black text-4xl md:text-5xl leading-tight text-white mb-4"
-                        style={{ letterSpacing: '-0.03em' }}
+                        className="font-black text-4xl md:text-5xl leading-tight text-white mb-4"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '-0.03em' }}
                     >
                         Exclusive<br />
                         Experiences.<br />
-                        <span style={{ color: '#EC4899' }}>Limited Access.</span>
+                        <span style={{
+                            background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                        }}>Limited Access.</span>
                     </h2>
-                    <p className="text-gray-400 text-base leading-relaxed max-w-sm">
-                        Browse upcoming Wingman experiences, reserve your spot, and access curated VIP events — available to approved members only.
+                    <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Scroll through upcoming Wingman experiences and reserve your spot. Weekly events. Curated venues. Limited seats.
                     </p>
                 </div>
 
-                {/* ── Primary CTAs ──────────────────────────────────── */}
-                <div className="flex flex-col gap-3 mb-8">
+                {/* ── Primary CTA — Event Feed is #1 ─────────────── */}
+                <div className="flex flex-col gap-3 mb-7">
                     <button
-                        onClick={() => onNavigate('exclusiveExperiences')}
+                        onClick={() => onNavigate('eventTimeline')}
                         className="w-full flex items-center justify-between font-bold text-base rounded-2xl px-5 py-4 active:scale-[0.98] transition-all text-white"
                         style={{
-                            background: '#EC4899',
-                            boxShadow: '0 8px 24px rgba(236,72,153,0.30)'
+                            background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
+                            boxShadow: '0 8px 28px rgba(224,64,251,0.25)'
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#db2777')}
-                        onMouseLeave={e => (e.currentTarget.style.background = '#EC4899')}
-                        aria-label="Browse upcoming VIP experiences"
+                        aria-label="Browse upcoming experiences"
                         id="home-browse-experiences"
                     >
                         <span className="flex items-center gap-2">
@@ -116,28 +128,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     </button>
 
                     <button
-                        onClick={() => onNavigate('bookings')}
-                        className="w-full flex items-center justify-between bg-white/5 border border-white/10 text-white font-semibold text-base rounded-2xl px-5 py-4 hover:bg-white/10 active:scale-[0.98] transition-all"
-                        aria-label="View my bookings"
-                        id="home-my-bookings"
+                        onClick={() => onNavigate('checkout')}
+                        className="w-full flex items-center justify-between font-semibold text-sm rounded-2xl px-5 py-4 active:scale-[0.98] transition-all text-white"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        aria-label="View my plans"
+                        id="home-my-plans"
                     >
                         <span className="flex items-center gap-2">
-                            <BookIcon className="w-5 h-5 text-gray-400" />
-                            My Bookings
+                            <BookIcon className="w-4 h-4 text-gray-400" />
+                            My Plans
                         </span>
-                        <span className="text-white/30 text-xl">→</span>
+                        <span className="text-white/20 text-xl">→</span>
                     </button>
                 </div>
 
                 {/* ── Exclusivity Cues ──────────────────────────────── */}
-                <div className="flex flex-wrap gap-2 mb-10">
+                <div className="flex flex-wrap gap-2 mb-8">
                     <ExclusivityPill
                         icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
                         label="Approved Members Only"
                     />
                     <ExclusivityPill
                         icon={<CalendarIcon className="w-3.5 h-3.5" />}
-                        label="Pre-Scheduled Dates"
+                        label="Weekly Events"
                     />
                     <ExclusivityPill
                         icon={
@@ -145,7 +158,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         }
-                        label="Limited Spots Per Event"
+                        label="Limited Capacity"
                     />
                 </div>
 
@@ -155,20 +168,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                         className="rounded-2xl px-4 py-3 border flex items-center justify-between"
                         style={
                             isApproved && hasActiveSub
-                                ? { background: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.25)' }
-                                : { background: 'rgba(236,72,153,0.07)', borderColor: 'rgba(236,72,153,0.25)' }
+                                ? { background: 'rgba(34,197,94,0.06)', borderColor: 'rgba(34,197,94,0.2)' }
+                                : { background: 'rgba(224,64,251,0.05)', borderColor: 'rgba(224,64,251,0.2)' }
                         }
                     >
                         <div>
                             <p
                                 className="text-xs font-bold uppercase tracking-wide mb-0.5"
-                                style={{ color: isApproved && hasActiveSub ? '#22c55e' : '#EC4899' }}
+                                style={{ color: isApproved && hasActiveSub ? '#22c55e' : '#E040FB' }}
                             >
-                                {isApproved && hasActiveSub ? 'Access Active' : 'Access Pending'}
+                                {isApproved && hasActiveSub ? '✓ Access Active' : 'Access Pending'}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-500">
                                 {isApproved && hasActiveSub
-                                    ? 'Your membership is approved and active. You may book.'
+                                    ? 'Membership approved. You may book experiences.'
                                     : 'Booking requires an approved account and active membership.'
                                 }
                             </p>
@@ -178,27 +191,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                                 onClick={() => onRequestAccess?.()}
                                 className="text-xs font-bold rounded-full px-3 py-1.5 transition-colors ml-3 whitespace-nowrap"
                                 style={{
-                                    color: '#EC4899',
-                                    border: '1px solid rgba(236,72,153,0.4)'
+                                    color: '#E040FB',
+                                    border: '1px solid rgba(224,64,251,0.35)',
+                                    background: 'rgba(224,64,251,0.06)',
                                 }}
                             >
-                                Apply
+                                Apply →
                             </button>
                         )}
                     </div>
                 )}
-
-                {/* ── Tertiary link ─────────────────────────────────── */}
-                <button
-                    onClick={() => onNavigate('eventTimeline')}
-                    className="mt-4 w-full flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm py-2 transition-colors"
-                    aria-label="View event timeline"
-                    id="home-event-timeline"
-                >
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>View Event Timeline</span>
-                    <span className="text-gray-700">→</span>
-                </button>
             </main>
         </div>
     );
