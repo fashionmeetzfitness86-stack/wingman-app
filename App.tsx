@@ -273,7 +273,9 @@ export const App: React.FC = () => {
     const [previewUser, setPreviewUser] = useState<User | null>(null);
 
     // Flags
-    const [hasOnboarded, setHasOnboarded] = useState(false);
+    // TODO: Re-enable auth flow when email-approval login system is ready.
+    // Set to false to restore the OnboardingModal / login screen.
+    const [hasOnboarded, setHasOnboarded] = useState(true);
 
     // Persistence Effects
     useEffect(() => { localStorage.setItem('wingman_users', JSON.stringify(appUsers)); }, [appUsers]);
