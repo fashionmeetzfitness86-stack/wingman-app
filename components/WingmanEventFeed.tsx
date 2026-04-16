@@ -93,6 +93,7 @@ interface WingmanEventFeedProps {
   bookmarkedInstanceIds: string[];
   onToggleBookmark: (instanceId: string) => void;
   onBook: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
+  onNavigateToPlans?: () => void;
   cancelMap: Record<string, boolean>;
   onAdminCancel?: (instanceId: string) => void;
   onAdminRestore?: (instanceId: string) => void;
@@ -231,10 +232,11 @@ const BookingModal: React.FC<{
   existingBooking?: InstanceBooking;
   onClose: () => void;
   onConfirm: (partySize: number) => void;
+  onNavigateToPlans?: () => void;
   isAdmin: boolean;
   onAdminCancel?: () => void;
   onAdminRestore?: () => void;
-}> = ({ instance, currentUser, isBooked, existingBooking, onClose, onConfirm, isAdmin, onAdminCancel, onAdminRestore }) => {
+}> = ({ instance, currentUser, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans, isAdmin, onAdminCancel, onAdminRestore }) => {
   const [partySize, setPartySize] = useState(1);
   const [step, setStep] = useState<'detail' | 'confirm' | 'done'>(isBooked ? 'done' : 'detail');
   const [ruleError, setRuleError] = useState('');
@@ -407,26 +409,33 @@ const BookingModal: React.FC<{
             </div>
           )}
 
-          {/* ── Step: Done ── */}
+          {/* ── Step: Done (reserved — pending payment) ── */}
           {step === 'done' && (
             <div className="flex flex-col items-center py-6 gap-4 text-center">
               <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(34,197,94,0.12)' }}>
-                <IconCheck className="w-8 h-8 text-green-400" />
+                style={{ background: 'rgba(236,72,153,0.12)' }}>
+                <IconCheck className="w-8 h-8" style={{ color: '#EC4899' } as React.CSSProperties} />
               </div>
               <div>
-                <p className="font-bold text-white text-lg mb-1">
-                  {isBooked && step === 'done' && !existingBooking ? 'Booking Confirmed!' : 'You\'re already booked!'}
+                <p className="font-bold text-white text-lg mb-1">Spot Reserved! 🎉</p>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {existingBooking
+                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — fully paid`
+                    : 'Your spot is held. Go to My Plans to complete your payment and lock in your booking.'}
                 </p>
-                {existingBooking && (
-                  <p className="text-sm text-gray-400">
-                    {existingBooking.partySize} spot{existingBooking.partySize !== 1 ? 's' : ''} · ${existingBooking.totalPaid.toLocaleString()} paid
-                  </p>
-                )}
               </div>
+              {!existingBooking && onNavigateToPlans && (
+                <button
+                  onClick={() => { onClose(); onNavigateToPlans(); }}
+                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
+                  style={{ background: '#EC4899', boxShadow: '0 8px 24px rgba(236,72,153,0.25)' }}
+                >
+                  Go to My Plans →
+                </button>
+              )}
               <button onClick={onClose}
-                className="text-sm font-semibold text-white border border-gray-700 rounded-full px-6 py-2.5 hover:bg-gray-800 transition-colors">
-                Close
+                className="text-sm font-semibold text-gray-500 hover:text-gray-300 transition-colors">
+                {existingBooking ? 'Close' : 'I\'ll pay later'}
               </button>
             </div>
           )}
@@ -472,6 +481,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   bookmarkedInstanceIds,
   onToggleBookmark,
   onBook,
+  onNavigateToPlans,
   cancelMap,
   onAdminCancel,
   onAdminRestore,
@@ -731,6 +741,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           existingBooking={getUserBooking(selected)}
           onClose={() => setSelected(null)}
           onConfirm={canBook ? handleBook : () => {}}
+          onNavigateToPlans={onNavigateToPlans}
           isAdmin={isAdmin}
           onAdminCancel={onAdminCancel ? () => { onAdminCancel(selected.instanceId); setSelected(null); } : undefined}
           onAdminRestore={onAdminRestore ? () => { onAdminRestore(selected.instanceId); setSelected(null); } : undefined}

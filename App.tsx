@@ -223,14 +223,22 @@ export const App: React.FC = () => {
 
     // ── Recurring Event System ────────────────────────────────────────────────
     const [instanceBookings, setInstanceBookings] = useState<InstanceBooking[]>([]);
-    // bookedMap: { [instanceId]: total spots booked across all users }
+    // pendingCartReservations: { [instanceId]: partySize } — spots held in cart awaiting payment
+    const [pendingCartReservations, setPendingCartReservations] = useState<Record<string, number>>({});
+    // cartInstanceMeta: { [cartItemId]: { instanceId, partySize } } — used at checkout to create InstanceBookings
+    const [cartInstanceMeta, setCartInstanceMeta] = useState<Record<string, { instanceId: string; partySize: number }>>({});
+    // bookedMap: { [instanceId]: total spots taken (confirmed + cart-pending) }
     const bookedMap = useMemo(() => {
         const m: Record<string, number> = {};
         for (const b of instanceBookings) {
             m[b.instanceId] = (m[b.instanceId] ?? 0) + b.partySize;
         }
+        // Also count spots held in cart (reserved but not yet paid)
+        for (const [instId, size] of Object.entries(pendingCartReservations)) {
+            m[instId] = (m[instId] ?? 0) + size;
+        }
         return m;
-    }, [instanceBookings]);
+    }, [instanceBookings, pendingCartReservations]);
     // cancelMap: { [instanceId]: true } — admin-cancelled instances
     const [cancelMap, setCancelMap] = useState<Record<string, boolean>>({});
 
@@ -363,7 +371,7 @@ export const App: React.FC = () => {
     const handleConfirmCheckout = (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
         const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
         const timestamp = Date.now();
-        
+
         const newBookedItems = itemsToBook.map(item => ({
             ...item,
             bookedTimestamp: timestamp,
@@ -373,16 +381,48 @@ export const App: React.FC = () => {
 
         setBookedItems(prev => [...prev, ...newBookedItems]);
         setCartItems(prev => prev.filter(i => !itemIds.includes(i.id)));
-        
-        // Ensure items are removed from watchlist if they were added via "Add to Cart" directly from event page while also being bookmarked
-        setWatchlist(prev => prev.filter(w => !itemsToBook.some(b => 
+
+        // Convert any pending instance cart items to confirmed InstanceBookings
+        const newInstanceBookings: InstanceBooking[] = [];
+        for (const id of itemIds) {
+            const meta = cartInstanceMeta[id];
+            if (meta) {
+                newInstanceBookings.push({
+                    id: `ib-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    instanceId: meta.instanceId,
+                    userId: currentUser.id,
+                    partySize: meta.partySize,
+                    totalPaid: itemsToBook.find(i => i.id === id)?.fullPrice ?? 0,
+                    bookedAt: new Date().toISOString(),
+                    guestName: currentUser.name,
+                    guestEmail: currentUser.email ?? '',
+                });
+                // Release the pending reservation (now confirmed)
+                setPendingCartReservations(prev => {
+                    const n = { ...prev }; delete n[meta.instanceId]; return n;
+                });
+            }
+        }
+        if (newInstanceBookings.length > 0) {
+            setInstanceBookings(prev => [...prev, ...newInstanceBookings]);
+        }
+        // Clear meta for paid items
+        setCartInstanceMeta(prev => {
+            const n = { ...prev };
+            itemIds.forEach(id => delete n[id]);
+            return n;
+        });
+
+        // Ensure items are removed from watchlist if they were also bookmarked
+        setWatchlist(prev => prev.filter(w => !itemsToBook.some(b =>
             (b.type === 'event' && w.type === 'event' && b.eventDetails?.event.id === w.eventDetails?.event.id) ||
             (b.type === 'experience' && w.type === 'experience' && b.experienceDetails?.experience.id === w.experienceDetails?.experience.id) ||
-            (b.id === w.id) 
+            (b.id === w.id)
         )));
-        
+
         handleNavigate('bookingConfirmed', { items: newBookedItems });
     };
+
 
     const handleStartBookingChat = (item: CartItem) => {
         if (item.type === 'table' || item.type === 'guestlist') {
@@ -1075,14 +1115,37 @@ export const App: React.FC = () => {
                         prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
                     )}
                     onBook={(booking) => {
-                        const newBooking: InstanceBooking = {
-                            ...booking,
-                            id: `ib-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                            bookedAt: new Date().toISOString(),
+                        // 1. Reserve spots immediately (visible in feed)
+                        setPendingCartReservations(prev => ({
+                            ...prev,
+                            [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize,
+                        }));
+
+                        // 2. Build a CartItem for the payment step
+                        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
+                        const inst = allInst.find(i => i.instanceId === booking.instanceId);
+                        const newCartItem: CartItem = {
+                            id: cartId,
+                            name: inst?.title ?? booking.instanceId,
+                            type: 'event',
+                            image: inst?.coverImage ?? '',
+                            date: inst?.date,
+                            sortableDate: inst?.date,
+                            fullPrice: booking.totalPaid,
+                            depositPrice: booking.totalPaid,
+                            paymentOption: 'full',
+                            bookedTimestamp: Date.now(),
                         };
-                        setInstanceBookings(prev => [...prev, newBooking]);
-                        showToast(`Booked! ${booking.partySize} spot${booking.partySize !== 1 ? 's' : ''} confirmed.`, 'success');
+                        setCartItems(prev => [...prev, newCartItem]);
+
+                        // 3. Store meta so checkout can create InstanceBooking on payment
+                        setCartInstanceMeta(prev => ({
+                            ...prev,
+                            [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize },
+                        }));
                     }}
+                    onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                     cancelMap={cancelMap}
                     onAdminCancel={(id) => {
                         setCancelMap(prev => ({ ...prev, [id]: true }));
