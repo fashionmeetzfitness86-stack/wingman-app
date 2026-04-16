@@ -220,13 +220,12 @@ const EventCard: React.FC<{
           </div>
           <button
             onClick={e => { e.stopPropagation(); onOpen(); }}
-            disabled={instance.status === 'sold-out' || instance.status === 'cancelled'}
-            className="text-xs font-bold rounded-full px-4 py-2 transition-all disabled:cursor-not-allowed"
+            className="text-xs font-bold rounded-full px-4 py-2 transition-all"
             style={
               isBooked
                 ? { background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
                 : instance.status === 'sold-out' || instance.status === 'cancelled'
-                ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)' }
+                ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)', cursor: 'default' }
                 : { background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 4px 12px rgba(224,64,251,0.25)' }
             }
           >
@@ -291,12 +290,18 @@ const BookingModal: React.FC<{
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-[#111] rounded-t-3xl sm:rounded-3xl overflow-hidden"
-        style={{ border: '1px solid rgba(255,255,255,0.1)', maxHeight: '92vh', overflowY: 'auto' }}
+        className="w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden"
+        style={{
+          background: '#161616',
+          border: '1px solid rgba(255,255,255,0.12)',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          boxShadow: '0 -8px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Cover */}
