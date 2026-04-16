@@ -1104,6 +1104,43 @@ export const App: React.FC = () => {
                     promoters={appPromoters}
                     onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ promoter: p, venue: v })}
                     guestlistJoinRequests={guestlistJoinRequests}
+                    bookedMap={bookedMap}
+                    cancelMap={cancelMap}
+                    instanceBookings={instanceBookings}
+                    bookmarkedInstanceIds={bookmarkedInstanceIds}
+                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev =>
+                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                    )}
+                    onBook={(booking) => {
+                        // 1. Reserve spots immediately
+                        setPendingCartReservations(prev => ({
+                            ...prev,
+                            [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize,
+                        }));
+                        // 2. Build CartItem for payment step
+                        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
+                        const inst = allInst.find(i => i.instanceId === booking.instanceId);
+                        const newCartItem: CartItem = {
+                            id: cartId,
+                            name: inst?.title ?? booking.instanceId,
+                            type: 'event',
+                            image: inst?.coverImage ?? '',
+                            date: inst?.date,
+                            sortableDate: inst?.date,
+                            fullPrice: booking.totalPaid,
+                            depositPrice: booking.totalPaid,
+                            paymentOption: 'full',
+                            bookedTimestamp: Date.now(),
+                        };
+                        setCartItems(prev => [...prev, newCartItem]);
+                        // 3. Store meta for checkout conversion
+                        setCartInstanceMeta(prev => ({
+                            ...prev,
+                            [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize },
+                        }));
+                    }}
+                    onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                 />;
             case 'eventTimeline':
             // fall-through: both routes render the same WingmanEventFeed
