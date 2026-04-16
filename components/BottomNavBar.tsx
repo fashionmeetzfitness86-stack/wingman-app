@@ -24,22 +24,43 @@ const NavItem: React.FC<{
   isActive: boolean;
   onClick: () => void;
   badgeCount?: number;
-}> = ({ icon, label, isActive, onClick, badgeCount }) => {
-  const activeClass = 'text-[#EC4899]';
-  const inactiveClass = 'text-gray-400';
-  
-  return (
-    <button onClick={onClick} className={`relative flex flex-col items-center justify-center gap-1 w-full pt-2 ${isActive ? activeClass : inactiveClass} hover:text-white transition-colors`}>
-      {icon}
-      <span className="text-xs font-medium">{label}</span>
-      {badgeCount !== undefined && badgeCount > 0 && (
-        <span className={`absolute top-1 right-4 w-5 h-5 bg-[#EC4899] text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-black`}>
-            {badgeCount > 9 ? '9+' : badgeCount}
-        </span>
-      )}
-    </button>
-  );
-};
+}> = ({ icon, label, isActive, onClick, badgeCount }) => (
+  <button
+    onClick={onClick}
+    className={`relative flex flex-col items-center justify-center gap-0.5 w-full pt-2 transition-all ${
+      isActive ? 'scale-105' : 'opacity-60 hover:opacity-90'
+    }`}
+    style={isActive ? { color: '#E040FB' } : { color: '#6B6B6B' }}
+  >
+    {/* Gradient glow dot under active item */}
+    {isActive && (
+      <span
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
+        style={{ background: 'linear-gradient(90deg, #E040FB, #00D4FF)' }}
+      />
+    )}
+    {icon}
+    <span
+      className="text-[10px] font-semibold"
+      style={isActive ? {
+        background: 'linear-gradient(90deg, #E040FB, #7B61FF, #00D4FF)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+      } : {}}
+    >
+      {label}
+    </span>
+    {badgeCount !== undefined && badgeCount > 0 && (
+      <span
+        className="absolute top-1 right-3 w-4 h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-black"
+        style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }}
+      >
+        {badgeCount > 9 ? '9+' : badgeCount}
+      </span>
+    )}
+  </button>
+);
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, currentPage, onNavigate, cartItemCount, onOpenMenu }) => {
   
@@ -51,39 +72,49 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
 
   if (isPrivileged) {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-lg border-t border-gray-800 z-40" aria-label="Main Navigation">
+      <nav
+        className="fixed bottom-0 left-0 right-0 h-[68px] z-40"
+        style={{
+          background: 'rgba(0,0,0,0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+        }}
+        aria-label="Main Navigation"
+      >
         <div className="container mx-auto h-full grid grid-cols-5 items-center justify-around px-2 relative">
             <NavItem
-                icon={<HomeIcon className="w-6 h-6" />}
+                icon={<HomeIcon className="w-5 h-5" />}
                 label="Home"
                 isActive={currentPage === 'home'}
                 onClick={() => onNavigate('home')}
             />
             <NavItem
-                icon={<ClockIcon className="w-6 h-6" />}
+                icon={<ClockIcon className="w-5 h-5" />}
                 label="Timeline"
                 isActive={currentPage === 'eventTimeline' || currentPage === 'exclusiveExperiences'}
                 onClick={() => onNavigate('eventTimeline')}
             />
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-                <button 
-                    onClick={() => onNavigate('bookATable')} 
-                    className="w-16 h-16 bg-[#EC4899] rounded-full flex items-center justify-center text-white shadow-lg shadow-[#EC4899]/30 border-4 border-black transition-transform hover:scale-110" 
-                    aria-label="Book a Table"
+                <button
+                    onClick={() => onNavigate('bookATable')}
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
+                    style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
+                    aria-label="Browse Venues"
                 >
-                    <BookIcon className="w-8 h-8"/>
+                    <BookIcon className="w-6 h-6"/>
                 </button>
             </div>
-            <div /> 
+            <div />
             <NavItem
-                icon={<CartIcon className="w-6 h-6" />}
+                icon={<CartIcon className="w-5 h-5" />}
                 label="My Plans"
                 isActive={currentPage === 'checkout'}
                 onClick={() => onNavigate('checkout')}
                 badgeCount={cartItemCount}
             />
             <NavItem
-                icon={<ChatIcon className="w-6 h-6" />}
+                icon={<ChatIcon className="w-5 h-5" />}
                 label="Chats"
                 isActive={currentPage === 'guestlistChats' || currentPage === 'eventChatsList'}
                 onClick={() => onNavigate('eventChatsList')}
@@ -95,44 +126,54 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
 
   // General Access view
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-lg border-t border-gray-800 z-40" aria-label="Main Navigation">
-        <div className="container mx-auto h-full grid grid-cols-5 items-center justify-around px-2 relative">
-            <NavItem
-                icon={<HomeIcon className="w-6 h-6" />}
-                label="Home"
-                isActive={currentPage === 'home'}
-                onClick={() => onNavigate('home')}
-            />
-            <NavItem
-                icon={<ClockIcon className="w-6 h-6" />}
-                label="Timeline"
-                isActive={currentPage === 'eventTimeline' || currentPage === 'exclusiveExperiences'}
-                onClick={() => onNavigate('eventTimeline')}
-            />
-             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-                <button 
-                    onClick={() => onNavigate('bookATable')} 
-                    className="w-16 h-16 bg-[#EC4899] rounded-full flex items-center justify-center text-white shadow-lg shadow-[#EC4899]/30 border-4 border-black transition-transform hover:scale-110" 
-                    aria-label="Book a Table"
-                >
-                    <BookIcon className="w-8 h-8"/>
-                </button>
-            </div>
-            <div />
-            <NavItem
-                icon={<CartIcon className="w-6 h-6" />}
-                label="My Plans"
-                isActive={currentPage === 'checkout'}
-                onClick={() => onNavigate('checkout')}
-                badgeCount={cartItemCount}
-            />
-            <NavItem
-                icon={<ProfileIcon className="w-6 h-6" />}
-                label="Profile"
-                isActive={currentPage === 'userProfile'}
-                onClick={() => onNavigate('userProfile')}
-            />
-        </div>
+    <nav
+      className="fixed bottom-0 left-0 right-0 h-[68px] z-40"
+      style={{
+        background: 'rgba(0,0,0,0.9)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }}
+      aria-label="Main Navigation"
+    >
+      <div className="container mx-auto h-full grid grid-cols-5 items-center justify-around px-2 relative">
+          <NavItem
+              icon={<HomeIcon className="w-5 h-5" />}
+              label="Home"
+              isActive={currentPage === 'home'}
+              onClick={() => onNavigate('home')}
+          />
+          <NavItem
+              icon={<ClockIcon className="w-5 h-5" />}
+              label="Timeline"
+              isActive={currentPage === 'eventTimeline' || currentPage === 'exclusiveExperiences'}
+              onClick={() => onNavigate('eventTimeline')}
+          />
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+              <button
+                  onClick={() => onNavigate('bookATable')}
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
+                  style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
+                  aria-label="Browse Venues"
+              >
+                  <BookIcon className="w-6 h-6"/>
+              </button>
+          </div>
+          <div />
+          <NavItem
+              icon={<CartIcon className="w-5 h-5" />}
+              label="My Plans"
+              isActive={currentPage === 'checkout'}
+              onClick={() => onNavigate('checkout')}
+              badgeCount={cartItemCount}
+          />
+          <NavItem
+              icon={<ProfileIcon className="w-5 h-5" />}
+              label="Profile"
+              isActive={currentPage === 'userProfile'}
+              onClick={() => onNavigate('userProfile')}
+          />
+      </div>
     </nav>
   );
 };

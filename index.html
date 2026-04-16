@@ -3,62 +3,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WINGMAN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Wingman — Your exclusive Miami nightlife concierge. Book curated experiences at elite venues." />
+    <meta property="og:title" content="Wingman" />
+    <meta property="og:description" content="Exclusive nightlife experiences curated by Wingman." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Wingman — Exclusive Experiences</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;800&family=Inter:wght@400;500&display=swap');
-      
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+      /* ── WINGMAN BRAND TOKENS ──────────────────────────────── */
       :root {
-        --color-background: #121212;
-        --color-foreground: #F9FAFB;
-        --color-card: #1C1C1E;
-        --color-card-foreground: #F9FAFB;
-        --color-primary: #EC4899;
+        /* Gradient: fuchsia → violet → cyan (from logo) */
+        --brand-start:  #E040FB;   /* fuchsia  */
+        --brand-mid:    #7B61FF;   /* violet   */
+        --brand-end:    #00D4FF;   /* cyan     */
+        --brand-gradient: linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%);
+        --brand-gradient-text: linear-gradient(90deg, #E040FB, #7B61FF, #00D4FF);
+
+        /* Surfaces */
+        --color-background: #000000;
+        --color-surface-1:  #0D0D0D;
+        --color-surface-2:  #141414;
+        --color-surface-3:  #1C1C1E;
+        --color-border:     rgba(255,255,255,0.08);
+        --color-border-strong: rgba(255,255,255,0.15);
+
+        /* Text */
+        --color-text:       #FFFFFF;
+        --color-text-muted: #6B6B6B;
+        --color-text-sub:   #A0A0A0;
+
+        /* Legacy compat (keep #EC4899 references working) */
+        --color-primary:    #E040FB;
         --color-primary-foreground: #FFFFFF;
-        --color-secondary: #374151;
+        --color-accent:     #00D4FF;
+        --color-ring:       #7B61FF;
+        --color-card:       #141414;
+        --color-card-foreground: #FFFFFF;
+        --color-secondary:  #1C1C1E;
         --color-secondary-foreground: #FFFFFF;
-        --color-accent: #FBBF24;
-        --color-accent-foreground: #111827;
-        --color-danger: #DC2626;
+        --color-danger:     #FF3B30;
         --color-danger-foreground: #FFFFFF;
-        --color-border: #374151;
-        --color-input: #374151;
-        --color-ring: #EC4899;
-        --color-text-muted: #9CA3AF;
-        --color-overlay: rgba(0, 0, 0, 0.8);
+        --color-overlay:    rgba(0,0,0,0.85);
       }
 
+
+      /* Light mode — not used currently but kept for future */
       .light {
         --color-background: #F3F4F6;
-        --color-foreground: #111827;
         --color-card: #FFFFFF;
-        --color-card-foreground: #111827;
-        --color-primary: #EC4899;
-        --color-primary-foreground: #FFFFFF;
-        --color-secondary: #E5E7EB;
-        --color-secondary-foreground: #1F2937;
-        --color-accent: #F59E0B;
-        --color-accent-foreground: #FFFFFF;
-        --color-danger: #EF4444;
-        --color-danger-foreground: #FFFFFF;
-        --color-border: #D1D5DB;
-        --color-input: #FFFFFF;
-        --color-ring: #EC4899;
-        --color-text-muted: #4B5563;
-        --color-overlay: rgba(0, 0, 0, 0.5);
+        --color-primary: #E040FB;
+        --color-text: #111827;
+        --color-border: rgba(0,0,0,0.1);
       }
 
+
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
         background-color: var(--color-background);
-        color: var(--color-foreground);
+        color: var(--color-text, #fff);
         transition: background-color 0.3s ease, color 0.3s ease;
-        overscroll-behavior-y: none; /* Prevent bounce effect */
+        overscroll-behavior-y: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
-      
-      .font-poppins {
-        font-family: 'Poppins', sans-serif;
+
+      /* ── BRAND GRADIENT UTILITIES ──────────────────────────── */
+      .brand-gradient {
+        background: var(--brand-gradient);
+      }
+      .brand-gradient-text {
+        background: var(--brand-gradient-text);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .brand-border {
+        border: 1px solid transparent;
+        background-clip: padding-box;
+        position: relative;
+      }
+      .brand-glow {
+        box-shadow: 0 0 20px rgba(224, 64, 251, 0.25), 0 0 60px rgba(0, 212, 255, 0.1);
+      }
+      .brand-glow-sm {
+        box-shadow: 0 4px 16px rgba(224, 64, 251, 0.2);
       }
 
       /* Custom scrollbar for a more premium feel */
@@ -87,69 +123,58 @@
           scrollbar-width: none;  /* Firefox */
       }
       
-      /* Added animation for task completion */
+      /* ── ANIMATIONS ───────────────────────────────────────── */
       @keyframes checkmark-pop-in {
-        0% {
-          transform: scale(0.6);
-          opacity: 0;
-        }
-        60% {
-          transform: scale(1.2);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      .animate-checkmark-pop {
-        animation: checkmark-pop-in 0.4s ease-out forwards;
-      }
-      
-      @keyframes flash-blue {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(80, 182, 255, 0); }
-          50% { box-shadow: 0 0 8px 3px rgba(80, 182, 255, 0.7); }
-      }
-      .animate-flash-blue {
-        animation: flash-blue 1.5s ease-out;
-      }
-
-      @keyframes claim-success {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1) rotate(-3deg); box-shadow: 0 0 15px 5px rgba(251, 191, 36, 0.7); }
+        0%   { transform: scale(0.6); opacity: 0; }
+        60%  { transform: scale(1.2); opacity: 1; }
         100% { transform: scale(1); }
       }
-      .animate-claim-success {
-        animation: claim-success 0.6s ease-out forwards;
-      }
+      .animate-checkmark-pop { animation: checkmark-pop-in 0.4s ease-out forwards; }
 
-      /* Page Transitions */
+      @keyframes flash-blue {
+        0%, 100% { box-shadow: none; }
+        50% { box-shadow: 0 0 12px 4px rgba(0, 212, 255, 0.5); }
+      }
+      .animate-flash-blue { animation: flash-blue 1.5s ease-out; }
+
+      @keyframes claim-success {
+        0%   { transform: scale(1); }
+        50%  { transform: scale(1.1) rotate(-2deg); box-shadow: 0 0 20px rgba(224,64,251,0.5); }
+        100% { transform: scale(1); }
+      }
+      .animate-claim-success { animation: claim-success 0.6s ease-out forwards; }
+
       @keyframes page-enter {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
-
-      .animate-page-enter {
-        animation: page-enter 0.4s ease-out forwards;
-      }
+      .animate-page-enter { animation: page-enter 0.35s ease-out forwards; }
 
       @keyframes slide-in-right {
-        from {
-          transform: translateX(100%);
-        }
-        to {
-          transform: translateX(0);
-        }
+        from { transform: translateX(100%); }
+        to   { transform: translateX(0); }
       }
-      .animate-slide-in-right {
-        animation: slide-in-right 0.3s ease-out forwards;
+      .animate-slide-in-right { animation: slide-in-right 0.3s ease-out forwards; }
+
+      @keyframes animate-fade-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
+      .animate-fade-in { animation: animate-fade-in 0.4s ease-out forwards; }
+
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 8px rgba(224,64,251,0.3); }
+        50%       { box-shadow: 0 0 24px rgba(0,212,255,0.5); }
+      }
+      .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+      /* Fade-in-up used by various modals */
+      @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
+
     </style>
 <script type="importmap">
 {
