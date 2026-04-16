@@ -76,7 +76,7 @@ const TYPE_CONFIG: Record<ExperienceType, { icon: React.ReactNode; color: string
 
 const STATUS_CONFIG = {
   'available': { label: 'Available',  color: '#22c55e', dot: '#22c55e' },
-  'limited':   { label: 'Limited',    color: '#F59E0B', dot: '#F59E0B' },
+  'limited':   { label: 'Limited',    color: '#E040FB', dot: '#E040FB' },
   'sold-out':  { label: 'Sold Out',   color: '#EF4444', dot: '#EF4444' },
   'cancelled': { label: 'Cancelled',  color: '#6B7280', dot: '#6B7280' },
 };
@@ -153,14 +153,17 @@ const EventCard: React.FC<{
             aria-label={isBookmarked ? 'Remove from watchlist' : 'Save to watchlist'}
           >
             <IconBookmark className="w-4 h-4" filled={isBookmarked}
-              style={{ color: isBookmarked ? '#EC4899' : 'white' } as React.CSSProperties}
+              style={{ color: isBookmarked ? '#E040FB' : 'rgba(255,255,255,0.7)' } as React.CSSProperties}
             />
           </button>
         </div>
 
         {/* Booked badge */}
         {isBooked && (
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-[#EC4899] rounded-full px-2.5 py-1 text-xs font-bold text-white">
+          <div
+            className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}
+          >
             <IconCheck className="w-3.5 h-3.5" /> Booked
           </div>
         )}
@@ -178,21 +181,32 @@ const EventCard: React.FC<{
           <span>{instance.time}</span>
         </div>
 
-        {/* Capacity bar */}
+        {/* Capacity bar + urgency label */}
         <div className="mb-3">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-500 flex items-center gap-1">
+            <span className="text-xs flex items-center gap-1" style={{
+              color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
+              fontWeight: spotsLeft <= 2 ? 700 : 400,
+            }}>
               <IconUsers className="w-3 h-3" />
-              {spotsLeft > 0 ? `${spotsLeft} of ${instance.totalCapacity} spots left` : 'No spots left'}
+              {spotsLeft <= 0
+                ? 'No spots left'
+                : spotsLeft === 1
+                ? '🔴 1 spot left!'
+                : spotsLeft === 2
+                ? '⚡ 2 spots left'
+                : spotsLeft <= 5
+                ? `${spotsLeft} spots left`
+                : `${spotsLeft} of ${instance.totalCapacity} spots`}
             </span>
             <span className="text-xs font-bold" style={{ color: sc.color }}>{sc.label}</span>
           </div>
-          <div className="h-1.5 rounded-full bg-gray-800 overflow-hidden">
+          <div className="h-1 rounded-full bg-gray-800/60 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${pct}%`,
-                background: pct >= 100 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22c55e'
+                background: pct >= 100 ? '#EF4444' : pct >= 90 ? '#EF4444' : pct >= 70 ? '#E040FB' : '#22c55e'
               }}
             />
           </div>
@@ -206,16 +220,17 @@ const EventCard: React.FC<{
           </div>
           <button
             onClick={e => { e.stopPropagation(); onOpen(); }}
-            className="text-xs font-bold rounded-full px-4 py-2 transition-all"
+            disabled={instance.status === 'sold-out' || instance.status === 'cancelled'}
+            className="text-xs font-bold rounded-full px-4 py-2 transition-all disabled:cursor-not-allowed"
             style={
               isBooked
-                ? { background: 'rgba(236,72,153,0.12)', color: '#EC4899', border: '1px solid rgba(236,72,153,0.3)' }
+                ? { background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
                 : instance.status === 'sold-out' || instance.status === 'cancelled'
-                ? { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }
-                : { background: '#EC4899', color: '#fff' }
+                ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)' }
+                : { background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 4px 12px rgba(224,64,251,0.25)' }
             }
           >
-            {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Book Now'}
+            {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve Spot'}
           </button>
         </div>
       </div>

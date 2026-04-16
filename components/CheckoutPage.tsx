@@ -105,7 +105,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
             >
               Cart
               {cartItems.length > 0 && (
-                <span className="absolute top-2 right-2 bg-[#EC4899] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{cartItems.length}</span>
+                <span style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }} className="absolute top-2 right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cartItems.length}</span>
               )}
             </button>
             <button 
@@ -114,7 +114,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
             >
               Watchlist
               {watchlistItems.length > 0 && (
-                <span className="absolute top-2 right-2 bg-[#EC4899] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{watchlistItems.length}</span>
+                <span style={{ background: 'linear-gradient(135deg, #7B61FF, #00D4FF)' }} className="absolute top-2 right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{watchlistItems.length}</span>
               )}
             </button>
             <button 
@@ -163,9 +163,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
                         <button 
                             onClick={() => setPaymentMethod('tokens')} 
                             disabled={!hasEnoughTokens}
-                            className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3 ${paymentMethod === 'tokens' ? 'bg-[#EC4899]/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-600'} disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-800`}
+                            className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed`}
+                            style={paymentMethod === 'tokens' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
                         >
-                            <TokenIcon className="w-6 h-6 text-[#EC4899] flex-shrink-0" />
+                            <TokenIcon className="w-6 h-6 flex-shrink-0" style={{ color: '#E040FB' } as React.CSSProperties} />
                             <div className="flex-grow">
                                 <p className="font-bold text-white">Pay with Tokens</p>
                                 <p className={`text-sm ${hasEnoughTokens ? 'text-gray-400' : 'text-red-400'}`}>Balance: {userTokenBalance.toLocaleString()}</p>
@@ -174,7 +175,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
                         </button>
                         <button 
                             onClick={() => setPaymentMethod('usd')}
-                            className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3 ${paymentMethod === 'usd' ? 'bg-[#EC4899]/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-600'}`}
+                            className="w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3"
+                            style={paymentMethod === 'usd' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
                         >
                             <CreditCardIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
                             <div className="flex-grow">
@@ -185,7 +187,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
                         </button>
                         <button 
                             onClick={() => setPaymentMethod('cashapp')}
-                            className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3 ${paymentMethod === 'cashapp' ? 'bg-[#EC4899]/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-600'}`}
+                            className="w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3"
+                            style={paymentMethod === 'cashapp' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
                         >
                             <div className="w-10 h-10 bg-green-500 rounded-md flex items-center justify-center text-white flex-shrink-0">
                                 <CurrencyDollarIcon className="w-6 h-6" />
@@ -199,7 +202,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
                     </div>
                     <button 
                         onClick={() => onNavigate('paymentMethods')}
-                        className="w-full mt-4 text-center text-sm font-semibold text-amber-400 hover:underline"
+                        className="w-full mt-4 text-center text-sm font-semibold hover:underline"
+                        style={{ color: '#00D4FF' }}
                     >
                         Add a new card
                     </button>
@@ -279,7 +283,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
                 <button 
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
                     disabled={selectedItemIds.length === 0}
-                    className="w-full bg-[#EC4899] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-[#d8428a]"
+                    className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+                    style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
                 >
                     <CreditCardIcon className="w-5 h-5"/>
                     Confirm & Pay

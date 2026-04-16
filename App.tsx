@@ -1258,7 +1258,7 @@ export const App: React.FC = () => {
                         setInvitationRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
                          showToast('Request rejected', 'success');
                     }} 
-                    onSendDirectInvites={(eId, uIds) => console.log('Send invites', eId, uIds)} 
+                    onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
                     onNavigate={handleNavigate} 
                     onAddEvent={() => { setEventToEdit(null); setIsAdminEditEventOpen(true); }} 
                     onEditEvent={(e) => { setEventToEdit(e); setIsAdminEditEventOpen(true); }} 
@@ -1313,7 +1313,7 @@ export const App: React.FC = () => {
                     onReviewGuestlistRequest={(id, status) => setGuestlistJoinRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r))} 
                     bookedItems={bookedItems} 
                     eventInvitations={mockEventInvitations} 
-                    onSendDirectInvites={(eId, uIds) => console.log('Send invites', eId, uIds)} 
+                    onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
                 />;
             case 'bookings':
                 return <BookingsPage 
@@ -1339,9 +1339,16 @@ export const App: React.FC = () => {
                     allGroups={appAccessGroups} 
                     onViewGroup={(id) => handleNavigate('accessGroupFeed', { groupId: id })} 
                     onRequestJoinGroup={handleRequestJoinGroup}
-                    onLeaveGroup={(g) => console.log('Leave group', g)} 
+                    onLeaveGroup={(g) => {
+                        setAppAccessGroups(prev => prev.map(ag => ag.id === g.id
+                            ? { ...ag, memberIds: ag.memberIds.filter(id => id !== currentUser.id) }
+                            : ag
+                        ));
+                        showToast('You have left the group.', 'success');
+                        handleNavigate('accessGroups');
+                    }} 
                     groupNotificationSettings={{}} 
-                    onToggleGroupNotification={(id) => console.log('Toggle notif', id)} 
+                    onToggleGroupNotification={(id) => { showToast('Notification preference updated.', 'success'); }} 
                     onNavigate={handleNavigate}
                     groupJoinRequests={groupJoinRequests} 
                 />;
@@ -1351,7 +1358,12 @@ export const App: React.FC = () => {
                     currentUser={currentUser} 
                     allPosts={[]} 
                     allGroups={appAccessGroups} 
-                    onToggleLike={(id) => console.log('Like post', id)} 
+                    onToggleLike={(id) => {
+                        setAppAccessGroups(prev => prev.map(g => g.id === id
+                            ? { ...g, likeCount: (g.likeCount ?? 0) + 1 }
+                            : g
+                        ));
+                    }} 
                     groupJoinRequests={groupJoinRequests}
                     onApproveRequest={handleApproveGroupRequest}
                     onRejectRequest={handleRejectGroupRequest}
@@ -1371,12 +1383,23 @@ export const App: React.FC = () => {
                     itinerary={itinerary} 
                     currentUser={currentUser} 
                     onEdit={(i) => handleNavigate('itineraryBuilder', { itineraryId: i.id })} 
-                    onClone={(i) => console.log('Clone itinerary', i)} 
+                    onClone={(i) => {
+                        const cloned = { ...i, id: `${i.id}-copy-${Date.now()}`, name: `${i.name} (Copy)` };
+                        setItineraries(prev => [...prev, cloned as any]);
+                        showToast('Itinerary cloned.', 'success');
+                    }} 
                 />;
             case 'itineraryBuilder':
                 const existingItinerary = itineraries.find(i => i.id === pageParams.itineraryId);
                 return <ItineraryBuilderPage 
-                    onSave={(i) => { console.log('Save itinerary', i); handleNavigate('myItineraries'); }} 
+                    onSave={(i) => {
+                        setItineraries(prev => {
+                            const exists = prev.find(it => it.id === i.id);
+                            return exists ? prev.map(it => it.id === i.id ? i as any : it) : [...prev, i as any];
+                        });
+                        showToast('Itinerary saved.', 'success');
+                        handleNavigate('myItineraries');
+                    }} 
                     onCancel={() => handleNavigate('myItineraries')} 
                     itinerary={existingItinerary} 
                     venues={appVenues} 
@@ -1389,7 +1412,10 @@ export const App: React.FC = () => {
                 return <BookingConfirmedPage 
                     items={pageParams.items || []}
                     onNavigate={handleNavigate} 
-                    onStartChat={(details) => console.log('Start chat', details)} 
+                    onStartChat={(details) => {
+                        // Navigate to event chats so user can find their booking chat
+                        handleNavigate('eventChatsList');
+                    }} 
                 />;
             case 'promoterApplication':
                 return <PromoterApplicationPage 
@@ -1416,8 +1442,12 @@ export const App: React.FC = () => {
                     invitations={mockEventInvitations} 
                     events={appEvents} 
                     allUsers={appUsers} 
-                    onAccept={(id) => console.log('Accept invite', id)} 
-                    onDecline={(id) => console.log('Decline invite', id)} 
+                    onAccept={(id) => {
+                        showToast('Invitation accepted! Check your upcoming events.', 'success');
+                    }} 
+                    onDecline={(id) => {
+                        showToast('Invitation declined.', 'success');
+                    }} 
                     onNavigate={handleNavigate} 
                 />;
             case 'checkout': {
@@ -1472,7 +1502,16 @@ export const App: React.FC = () => {
                     onViewReceipt={(item) => handleNavigate('bookingConfirmed', { items: [item] })}
                     userTokenBalance={userTokenBalance}
                     onStartChat={handleStartBookingChat}
-                    onCancelRsvp={(item) => console.log('Cancel RSVP', item)}
+                    onCancelRsvp={(item) => {
+                        // Remove from instanceBookings if it was a confirmed event
+                        const meta = Object.entries(cartInstanceMeta).find(([cId]) => cId === item.id || item.id.startsWith('ib-'));
+                        if (item.id.startsWith('ib-')) {
+                            setInstanceBookings(prev => prev.filter(b => b.id !== item.id));
+                        } else {
+                            setBookedItems(prev => prev.filter(b => b.id !== item.id));
+                        }
+                        showToast('Booking cancelled.', 'success');
+                    }}
                     initialTab={pageParams.initialTab ?? 'purchased'}
                     onNavigate={handleNavigate}
                 />;}
@@ -1657,17 +1696,22 @@ export const App: React.FC = () => {
                     onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ promoter: p, venue: v })} 
                     guestlistJoinRequests={guestlistJoinRequests} 
                     onCheckIn={(vId, data) => {
-                        console.log('Check in', vId, data);
-                        showToast('Check-in successful! Welcome.', 'success');
+                        // Mark the active guestlist request for this venue as checked-in
+                        setGuestlistJoinRequests(prev => prev.map(r =>
+                            r.venueId === vId && r.userId === currentUser.id
+                                ? { ...r, attendanceStatus: 'show' as const }
+                                : r
+                        ));
+                        showToast('Check-in successful! Welcome. 🎉', 'success');
                     }} 
                 />;
             case 'help': return <HelpPage onNavigate={handleNavigate} />;
             case 'reportIssue': return <ReportIssuePage onNavigate={handleNavigate} />;
-            case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => console.log('Delete account req')} />;
+            case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => showToast('Account deletion request submitted. Our team will follow up via email.', 'success')} />;
             case 'security': return <SecurityPage onNavigate={handleNavigate} />;
-            case 'notificationsSettings': return <NotificationsSettingsPage settings={{ eventAnnouncements: true, bookingUpdates: true, recommendations: true }} onSettingsChange={(s) => console.log('Settings change', s)} onNavigate={handleNavigate} />;
+            case 'notificationsSettings': return <NotificationsSettingsPage settings={{ eventAnnouncements: true, bookingUpdates: true, recommendations: true }} onSettingsChange={(s) => showToast('Notification preferences saved.', 'success')} onNavigate={handleNavigate} />;
             case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} />;
-            case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => console.log('New data export')} onNavigate={handleNavigate} />;
+            case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => showToast('Data export request submitted. You will receive an email within 48 hours.', 'success')} onNavigate={handleNavigate} />;
             case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={[]} />;
             case 'editProfile': return <EditProfilePage 
                 currentUser={currentUser} 
