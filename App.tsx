@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
 import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
+import { generateEventFeed } from './utils/eventSchedule';
 
 // Component Imports
 import { HomeScreen } from './components/HomeScreen';
@@ -247,6 +248,8 @@ export const App: React.FC = () => {
     // Experience Interaction State
     const [likedExperienceIds, setLikedExperienceIds] = useState<number[]>([]);
     const [bookmarkedExperienceIds, setBookmarkedExperienceIds] = useState<number[]>([]);
+    // Event-instance bookmark state — drives Watchlist tab in My Plans
+    const [bookmarkedInstanceIds, setBookmarkedInstanceIds] = useState<string[]>([]);
 
     // Admin Modal States
     const [isAdminAddUserOpen, setIsAdminAddUserOpen] = useState(false);
@@ -1087,6 +1090,10 @@ export const App: React.FC = () => {
                     currentUser={currentUser}
                     bookedMap={bookedMap}
                     instanceBookings={instanceBookings}
+                    bookmarkedInstanceIds={bookmarkedInstanceIds}
+                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev =>
+                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                    )}
                     onBook={(booking) => {
                         const newBooking: InstanceBooking = {
                             ...booking,
@@ -1368,27 +1375,62 @@ export const App: React.FC = () => {
                     onDecline={(id) => console.log('Decline invite', id)} 
                     onNavigate={handleNavigate} 
                 />;
-            case 'checkout':
-                return <CheckoutPage 
-                    currentUser={currentUser} 
-                    watchlist={watchlist} 
-                    bookedItems={bookedItems} 
+            case 'checkout': {
+                // Build watchlist from bookmarked EventInstances + existing CartItem watchlist
+                const allInstances = generateEventFeed(bookedMap, cancelMap, 4);
+                const instanceWatchlist: CartItem[] = bookmarkedInstanceIds
+                    .map(id => allInstances.find(i => i.instanceId === id))
+                    .filter(Boolean)
+                    .map(inst => ({
+                        id: `wl-${inst!.instanceId}`,
+                        name: inst!.title,
+                        type: 'event' as const,
+                        image: inst!.coverImage,
+                        date: inst!.date,
+                        sortableDate: inst!.date,
+                        fullPrice: inst!.pricePerPerson,
+                        depositPrice: inst!.pricePerPerson,
+                        paymentOption: 'full' as const,
+                        bookedTimestamp: 0,
+                    }));
+                // Build purchased list from InstanceBookings + existing bookedItems
+                const instancePurchased: CartItem[] = instanceBookings
+                    .filter(b => b.userId === currentUser.id)
+                    .map(b => {
+                        const inst = allInstances.find(i => i.instanceId === b.instanceId);
+                        return {
+                            id: b.id,
+                            name: inst?.title ?? b.instanceId,
+                            type: 'event' as const,
+                            image: inst?.coverImage ?? '',
+                            date: inst?.date ?? b.bookedAt.slice(0, 10),
+                            sortableDate: inst?.date ?? b.bookedAt.slice(0, 10),
+                            fullPrice: b.totalPaid,
+                            depositPrice: b.totalPaid,
+                            paymentOption: 'full' as const,
+                            bookedTimestamp: new Date(b.bookedAt).getTime(),
+                        };
+                    });
+                return <CheckoutPage
+                    currentUser={currentUser}
+                    watchlist={[...instanceWatchlist, ...watchlist]}
+                    bookedItems={[...instancePurchased, ...bookedItems]}
                     venues={appVenues}
-                    cartItems={cartItems} 
+                    cartItems={cartItems}
                     onRemoveItem={(id) => {
                         setCartItems(prev => prev.filter(i => i.id !== id));
                         setWatchlist(prev => prev.filter(i => i.id !== id));
-                    }} 
-                    onUpdatePaymentOption={(id, opt) => setCartItems(prev => prev.map(i => i.id === id ? { ...i, paymentOption: opt } : i))} 
-                    onConfirmCheckout={handleConfirmCheckout} 
+                    }}
+                    onUpdatePaymentOption={(id, opt) => setCartItems(prev => prev.map(i => i.id === id ? { ...i, paymentOption: opt } : i))}
+                    onConfirmCheckout={handleConfirmCheckout}
                     onMoveToCart={handleMoveToCart}
-                    onViewReceipt={(item) => handleNavigate('bookingConfirmed', { items: [item] })} 
-                    userTokenBalance={userTokenBalance} 
-                    onStartChat={handleStartBookingChat} 
-                    onCancelRsvp={(item) => console.log('Cancel RSVP', item)} 
-                    initialTab={pageParams.initialTab} 
+                    onViewReceipt={(item) => handleNavigate('bookingConfirmed', { items: [item] })}
+                    userTokenBalance={userTokenBalance}
+                    onStartChat={handleStartBookingChat}
+                    onCancelRsvp={(item) => console.log('Cancel RSVP', item)}
+                    initialTab={pageParams.initialTab ?? 'purchased'}
                     onNavigate={handleNavigate}
-                />;
+                />;}
             case 'eventChatsList':
                 return <EventChatsListPage 
                     currentUser={currentUser} 

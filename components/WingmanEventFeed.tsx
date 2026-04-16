@@ -60,6 +60,11 @@ const IconCheck = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
   </svg>
 );
+const IconBookmark = ({ className, filled }: { className?: string; filled?: boolean }) => (
+  <svg className={className} fill={filled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+  </svg>
+);
 
 // ─── TYPE-SPECIFIC CONFIG ─────────────────────────────────────
 
@@ -85,6 +90,8 @@ interface WingmanEventFeedProps {
   currentUser: User;
   bookedMap: Record<string, number>;
   instanceBookings: InstanceBooking[];
+  bookmarkedInstanceIds: string[];
+  onToggleBookmark: (instanceId: string) => void;
   onBook: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
   cancelMap: Record<string, boolean>;
   onAdminCancel?: (instanceId: string) => void;
@@ -97,7 +104,9 @@ const EventCard: React.FC<{
   instance: EventInstance;
   onOpen: () => void;
   isBooked: boolean;
-}> = ({ instance, onOpen, isBooked }) => {
+  isBookmarked: boolean;
+  onToggleBookmark: (e: React.MouseEvent) => void;
+}> = ({ instance, onOpen, isBooked, isBookmarked, onToggleBookmark }) => {
   const tc = TYPE_CONFIG[instance.experienceType];
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
@@ -132,8 +141,20 @@ const EventCard: React.FC<{
         </div>
 
         {/* Day label — top right */}
-        <div className="absolute top-3 right-3 text-xs font-bold text-white bg-black/50 rounded-full px-2.5 py-1">
-          {daysUntilLabel(instance.date)}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <span className="text-xs font-bold text-white bg-black/50 rounded-full px-2.5 py-1">
+            {daysUntilLabel(instance.date)}
+          </span>
+          <button
+            onClick={e => { e.stopPropagation(); onToggleBookmark(e); }}
+            className="p-1.5 rounded-full transition-colors"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            aria-label={isBookmarked ? 'Remove from watchlist' : 'Save to watchlist'}
+          >
+            <IconBookmark className="w-4 h-4" filled={isBookmarked}
+              style={{ color: isBookmarked ? '#EC4899' : 'white' } as React.CSSProperties}
+            />
+          </button>
         </div>
 
         {/* Booked badge */}
@@ -448,6 +469,8 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   currentUser,
   bookedMap,
   instanceBookings,
+  bookmarkedInstanceIds,
+  onToggleBookmark,
   onBook,
   cancelMap,
   onAdminCancel,
@@ -625,6 +648,8 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
                 instance={instance}
                 onOpen={() => setSelected(instance)}
                 isBooked={!!getUserBooking(instance)}
+                isBookmarked={bookmarkedInstanceIds.includes(instance.instanceId)}
+                onToggleBookmark={() => onToggleBookmark(instance.instanceId)}
               />
             ))}
           </div>
