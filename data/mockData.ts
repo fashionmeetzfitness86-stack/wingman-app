@@ -88,6 +88,7 @@ export const users: User[] = [
     bio: 'Logged in via Facebook',
     preferences: { music: ['Hip Hop', 'R&B'], activities: ['Nightclub'], personality: 'Social', timeOfDay: 'Both' }
   },
+  {
     id: 1, // Wingman host — THE single host of all experiences
     name: 'Anderson',
     email: 'anderson@example.com',
