@@ -62,8 +62,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
             <NavItem
                 icon={<ClockIcon className="w-6 h-6" />}
                 label="Timeline"
-                isActive={currentPage === 'exclusiveExperiences'}
-                onClick={() => onNavigate('exclusiveExperiences')}
+                isActive={currentPage === 'eventTimeline' || currentPage === 'exclusiveExperiences'}
+                onClick={() => onNavigate('eventTimeline')}
             />
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
                 <button 
@@ -106,8 +106,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
             <NavItem
                 icon={<ClockIcon className="w-6 h-6" />}
                 label="Timeline"
-                isActive={currentPage === 'exclusiveExperiences'}
-                onClick={() => onNavigate('exclusiveExperiences')}
+                isActive={currentPage === 'eventTimeline' || currentPage === 'exclusiveExperiences'}
+                onClick={() => onNavigate('eventTimeline')}
             />
              <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
                 <button 

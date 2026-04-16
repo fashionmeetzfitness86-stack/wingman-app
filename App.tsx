@@ -1064,27 +1064,7 @@ export const App: React.FC = () => {
                     guestlistJoinRequests={guestlistJoinRequests}
                 />;
             case 'eventTimeline':
-                return <EventTimeline 
-                    currentUser={currentUser} 
-                    allEvents={appEvents} 
-                    likedEventIds={likedEventIds} 
-                    onToggleLike={handleToggleLikeEvent}
-                    rsvpedEventIds={rsvpedEventIds} 
-                    onRsvp={handleRsvpEvent}
-                    bookmarkedEventIds={bookmarkedEventIds} 
-                    onToggleBookmark={handleToggleBookmarkEvent}
-                    onOpenGabyWithPrompt={(prompt) => handleNavigate('chatbot', { initialPrompt: prompt })}
-                    invitationRequests={invitationRequests}
-                    onRequestInvite={handleRequestInvite}
-                    onPayForEvent={(e) => console.log('Pay for event', e)}
-                    onNavigateToChat={(e) => console.log('Nav to chat', e)}
-                    subscribedEventIds={[]} 
-                    onToggleSubscription={(id) => console.log('Sub event', id)}
-                    onBookVenue={handleBookVenue}
-                    onJoinGuestlist={handleOpenGuestlistModal}
-                    guestlistRequests={guestlistJoinRequests}
-                    onBookEvent={handleBookEvent}
-                />;
+            // fall-through: both routes render the same WingmanEventFeed
             case 'exclusiveExperiences':
                 return <WingmanEventFeed
                     currentUser={currentUser}
