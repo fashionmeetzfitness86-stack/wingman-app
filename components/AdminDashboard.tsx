@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Promoter, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, PromoterApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign } from '../types';
+import { Promoter, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, PromoterApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest } from '../types';
 import { ManagementTab } from './admin/ManagementTab';
 import { AnalyticsTab } from './admin/AnalyticsTab';
 import { AdminPromoterListItem } from './AdminPromoterListItem';
@@ -68,6 +68,9 @@ interface AdminDashboardProps {
     onBulkUpdateEvents?: (eventIds: (number | string)[], updates: Partial<Event>) => void;
     onApproveUser?: (userId: number) => void;   // Pass 2: approval gate
     onRejectUser?: (userId: number) => void;    // Pass 2: approval gate
+    membershipRequests: MembershipRequest[];                        // New verification system
+    onApproveMembershipRequest: (requestId: number) => void;
+    onRejectMembershipRequest: (requestId: number) => void;
 }
 
 
@@ -137,8 +140,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const pendingRequestsCount = useMemo(() => {
         return props.promoterApplications.filter(a => a.status === 'pending').length +
                props.pendingGroups.length +
-               props.invitationRequests.filter(req => req.status === 'pending').length;
-    }, [props.promoterApplications, props.pendingGroups, props.invitationRequests]);
+               props.invitationRequests.filter(req => req.status === 'pending').length +
+               props.membershipRequests.filter(r => r.status === 'pending').length;
+    }, [props.promoterApplications, props.pendingGroups, props.invitationRequests, props.membershipRequests]);
 
     // Pass 4: count of users awaiting approval — drives badge on Users tab
     const pendingApprovalsCount = useMemo(() => {
@@ -273,7 +277,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Users
                     {pendingApprovalsCount > 0 && (
-                        <span className="absolute top-1 right-0 w-5 h-5 bg-amber-500 text-black text-xs font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute top-1 right-0 w-5 h-5 bg-[#EC4899] text-white text-xs font-bold rounded-full flex items-center justify-center">
                             {pendingApprovalsCount}
                         </span>
                     )}
@@ -353,16 +357,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                     <div className="space-y-3">
                         {/* Pass 4: Pending approvals queue strip — only renders when there are users to action */}
                         {pendingApprovalsCount > 0 && (
-                            <div className="flex items-center justify-between bg-amber-900/20 border border-amber-700/40 rounded-xl px-4 py-3 mb-2 animate-fade-in">
+                            <div className="flex items-center justify-between bg-[#EC4899]/10 border border-[#EC4899]/30 rounded-xl px-4 py-3 mb-2 animate-fade-in">
                                 <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                                    <p className="text-sm font-semibold text-amber-300">
+                                    <span className="w-2 h-2 rounded-full bg-[#EC4899] animate-pulse" />
+                                    <p className="text-sm font-semibold text-pink-300">
                                         {pendingApprovalsCount} user{pendingApprovalsCount !== 1 ? 's' : ''} awaiting approval
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setUserApprovalFilter('pending')}
-                                    className="text-xs font-bold text-amber-400 border border-amber-400/40 rounded-full px-3 py-1 hover:bg-amber-400/10 transition-colors"
+                                    className="text-xs font-bold text-[#EC4899] border border-[#EC4899]/40 rounded-full px-3 py-1 hover:bg-[#EC4899]/10 transition-colors"
                                 >
                                     Review
                                 </button>
@@ -431,6 +435,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         eventInvitations={props.eventInvitations}
                         onPreviewUser={props.onPreviewUser}
                         onSendDirectInvites={props.onSendDirectInvites}
+                        membershipRequests={props.membershipRequests}
+                        onApproveMembershipRequest={props.onApproveMembershipRequest}
+                        onRejectMembershipRequest={props.onRejectMembershipRequest}
                      />
                 )}
                  {activeTab === 'pushNotifications' && (

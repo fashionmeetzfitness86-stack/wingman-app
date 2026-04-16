@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign } from './types';
+import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest } from './types';
 import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
 
 // Component Imports
 import { HomeScreen } from './components/HomeScreen';
+import { MembershipRequestModal } from './components/modals/MembershipRequestModal';
 import { PromoterDirectory } from './components/PromoterDirectory';
 import { PromoterProfile } from './components/PromoterProfile';
 import { BookATablePage } from './components/BookATablePage';
@@ -214,6 +215,9 @@ export const App: React.FC = () => {
     const [friendZoneChatMessages, setFriendZoneChatMessages] = useState<FriendZoneChatMessage[]>(mockFriendZoneChatMessages);
     const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>([]);
     const [promoterApplications, setPromoterApplications] = useState(mockPromoterApplications);
+    // Membership access requests — separate system from PromoterApplication
+    const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
+    const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
 
     // Chat State
     const [guestlistChats, setGuestlistChats] = useState<GuestlistChat[]>(mockGuestlistChats);
@@ -828,6 +832,27 @@ export const App: React.FC = () => {
         setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'rejected' as const } : u));
         showToast('User rejected', 'success');
     };
+
+    // Membership request handlers (separate from approveUser — requests come from the modal flow)
+    const handleSubmitMembershipRequest = (req: Omit<MembershipRequest, 'id'>) => {
+        const newReq: MembershipRequest = { ...req, id: Date.now() };
+        setMembershipRequests(prev => [newReq, ...prev]);
+        // Mark the user as having a pending request (in case they had no approvalStatus yet)
+        setAppUsers(prev => prev.map(u => u.id === req.userId && !u.approvalStatus ? { ...u, approvalStatus: 'pending' as const } : u));
+        showToast('Access request submitted — admin will review shortly', 'success');
+    };
+
+    const handleApproveMembershipRequest = (requestId: number) => {
+        setMembershipRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'approved' as const } : r));
+        const req = membershipRequests.find(r => r.id === requestId);
+        if (req) handleApproveUser(req.userId);
+    };
+
+    const handleRejectMembershipRequest = (requestId: number) => {
+        setMembershipRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'rejected' as const } : r));
+        const req = membershipRequests.find(r => r.id === requestId);
+        if (req) handleRejectUser(req.userId);
+    };
     
     const handleToggleCampaignStatus = (campaignId: string) => {
         setPushCampaigns(prev => prev.map(c => 
@@ -974,7 +999,12 @@ export const App: React.FC = () => {
     const renderPage = () => {
         switch (currentPage) {
             case 'home':
-                return <HomeScreen onNavigate={handleNavigate} currentUser={currentUser} onOpenMenu={() => setIsMenuOpen(true)} />;
+                return <HomeScreen
+                    onNavigate={handleNavigate}
+                    currentUser={currentUser}
+                    onOpenMenu={() => setIsMenuOpen(true)}
+                    onRequestAccess={() => setIsMembershipRequestOpen(true)}
+               />;
             case 'directory':
                 return <PromoterDirectory 
                     promoters={appPromoters} 
@@ -1187,6 +1217,9 @@ export const App: React.FC = () => {
                     onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
                     onApproveUser={handleApproveUser}
                     onRejectUser={handleRejectUser}
+                    membershipRequests={membershipRequests}
+                    onApproveMembershipRequest={handleApproveMembershipRequest}
+                    onRejectMembershipRequest={handleRejectMembershipRequest}
                 />;
             case 'promoterDashboard':
                 const myPromoter = appPromoters.find(p => p.id === currentUser.id);
@@ -1533,7 +1566,12 @@ export const App: React.FC = () => {
                 showToast={showToast} 
             />;
             case 'referFriend': return <ReferFriendPage />;
-            default: return <HomeScreen onNavigate={handleNavigate} currentUser={currentUser} onOpenMenu={() => setIsMenuOpen(true)} />;
+            default: return <HomeScreen
+                    onNavigate={handleNavigate}
+                    currentUser={currentUser}
+                    onOpenMenu={() => setIsMenuOpen(true)}
+                    onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                />;
         }
     };
 
@@ -1614,6 +1652,15 @@ export const App: React.FC = () => {
                             setIsNotificationsOpen(false); 
                             if (link) handleNavigate(link.page, link.params); 
                         }} 
+                    />
+
+                    {/* Membership Access Request Modal — separate from promoter application flow */}
+                    <MembershipRequestModal
+                        isOpen={isMembershipRequestOpen}
+                        onClose={() => setIsMembershipRequestOpen(false)}
+                        currentUser={currentUser}
+                        onSubmit={handleSubmitMembershipRequest}
+                        alreadySubmitted={membershipRequests.some(r => r.userId === currentUser.id && r.status === 'pending')}
                     />
 
                     {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
