@@ -269,115 +269,59 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
             </div>
         )}
 
-        {isApprovedGirl ? (
-            <div className="mb-8">
-                <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Join a Promoter's Guestlist</h2>
-                {assignedPromoters.length > 0 ? (
-                    <div className="space-y-3">
-                        {assignedPromoters.map(promoter => {
-                            const request = guestlistJoinRequests.find(req => req.userId === currentUser.id && req.promoterId === promoter.id && req.venueId === venue.id);
-                            const status = request?.status;
 
-                            return (
-                                <div key={promoter.id} className="bg-gray-900 border border-gray-800 rounded-lg p-3 flex items-center gap-3">
-                                    <img src={promoter.profilePhoto} alt={promoter.name} className="w-12 h-12 rounded-full object-cover" />
-                                    <div className="flex-grow">
-                                        <p className="font-bold text-white">{promoter.name}</p>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm text-gray-400">{promoter.handle}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => onJoinGuestlist(promoter, venue)}
-                                        disabled={!!status}
-                                        className={`font-bold py-2 px-4 rounded-lg text-sm transition-transform hover:scale-105 w-32 text-center ${
-                                            status === 'approved' ? 'bg-green-600 text-white cursor-default'
-                                            : status === 'pending' ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                            : 'bg-[#EC4899] text-white'
-                                        }`}
-                                        aria-label={`Join ${promoter.name}'s guestlist`}
-                                    >
-                                        {status === 'approved' ? 'Approved' : status === 'pending' ? 'Request Sent' : 'Join Guestlist'}
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                     <p className="text-gray-500 text-center">No promoters available for guestlist at this venue.</p>
-                )}
-            </div>
-        ) : (
-            assignedPromoters.length > 0 && (
-                <div className="mb-8">
-                    <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Book with a Promoter</h2>
-                    <div className="space-y-3">
-                        {assignedPromoters.map(promoter => (
-                            <div key={promoter.id} className="bg-gray-900 border border-gray-800 rounded-lg p-3 flex items-center gap-3">
-                                <img src={promoter.profilePhoto} alt={promoter.name} className="w-12 h-12 rounded-full object-cover" />
-                                <div className="flex-grow">
-                                    <p className="font-bold text-white">{promoter.name}</p>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm text-gray-400">{promoter.handle}</p>
-                                        <div className="flex items-center gap-1">
-                                            <StarIcon className="w-3 h-3 text-amber-400" />
-                                            <span className="text-white font-semibold text-xs">{promoter.rating.toFixed(1)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => onBookWithSpecificPromoter(promoter, venue)}
-                                    className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform hover:scale-105 hover:bg-[#d8428a] w-32 text-center"
-                                    aria-label={`Book with ${promoter.name}`}
-                                >
-                                    Book Now
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        )}
         
+        {/* Experience Pricing — pulled from the venue category */}
         <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Table Options</h2>
-            {venue.tableOptions && venue.tableOptions.length > 0 ? (
-                <div className="space-y-3">
-                    {venue.tableOptions.map(table => (
-                        <button 
-                            key={table.id} 
-                            onClick={() => onBookVenue(venue)}
-                            className="w-full text-left bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-amber-400/50 transition-colors"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="font-bold text-white">{table.name}</h3>
-                                    <p className="text-sm text-gray-400 mt-1">{table.description}</p>
-                                </div>
-                                <div className="text-right flex-shrink-0 ml-4">
-                                    <p className="font-semibold text-amber-400">${table.minSpend.toLocaleString()}</p>
-                                    <p className="text-xs text-gray-500">Min Spend</p>
-                                </div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            ) : (
-                <p className="text-gray-400">No specific table options available. Contact a promoter to book.</p>
-            )}
+            <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Experience Pricing</h2>
+            <div className="space-y-3">
+              {(() => {
+                const cat = venue.category.toLowerCase();
+                const isNightclub   = cat.includes('nightclub') || cat.includes('club');
+                const isDinner      = cat.includes('restaurant') || cat.includes('dinner') || cat.includes('lounge');
+                const isYacht       = cat.includes('yacht') || cat.includes('beach') || cat.includes('pool');
+
+                const experiences = isNightclub ? [
+                  { label: 'Nightclub Experience', desc: 'Join Wingman at the VIP table — minimum 2 men per booking', price: 500, capacity: 5, tag: '🌙 Nightclub' },
+                ] : isDinner ? [
+                  { label: 'Dinner Experience', desc: 'Curated dinner — max 2 guests per booking, 5 tables of 2', price: 400, capacity: 10, tag: '🍽 Dinner' },
+                ] : isYacht ? [
+                  { label: 'Yacht Experience', desc: 'Friday – Sunday 3:00 PM departure — open booking', price: 350, capacity: 12, tag: '⚓ Yacht' },
+                ] : [
+                  { label: 'Nightclub Experience', desc: 'VIP table — minimum 2 men per booking', price: 500, capacity: 5, tag: '🌙 Nightclub' },
+                  { label: 'Dinner Experience', desc: 'Curated dinner — max 2 guests per booking', price: 400, capacity: 10, tag: '🍽 Dinner' },
+                ];
+
+                return experiences.map(exp => (
+                  <div
+                    key={exp.label}
+                    className="rounded-xl p-4 flex items-center justify-between"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold rounded-full px-2.5 py-0.5"
+                          style={{ background: 'rgba(236,72,153,0.1)', color: '#EC4899', border: '1px solid rgba(236,72,153,0.25)' }}
+                        >{exp.tag}</span>
+                      </div>
+                      <h3 className="font-bold text-white">{exp.label}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">{exp.desc}</p>
+                      <p className="text-xs text-gray-600 mt-1">{exp.capacity} seat capacity</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-4">
+                      <p className="text-xl font-black text-white">${exp.price.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">per person</p>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+            <p className="text-xs text-gray-600 mt-4">Browse the Timeline to see all upcoming events and book a spot.</p>
         </div>
+
       </div>
       
-       <div className={`fixed inset-x-0 ${showBottomNav ? 'bottom-20' : 'bottom-0'} bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4 z-30`}>
-            <div className="container mx-auto max-w-5xl text-center">
-                <button onClick={() => onBookVenue(venue)} className="w-full bg-[#EC4899] text-white font-bold py-3 px-6 rounded-lg transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC4899] hover:bg-[#d8428a]" aria-label={`Book now at ${venue.name}`}>
-                    Book Now
-                </button>
-                 {isApprovedGirl && hasApprovedGuestlist && !isCheckedIn && (
-                    <p className="text-xs text-gray-400 mt-2">Don't forget to check in when you arrive!</p>
-                )}
-            </div>
-        </div>
+
         <FavoriteConfirmationModal 
             isOpen={isFavoriteModalOpen}
             onClose={() => setIsFavoriteModalOpen(false)}
