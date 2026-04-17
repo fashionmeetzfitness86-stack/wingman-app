@@ -1802,6 +1802,7 @@ export const App: React.FC = () => {
                         showToast('Check-in successful! Welcome. 🎉', 'success');
                     }} 
                 />;
+            }
             case 'help': return <HelpPage onNavigate={handleNavigate} />;
             case 'reportIssue': return <ReportIssuePage onNavigate={handleNavigate} />;
             case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => showToast('Account deletion request submitted. Our team will follow up via email.', 'success')} />;
