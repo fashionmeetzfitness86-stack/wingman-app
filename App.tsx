@@ -208,6 +208,22 @@ export const App: React.FC = () => {
     const [appAccessGroups, setAppAccessGroups] = useState<AccessGroup[]>(accessGroups);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
     const [pushCampaigns, setPushCampaigns] = useState<PushCampaign[]>([]);
+
+    // Group notification preferences: { [groupId]: notificationsOn }
+    const [groupNotificationSettings, setGroupNotificationSettings] = useState<Record<number, boolean>>(() => {
+        try {
+            const saved = localStorage.getItem('wingman_group_notif_settings');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
+    const handleToggleGroupNotification = (groupId: number) => {
+        setGroupNotificationSettings(prev => {
+            const updated = { ...prev, [groupId]: !prev[groupId] };
+            try { localStorage.setItem('wingman_group_notif_settings', JSON.stringify(updated)); } catch {}
+            return updated;
+        });
+        showToast('Group notification preference updated.', 'success');
+    };
     
     // Specific Data State
     const [guestlistJoinRequests, setGuestlistJoinRequests] = useState(mockGuestlistJoinRequests);
@@ -1163,7 +1179,54 @@ export const App: React.FC = () => {
                     pendingCartMap={pendingCartReservations}
                 />;
             case 'eventTimeline':
-            // fall-through: both routes render the same WingmanEventFeed
+                return <WingmanEventFeed
+                    currentUser={currentUser}
+                    bookedMap={bookedMap}
+                    instanceBookings={instanceBookings}
+                    bookmarkedInstanceIds={bookmarkedInstanceIds}
+                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev =>
+                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                    )}
+                    onBook={(booking) => {
+                        // 1. Reserve spots immediately (visible in feed)
+                        setPendingCartReservations(prev => ({
+                            ...prev,
+                            [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize,
+                        }));
+                        // 2. Build a CartItem for the payment step
+                        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
+                        const inst = allInst.find(i => i.instanceId === booking.instanceId);
+                        const newCartItem: CartItem = {
+                            id: cartId,
+                            name: inst?.title ?? booking.instanceId,
+                            type: 'event',
+                            image: inst?.coverImage ?? '',
+                            date: inst?.date,
+                            sortableDate: inst?.date,
+                            fullPrice: booking.totalPaid,
+                            depositPrice: booking.totalPaid,
+                            paymentOption: 'full',
+                            bookedTimestamp: Date.now(),
+                        };
+                        setCartItems(prev => [...prev, newCartItem]);
+                        // 3. Store meta so checkout can create InstanceBooking on payment
+                        setCartInstanceMeta(prev => ({
+                            ...prev,
+                            [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize },
+                        }));
+                    }}
+                    onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
+                    cancelMap={cancelMap}
+                    onAdminCancel={(id) => {
+                        setCancelMap(prev => ({ ...prev, [id]: true }));
+                        showToast('Event instance cancelled.', 'success');
+                    }}
+                    onAdminRestore={(id) => {
+                        setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; });
+                        showToast('Event instance restored.', 'success');
+                    }}
+                />;
             case 'exclusiveExperiences':
                 return <WingmanEventFeed
                     currentUser={currentUser}
@@ -1404,8 +1467,8 @@ export const App: React.FC = () => {
                         showToast('You have left the group.', 'success');
                         handleNavigate('accessGroups');
                     }} 
-                    groupNotificationSettings={{}} 
-                    onToggleGroupNotification={(id) => { showToast('Notification preference updated.', 'success'); }} 
+                    groupNotificationSettings={groupNotificationSettings}
+                    onToggleGroupNotification={(id) => handleToggleGroupNotification(id)} 
                     onNavigate={handleNavigate}
                     groupJoinRequests={groupJoinRequests} 
                 />;
