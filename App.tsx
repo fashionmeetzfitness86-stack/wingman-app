@@ -1141,6 +1141,7 @@ export const App: React.FC = () => {
                         }));
                     }}
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
+                    pendingCartMap={pendingCartReservations}
                 />;
             case 'eventTimeline':
             // fall-through: both routes render the same WingmanEventFeed
@@ -1549,7 +1550,7 @@ export const App: React.FC = () => {
                         }
                         showToast('Booking cancelled.', 'success');
                     }}
-                    initialTab={pageParams.initialTab ?? 'purchased'}
+                    initialTab={pageParams.initialTab ?? 'cart'}
                     onNavigate={handleNavigate}
                 />;}
             case 'eventChatsList':
@@ -1746,7 +1747,13 @@ export const App: React.FC = () => {
             case 'reportIssue': return <ReportIssuePage onNavigate={handleNavigate} />;
             case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => showToast('Account deletion request submitted. Our team will follow up via email.', 'success')} />;
             case 'security': return <SecurityPage onNavigate={handleNavigate} />;
-            case 'notificationsSettings': return <NotificationsSettingsPage settings={{ eventAnnouncements: true, bookingUpdates: true, recommendations: true }} onSettingsChange={(s) => showToast('Notification preferences saved.', 'success')} onNavigate={handleNavigate} />;
+            case 'notificationsSettings': return <NotificationsSettingsPage
+                settings={{ eventAnnouncements: true, bookingUpdates: true, recommendations: true, promotionalOffers: false, communityActivity: false, friendActivity: false }}
+                onSettingsChange={(s) => showToast('Notification preferences saved.', 'success')}
+                onNavigate={handleNavigate}
+                pushEnabled={currentUser?.notificationsEnabled}
+                onEnablePush={handleEnableNotifications}
+            />;
             case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} />;
             case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => showToast('Data export request submitted. You will receive an email within 48 hours.', 'success')} onNavigate={handleNavigate} />;
             case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={[]} />;
@@ -1941,7 +1948,7 @@ export const App: React.FC = () => {
                             onClose={() => setActiveModal(null)} 
                             onNavigateToPlans={() => {
                                 setActiveModal(null);
-                                handleNavigate('checkout');
+                                handleNavigate('checkout', { initialTab: 'cart' });
                             }}
                             venueName={activeModal.venueName} 
                             date={activeModal.date} 
@@ -1965,9 +1972,13 @@ export const App: React.FC = () => {
                     )}
 
                     {showNotificationsPrompt && (
-                        <NotificationsModal 
-                            onClose={handleCloseNotificationsPrompt} 
-                            onEnable={handleEnableNotifications} 
+                        <NotificationsModal
+                            onClose={handleCloseNotificationsPrompt}
+                            onEnable={handleEnableNotifications}
+                            onManagePreferences={() => {
+                                handleCloseNotificationsPrompt();
+                                handleNavigate('notificationsSettings');
+                            }}
                         />
                     )}
 
