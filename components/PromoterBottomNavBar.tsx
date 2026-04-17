@@ -54,7 +54,7 @@ export const PromoterBottomNavBar: React.FC<PromoterBottomNavBarProps> = ({ curr
 
                 <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
                     <button 
-                        onClick={() => onNavigate('bookATable')} 
+                        onClick={() => onNavigate('featuredVenues')} 
                         className="w-16 h-16 bg-[#EC4899] rounded-full flex items-center justify-center text-white shadow-lg shadow-[#EC4899]/30 border-4 border-black transition-transform hover:scale-110" 
                         aria-label="Book a Table"
                     >

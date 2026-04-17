@@ -621,7 +621,7 @@ export type Page =
   | 'reportIssue'
   | 'cookieSettings'
   | 'dataExport'
-  | 'bookATable'
+  | 'featuredVenues'
   | 'chatbot'
   | 'liveChat'
   | 'exclusiveExperiences'

@@ -97,7 +97,8 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
         };
 
         onAddToCart(cartItem);
-        setShowSuccessModal(true);
+        onClose();
+        onNavigateToCheckout();
     };
 
     const renderStep = () => {

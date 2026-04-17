@@ -77,7 +77,8 @@ export const EventBookingFlow: React.FC<EventBookingFlowProps> = ({ event, curre
                 }
             }
         });
-        setShowSuccessModal(true);
+        onClose();
+        onNavigateToCheckout();
     };
 
     return (

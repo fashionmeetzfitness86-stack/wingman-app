@@ -279,7 +279,9 @@ const BookingModal: React.FC<{
       return;
     }
     setRuleError('');
-    setStep('confirm');
+    onConfirm(partySize);
+    onClose();
+    if (onNavigateToPlans) onNavigateToPlans();
   };
 
   const handleConfirm = () => {
