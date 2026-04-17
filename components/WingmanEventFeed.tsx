@@ -286,7 +286,7 @@ const BookingModal: React.FC<{
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
@@ -362,8 +362,10 @@ const BookingModal: React.FC<{
           {isBooked && (
             <div className="flex flex-col items-center py-4 gap-4 text-center">
               <div className="w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(236,72,153,0.12)' }}>
-                <IconCheck className="w-7 h-7" style={{ color: '#EC4899' } as React.CSSProperties} />
+                style={{ background: 'rgba(224,64,251,0.12)' }}>
+                <div style={{ color: '#E040FB' }}>
+                  <IconCheck className="w-7 h-7" />
+                </div>
               </div>
               <div>
                 <p className="font-bold text-white text-lg mb-1">You're In! 🎉</p>
@@ -377,7 +379,7 @@ const BookingModal: React.FC<{
                 <button
                   onClick={() => { onClose(); onNavigateToPlans(); }}
                   className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
-                  style={{ background: '#EC4899', boxShadow: '0 8px 24px rgba(236,72,153,0.25)' }}
+                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
                 >
                   View in My Plans →
                 </button>
