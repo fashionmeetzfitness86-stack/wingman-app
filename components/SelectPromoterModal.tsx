@@ -75,7 +75,7 @@ export const SelectPromoterModal: React.FC<SelectPromoterModalProps> = ({ isOpen
                         }
                     }}
                     disabled={promoters.length === 0}
-                    className="bg-[#EC4899] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Book with General Concierge
                 </button>

@@ -162,7 +162,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
             </div>
             <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                 <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                <button onClick={handleSave} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                <button onClick={handleSave} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
             </div>
         </div>
     </div>

@@ -167,7 +167,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy', err);
-            alert('Sharing is not supported on this browser. Could not copy link.');
+            (window as any).showAppToast?.('Sharing is not supported on this browser. Could not copy link.');
         }
     }
   };
@@ -258,7 +258,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
               </div>
               {!isOwnProfile && (
                   <button onClick={handleFavoriteToggle} className="self-start md:self-end bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold flex items-center gap-2 transition-all hover:scale-105 border border-white/20">
-                     <HeartIcon className={`w-5 h-5 ${isFavorite ? 'text-[#EC4899] fill-current' : ''}`} isFilled={isFavorite} />
+                     <HeartIcon className={`w-5 h-5 ${isFavorite ? 'text-purple-400 fill-current' : ''}`} isFilled={isFavorite} />
                      {isFavorite ? 'Favorited' : 'Favorite'}
                   </button>
               )}
@@ -271,7 +271,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-[#1C1C1E] rounded-2xl border border-gray-800 shadow-2xl">
             <div className="text-center border-r border-gray-800 last:border-0">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                    <StarIcon className="w-4 h-4 text-[#EC4899]" />
+                    <StarIcon className="w-4 h-4 text-purple-400" />
                     <span className="text-2xl font-bold text-white">{promoter.rating.toFixed(1)}</span>
                 </div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Rating</p>
@@ -303,12 +303,12 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
 
          {/* Navigation Links */}
          <div className="sticky top-20 z-10 bg-[var(--color-background)]/95 backdrop-blur-md border-b border-gray-800 py-3 -mx-6 px-6 flex gap-6 overflow-x-auto no-scrollbar">
-            <button onClick={() => scrollToSection('about')} className="text-sm font-bold text-gray-400 hover:text-[#EC4899] transition-colors whitespace-nowrap">About</button>
-            <button onClick={() => scrollToSection('gallery')} className="text-sm font-bold text-gray-400 hover:text-[#EC4899] transition-colors whitespace-nowrap">Gallery</button>
-            {promoterEvents.length > 0 && <button onClick={() => scrollToSection('upcoming')} className="text-sm font-bold text-gray-400 hover:text-[#EC4899] transition-colors whitespace-nowrap">Upcoming Events</button>}
-            <button onClick={() => scrollToSection('schedule')} className="text-sm font-bold text-gray-400 hover:text-[#EC4899] transition-colors whitespace-nowrap">Weekly Schedule</button>
+            <button onClick={() => scrollToSection('about')} className="text-sm font-bold text-gray-400 hover:text-purple-400 transition-colors whitespace-nowrap">About</button>
+            <button onClick={() => scrollToSection('gallery')} className="text-sm font-bold text-gray-400 hover:text-purple-400 transition-colors whitespace-nowrap">Gallery</button>
+            {promoterEvents.length > 0 && <button onClick={() => scrollToSection('upcoming')} className="text-sm font-bold text-gray-400 hover:text-purple-400 transition-colors whitespace-nowrap">Upcoming Events</button>}
+            <button onClick={() => scrollToSection('schedule')} className="text-sm font-bold text-gray-400 hover:text-purple-400 transition-colors whitespace-nowrap">Weekly Schedule</button>
             {!isOwnProfile && (
-                <button onClick={() => scrollToSection('rating')} className="text-sm font-bold text-gray-400 hover:text-[#EC4899] transition-colors whitespace-nowrap">Rate Experience</button>
+                <button onClick={() => scrollToSection('rating')} className="text-sm font-bold text-gray-400 hover:text-purple-400 transition-colors whitespace-nowrap">Rate Experience</button>
             )}
          </div>
 
@@ -318,7 +318,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                {/* Section 1: About */}
                <section id="about" className="scroll-mt-36">
                   <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                      <span className="w-1 h-6 bg-[#EC4899] rounded-full"></span> About
+                      <span className="w-1 h-6 bg-purple-600 rounded-full"></span> About
                   </h2>
                   <div className="bg-[#1C1C1E] p-6 rounded-2xl border border-gray-800 leading-relaxed text-gray-300">
                       {promoter.bio}
@@ -393,7 +393,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                               {!isOwnProfile && (
                                                   <button 
                                                       onClick={() => onBook(promoter, venue, event.date)}
-                                                      className="flex-1 bg-[#EC4899] hover:bg-[#d8428a] text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                                                      className="flex-1 bg-purple-600 hover:bg-[#d8428a] text-white text-xs font-bold py-2 rounded-lg transition-colors"
                                                   >
                                                       Book Table
                                                   </button>
@@ -441,7 +441,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                   />
                                   <button 
                                       onClick={handleSubmitReview}
-                                      className="bg-[#EC4899] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#d8428a] transition-colors w-full sm:w-auto"
+                                      className="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-[#d8428a] transition-colors w-full sm:w-auto"
                                   >
                                       Submit Review
                                   </button>
@@ -530,7 +530,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                                           )}
                                                           <button 
                                                               onClick={() => venue ? onBook(promoter, venue, nextDate) : onNavigate?.('eventTimeline', { eventId: event?.id })}
-                                                              className="flex-1 bg-[#EC4899] hover:bg-[#d8428a] text-white text-[10px] font-bold py-1.5 rounded-md transition-colors shadow-lg shadow-[#EC4899]/20"
+                                                              className="flex-1 bg-purple-600 hover:bg-[#d8428a] text-white text-[10px] font-bold py-1.5 rounded-md transition-colors shadow-lg shadow-[#EC4899]/20"
                                                           >
                                                               {venue ? 'Book Table' : 'View Event'}
                                                           </button>
@@ -555,13 +555,13 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
        <div className={`fixed inset-x-0 ${showBottomNav ? 'bottom-20' : 'bottom-0'} z-30 bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4`}>
         <div className="container mx-auto max-w-5xl text-center flex flex-col sm:flex-row items-center justify-center gap-3">
             {isOwnProfile ? (
-                <button onClick={onEditProfile} className="w-full sm:flex-1 bg-[#EC4899] text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#EC4899] hover:bg-[#d8428a] shadow-xl shadow-[#EC4899]/20 text-lg">
+                <button onClick={onEditProfile} className="w-full sm:flex-1 bg-purple-600 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#EC4899] hover:bg-[#d8428a] shadow-xl shadow-[#EC4899]/20 text-lg">
                     <PencilIcon className="w-5 h-5 inline-block mr-2" />
                     Edit Profile
                 </button>
             ) : (
                 <>
-                    <button onClick={() => onBook(promoter)} className="w-full sm:flex-1 bg-[#EC4899] text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#EC4899] hover:bg-[#d8428a] shadow-xl shadow-[#EC4899]/20 text-lg" aria-label={`Book a table with ${promoter.name}`}>
+                    <button onClick={() => onBook(promoter)} className="w-full sm:flex-1 bg-purple-600 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#EC4899] hover:bg-[#d8428a] shadow-xl shadow-[#EC4899]/20 text-lg" aria-label={`Book a table with ${promoter.name}`}>
                         Book with {promoter.name.split(' ')[0]}
                     </button>
                     {(currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN) && (

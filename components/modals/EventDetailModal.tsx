@@ -88,7 +88,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy: ', err);
-            alert('Sharing is not supported on this browser. Could not copy link.');
+            (window as any).showAppToast?.('Sharing is not supported on this browser. Could not copy link.');
         }
     }
   };
@@ -141,7 +141,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         return (
             <button
                 onClick={() => onBook(event)}
-                className="w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg bg-[#EC4899] text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC4899]"
+                className="w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg bg-purple-600 text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC4899]"
                 aria-label={`Book tickets for ${event.title}`}
             >
                 <KeyIcon className="w-5 h-5" />
@@ -281,12 +281,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-400 text-sm mt-4 border-y border-gray-800 py-3">
              <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-[#EC4899] flex-shrink-0" />
+              <CalendarIcon className="w-5 h-5 text-purple-400 flex-shrink-0" />
               <span className="font-semibold">{formattedDate}</span>
             </div>
              {venue && (
                 <div className="flex items-center gap-3">
-                    <LocationMarkerIcon className="w-5 h-5 text-[#EC4899] flex-shrink-0" />
+                    <LocationMarkerIcon className="w-5 h-5 text-purple-400 flex-shrink-0" />
                     <span className="font-semibold">{venue.name} &bull; {venue.location}</span>
                 </div>
             )}
@@ -316,7 +316,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         <div className="p-6 border-t border-gray-800 bg-black/30 rounded-b-xl space-y-4">
             <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-gray-300">Price</p>
-                <p className="text-2xl font-bold text-[#EC4899]">{getPriceText()}</p>
+                <p className="text-2xl font-bold text-purple-400">{getPriceText()}</p>
             </div>
             {renderActionButton()}
             {renderGuestlistButton()}

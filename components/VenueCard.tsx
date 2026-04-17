@@ -95,7 +95,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
     if (primaryPromoter) {
         onJoinGuestlist(primaryPromoter, venue);
     } else {
-        alert("No promoters available for this venue's guestlist at the moment.");
+        (window as any).showAppToast?.("No promoters available for this venue's guestlist at the moment.");
     }
   };
   
@@ -155,7 +155,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
         <div className="mt-4 pt-4 border-t border-gray-800 flex flex-col gap-2">
             <button
                 onClick={handleBookClick}
-                className="w-full text-center bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 group-hover:bg-[#d8428a]"
+                className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 group-hover:bg-[#d8428a]"
                 aria-label={`Book now at ${venue.name}`}
             >
                 Book Now

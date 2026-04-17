@@ -26,7 +26,7 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
 
     const handleSave = () => {
         if (!editedItem.title || !editedItem.image) {
-            alert('Please fill out title and add an image.');
+            (window as any).showAppToast?.('Please fill out title and add an image.');
             return;
         }
         onSave(editedItem as StoreItem);
@@ -92,7 +92,7 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                         ) : (
                             <label htmlFor="image-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#EC4899]">
                                 <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-[#EC4899] font-semibold">Click to upload image</span>
+                                <span className="text-purple-400 font-semibold">Click to upload image</span>
                                 <span className="text-xs text-gray-500 mt-1">PNG or JPG</span>
                                 <input id="image-upload" type="file" className="sr-only" onChange={handleImageFileChange} accept="image/png, image/jpeg" />
                             </label>
@@ -115,7 +115,7 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                         ) : (
                             <label htmlFor="video-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#EC4899]">
                                 <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-[#EC4899] font-semibold">Click to upload video</span>
+                                <span className="text-purple-400 font-semibold">Click to upload video</span>
                                 <span className="text-xs text-gray-500 mt-1">MP4, MOV, etc.</span>
                                 <input id="video-upload" type="file" className="sr-only" onChange={handleVideoFileChange} accept="video/*" />
                             </label>
@@ -129,7 +129,7 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                 </div>
                 <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                     <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                    <button onClick={handleSave} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg">Save Item</button>
+                    <button onClick={handleSave} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">Save Item</button>
                 </div>
             </div>
         </div>

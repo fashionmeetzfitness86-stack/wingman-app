@@ -649,4 +649,5 @@ export type Page =
   | 'promoterStats'
   | 'paymentMethods'
   | 'friendsZone'
-  | 'friendZoneChat'; // Added friendZoneChat
+  | 'friendZoneChat' // Added friendZoneChat
+  | 'eventDetail';

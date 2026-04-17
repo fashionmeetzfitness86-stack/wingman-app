@@ -55,7 +55,7 @@ const SortableHeader: React.FC<{
         <th scope="col" className={`px-4 py-4 ${className || ''}`}>
             <button onClick={() => requestSort(sortKey)} className="flex items-center gap-1.5 group text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-white transition-colors">
                 {label}
-                {isSorted ? <Icon className="w-3.5 h-3.5 text-[#EC4899]" /> : <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />}
+                {isSorted ? <Icon className="w-3.5 h-3.5 text-purple-400" /> : <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />}
             </button>
         </th>
     );
@@ -167,7 +167,7 @@ export const PromoterStatsPage: React.FC<PromoterStatsPageProps> = ({ currentUse
                             onClick={() => setTimeFilter(period)}
                             className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
                                 timeFilter === period 
-                                ? 'bg-[#EC4899] text-white shadow-lg shadow-[#EC4899]/20' 
+                                ? 'bg-purple-600 text-white shadow-lg shadow-[#EC4899]/20' 
                                 : 'text-gray-400 hover:text-white hover:bg-gray-800'
                             }`}
                         >

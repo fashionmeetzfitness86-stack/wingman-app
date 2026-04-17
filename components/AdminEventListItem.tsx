@@ -24,7 +24,7 @@ export const AdminEventListItem: React.FC<AdminEventListItemProps> = ({ event, v
                         type="checkbox" 
                         checked={isSelected} 
                         onChange={() => onToggleSelect(event.id)}
-                        className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-[#EC4899] focus:ring-[#EC4899] cursor-pointer"
+                        className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-400 focus:ring-[#EC4899] cursor-pointer"
                     />
                 </div>
             )}

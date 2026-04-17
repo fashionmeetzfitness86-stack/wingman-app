@@ -54,7 +54,7 @@ export const GuestlistJoinSuccessModal: React.FC<GuestlistJoinSuccessModalProps>
         <div className="mt-8 flex flex-col gap-3 relative z-10">
           <button
             onClick={onNavigateToPlans}
-            className={`w-full font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 ${isVip ? 'bg-amber-400 text-black hover:bg-amber-300' : 'bg-[#EC4899] text-white'}`}
+            className={`w-full font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 ${isVip ? 'bg-amber-400 text-black hover:bg-amber-300' : 'bg-purple-600 text-white'}`}
           >
             View in My Plans
           </button>

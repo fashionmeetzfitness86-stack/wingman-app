@@ -13,6 +13,7 @@ import { FeaturedVenuesPage } from './components/FeaturedVenuesPage';
 import { EventTimeline } from './components/EventTimeline';
 import { ExclusiveExperiencesPage } from './components/ExclusiveExperiencesPage';
 import { WingmanEventFeed } from './components/WingmanEventFeed';
+import { EventDetailPage } from './components/EventDetailPage';
 import { ChallengesPage } from './components/ChallengesPage';
 import { FriendsZonePage } from './components/FriendsZonePage';
 import { StorePage } from './components/StorePage';
@@ -276,6 +277,8 @@ export const App: React.FC = () => {
     }, [instanceBookings, pendingCartReservations]);
     // cancelMap: { [instanceId]: true } — admin-cancelled instances
     const [cancelMap, setCancelMap] = useState<Record<string, boolean>>({});
+    // forceSoldOutMap: { [instanceId]: true } — admin force sold-out instances
+    const [forceSoldOutMap, setForceSoldOutMap] = useState<Record<string, boolean>>({});
 
     // Chat State
     const [guestlistChats, setGuestlistChats] = useState<GuestlistChat[]>(mockGuestlistChats);
@@ -379,9 +382,14 @@ export const App: React.FC = () => {
         window.scrollTo(0, 0);
     };
 
-    const showToast = (message: string, type: 'success' | 'error') => {
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
     };
+
+    React.useEffect(() => {
+        (window as any).showAppToast = showToast;
+    }, []);
 
     const handleAddToCart = (item: CartItem) => {
         setCartItems([...cartItems, item]);
@@ -1088,6 +1096,27 @@ export const App: React.FC = () => {
         showToast(`${app.fullName} approved as Promoter!`, 'success');
     };
 
+    const handleInstanceBook = (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
+        setPendingCartReservations(prev => ({ ...prev, [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize }));
+        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
+        const inst = allInst.find(i => i.instanceId === booking.instanceId);
+        const newCartItem: CartItem = {
+            id: cartId,
+            name: inst?.title ?? booking.instanceId,
+            type: 'event',
+            image: inst?.coverImage ?? '',
+            date: inst?.date,
+            sortableDate: inst?.date,
+            fullPrice: booking.totalPaid,
+            depositPrice: booking.totalPaid,
+            paymentOption: 'full',
+            bookedTimestamp: Date.now(),
+        };
+        setCartItems(prev => [...prev, newCartItem]);
+        setCartInstanceMeta(prev => ({ ...prev, [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize } }));
+    };
+
     // --- Render ---
 
     const renderPage = () => {
@@ -1184,48 +1213,14 @@ export const App: React.FC = () => {
                     bookedMap={bookedMap}
                     instanceBookings={instanceBookings}
                     bookmarkedInstanceIds={bookmarkedInstanceIds}
-                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev =>
-                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-                    )}
-                    onBook={(booking) => {
-                        // 1. Reserve spots immediately (visible in feed)
-                        setPendingCartReservations(prev => ({
-                            ...prev,
-                            [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize,
-                        }));
-                        // 2. Build a CartItem for the payment step
-                        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
-                        const inst = allInst.find(i => i.instanceId === booking.instanceId);
-                        const newCartItem: CartItem = {
-                            id: cartId,
-                            name: inst?.title ?? booking.instanceId,
-                            type: 'event',
-                            image: inst?.coverImage ?? '',
-                            date: inst?.date,
-                            sortableDate: inst?.date,
-                            fullPrice: booking.totalPaid,
-                            depositPrice: booking.totalPaid,
-                            paymentOption: 'full',
-                            bookedTimestamp: Date.now(),
-                        };
-                        setCartItems(prev => [...prev, newCartItem]);
-                        // 3. Store meta so checkout can create InstanceBooking on payment
-                        setCartInstanceMeta(prev => ({
-                            ...prev,
-                            [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize },
-                        }));
-                    }}
+                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                    onBook={handleInstanceBook}
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
+                    onViewDetail={(inst) => handleNavigate('eventDetail', { instance: inst })}
                     cancelMap={cancelMap}
-                    onAdminCancel={(id) => {
-                        setCancelMap(prev => ({ ...prev, [id]: true }));
-                        showToast('Event instance cancelled.', 'success');
-                    }}
-                    onAdminRestore={(id) => {
-                        setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; });
-                        showToast('Event instance restored.', 'success');
-                    }}
+                    onAdminCancel={(id) => { setCancelMap(prev => ({ ...prev, [id]: true })); showToast('Event instance cancelled.', 'success'); }}
+                    onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
+                    onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
                 />;
             case 'exclusiveExperiences':
                 return <WingmanEventFeed
@@ -1233,50 +1228,26 @@ export const App: React.FC = () => {
                     bookedMap={bookedMap}
                     instanceBookings={instanceBookings}
                     bookmarkedInstanceIds={bookmarkedInstanceIds}
-                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev =>
-                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-                    )}
-                    onBook={(booking) => {
-                        // 1. Reserve spots immediately (visible in feed)
-                        setPendingCartReservations(prev => ({
-                            ...prev,
-                            [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize,
-                        }));
-
-                        // 2. Build a CartItem for the payment step
-                        const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
-                        const inst = allInst.find(i => i.instanceId === booking.instanceId);
-                        const newCartItem: CartItem = {
-                            id: cartId,
-                            name: inst?.title ?? booking.instanceId,
-                            type: 'event',
-                            image: inst?.coverImage ?? '',
-                            date: inst?.date,
-                            sortableDate: inst?.date,
-                            fullPrice: booking.totalPaid,
-                            depositPrice: booking.totalPaid,
-                            paymentOption: 'full',
-                            bookedTimestamp: Date.now(),
-                        };
-                        setCartItems(prev => [...prev, newCartItem]);
-
-                        // 3. Store meta so checkout can create InstanceBooking on payment
-                        setCartInstanceMeta(prev => ({
-                            ...prev,
-                            [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize },
-                        }));
-                    }}
+                    onToggleBookmark={(id) => setBookmarkedInstanceIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                    onBook={handleInstanceBook}
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
+                    onViewDetail={(inst) => handleNavigate('eventDetail', { instance: inst })}
                     cancelMap={cancelMap}
-                    onAdminCancel={(id) => {
-                        setCancelMap(prev => ({ ...prev, [id]: true }));
-                        showToast('Event instance cancelled.', 'success');
-                    }}
-                    onAdminRestore={(id) => {
-                        setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; });
-                        showToast('Event instance restored.', 'success');
-                    }}
+                    onAdminCancel={(id) => { setCancelMap(prev => ({ ...prev, [id]: true })); showToast('Event instance cancelled.', 'success'); }}
+                    onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
+                    onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
+                />;
+            case 'eventDetail':
+                const inst = pageParams.instance || (pageParams.instanceId ? generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap).find(i => i.instanceId === pageParams.instanceId) : null);
+                if (!inst) return <div className="text-white p-8">Event not found</div>;
+                return <EventDetailPage
+                    instance={inst}
+                    currentUser={currentUser}
+                    bookedMap={bookedMap}
+                    instanceBookings={instanceBookings}
+                    onNavigate={handleNavigate}
+                    onBook={handleInstanceBook}
+                    onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                 />;
             case 'challenges':
                 return <ChallengesPage 
@@ -1948,18 +1919,19 @@ export const App: React.FC = () => {
                     {onboardingReward !== null && (
                         <Modal isOpen={true} onClose={() => setOnboardingReward(null)} className="max-w-sm">
                             <div className="text-center p-6">
-                                <div className="mx-auto w-20 h-20 bg-amber-400/10 rounded-full flex items-center justify-center mb-6 border border-amber-400/20">
-                                    <TokenIcon className="w-10 h-10 text-amber-400" />
+                                <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(224,64,251,0.1)' }}>
+                                    <TokenIcon className="w-10 h-10" style={{ color: '#E040FB' }} />
                                 </div>
-                                <h2 className="text-2xl font-bold text-white mb-3">Reward Received!</h2>
-                                <p className="text-gray-400 mb-8 leading-relaxed">
-                                    You've earned <span className="text-amber-400 font-bold text-lg">{onboardingReward} TMKC</span> tokens for completing the tour.
+                                <h3 className="text-xl font-bold text-white mb-2">Welcome to Wingman</h3>
+                                <p className="text-gray-300 mb-6">
+                                    You've earned <span className="font-bold text-lg" style={{ color: '#E040FB' }}>{onboardingReward} Tokens</span> to use towards your first booking.
                                 </p>
-                                <button 
+                                <button
                                     onClick={() => setOnboardingReward(null)}
-                                    className="w-full bg-amber-400 text-black font-bold py-3.5 rounded-xl hover:bg-amber-300 transition-transform hover:scale-105 shadow-lg shadow-amber-400/20"
+                                    className="w-full text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all font-inter"
+                                    style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}
                                 >
-                                    Awesome!
+                                    Start Exploring
                                 </button>
                             </div>
                         </Modal>

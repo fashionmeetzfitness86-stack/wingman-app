@@ -98,11 +98,11 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
   ];
 
   const handleGenerateImage = async () => {
-      alert("AI image generation is temporarily unavailable. Please upload a cover image manually.");
+      (window as any).showAppToast?.("AI image generation is temporarily unavailable. Please upload a cover image manually.");
   };
 
   const handleGenerateVideo = async () => {
-      alert("AI video generation is temporarily unavailable.");
+      (window as any).showAppToast?.("AI video generation is temporarily unavailable.");
   };
 
   const handleScan = (data: string) => {

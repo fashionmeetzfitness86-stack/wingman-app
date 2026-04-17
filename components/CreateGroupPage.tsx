@@ -14,7 +14,7 @@ export const CreateGroupPage: React.FC<CreateGroupPageProps> = ({ onSave, onCanc
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !description || !coverImage) {
-            alert('Please fill out all fields.');
+            (window as any).showAppToast?.('Please fill out all fields.');
             return;
         }
         onSave({ name, description, coverImage });
@@ -41,7 +41,7 @@ export const CreateGroupPage: React.FC<CreateGroupPageProps> = ({ onSave, onCanc
                 </div>
                 <div className="flex gap-4 pt-4">
                     <button type="button" onClick={onCancel} className="w-full bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
-                    <button type="submit" className="w-full bg-[#EC4899] text-white font-bold py-3 rounded-lg hover:bg-[#f472b6] transition-transform hover:scale-105">Create Group</button>
+                    <button type="submit" className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-[#f472b6] transition-transform hover:scale-105">Create Group</button>
                 </div>
             </form>
         </div>

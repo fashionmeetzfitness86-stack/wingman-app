@@ -104,7 +104,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
     const date = new Date(dateString + 'T00:00:00');
     const dayOfWeek = WEEKDAYS[date.getDay()];
     if (!selectedVenue.operatingDays.includes(dayOfWeek)) {
-        alert('This venue is not open on the selected day. Please choose another date.');
+        (window as any).showAppToast?.('This venue is not open on the selected day. Please choose another date.');
     } else {
         setSelectedDate(dateString);
     }
@@ -147,11 +147,11 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
 
   const handleConfirm = () => {
     if (!primaryPromoter || !selectedVenueId || !selectedDate) {
-        alert("Please select a venue and a valid date.");
+        (window as any).showAppToast?.("Please select a venue and a valid date.");
         return;
     }
     if (maleGuests === 0 && femaleGuests === 0) {
-        alert("Please specify the number of guests.");
+        (window as any).showAppToast?.("Please specify the number of guests.");
         return;
     }
     onConfirmJoin(primaryPromoter.id, selectedVenueId, selectedDate, maleGuests, femaleGuests);
@@ -295,7 +295,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
             <button 
                 onClick={handleConfirm}
                 disabled={!selectedDate}
-                className={`w-full text-black font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed ${isVipUser ? 'bg-amber-400 hover:bg-amber-300' : 'bg-[#EC4899] text-white hover:bg-[#d8428a]'}`}
+                className={`w-full text-black font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed ${isVipUser ? 'bg-amber-400 hover:bg-amber-300' : 'bg-purple-600 text-white hover:bg-[#d8428a]'}`}
             >
                 {isVipUser ? 'Confirm VIP Entry' : 'Join Guestlist'}
             </button>

@@ -375,7 +375,7 @@ export const AddPaymentMethodModal: React.FC<AddPaymentMethodModalProps> = ({ is
         
         <div className="pt-6 flex gap-3 border-t border-gray-800 mt-4">
             <Button variant="secondary" onClick={onClose} className="w-full">Cancel</Button>
-            <Button variant="primary" onClick={handleSave} className="w-full bg-[#EC4899] hover:bg-[#d8428a] text-white">
+            <Button variant="primary" onClick={handleSave} className="w-full bg-purple-600 hover:bg-[#d8428a] text-white">
                 {initialMethod ? "Save Changes" : `Add ${methodType === 'card' ? 'Card' : methodType === 'paypal' ? 'PayPal' : 'Wallet'}`}
             </Button>
         </div>

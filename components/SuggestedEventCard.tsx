@@ -47,7 +47,7 @@ export const SuggestedEventCard: React.FC<SuggestedEventCardProps> = ({ event, o
                     {venueCategory && <span className="text-xs font-semibold bg-gray-700 text-gray-300 px-2 py-1 rounded-md">{venueCategory}</span>}
                     {venueMusicType && <span className="text-xs font-semibold bg-gray-700 text-gray-300 px-2 py-1 rounded-md">{venueMusicType}</span>}
                 </div>
-                <div className="mt-3 w-full bg-[#EC4899] text-white font-bold py-2.5 rounded-lg group-hover:bg-[#d8428a] transition-colors text-center">
+                <div className="mt-3 w-full bg-purple-600 text-white font-bold py-2.5 rounded-lg group-hover:bg-[#d8428a] transition-colors text-center">
                     View Details
                 </div>
             </div>

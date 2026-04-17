@@ -43,7 +43,7 @@ export const ItineraryBuilderPage: React.FC<ItineraryBuilderPageProps> = ({ onSa
 
     const handleSave = () => {
         if (!title.trim()) {
-            alert("Please enter a title for your itinerary.");
+            (window as any).showAppToast?.("Please enter a title for your itinerary.");
             return;
         }
 

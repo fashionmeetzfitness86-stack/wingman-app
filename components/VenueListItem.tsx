@@ -42,11 +42,11 @@ export const VenueListItem: React.FC<VenueListItemProps> = ({ venue, onBook, isF
             className="p-3 rounded-full text-white hover:bg-gray-700 transition-colors"
             aria-label={isFavorite ? `Remove ${venue.name} from favorites` : `Add ${venue.name} to favorites`}
           >
-            <HeartIcon className={`w-6 h-6 ${isFavorite ? 'text-[#EC4899] fill-[#EC4899]' : ''}`} isFilled={isFavorite} />
+            <HeartIcon className={`w-6 h-6 ${isFavorite ? 'text-purple-400 fill-[#EC4899]' : ''}`} isFilled={isFavorite} />
           </button>
           <button
             onClick={() => onBook(venue)}
-            className="text-center bg-[#EC4899] text-white font-bold py-2 px-5 rounded-lg text-sm transition-colors duration-300 hover:bg-[#d8428a]"
+            className="text-center bg-purple-600 text-white font-bold py-2 px-5 rounded-lg text-sm transition-colors duration-300 hover:bg-[#d8428a]"
             aria-label={`Book now at ${venue.name}`}
           >
             Book Now

@@ -99,7 +99,7 @@ const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Pr
         <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
             {sender && !isCurrentUser && (
                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-bold text-sm text-[#EC4899]">{sender.name}</p>
+                    <p className="font-bold text-sm text-purple-400">{sender.name}</p>
                     <p className="text-xs text-gray-400">{message.timestamp}</p>
                 </div>
             )}

@@ -62,7 +62,7 @@ export const PromoterDirectory: React.FC<PromoterDirectoryProps> = ({ promoters,
     <div className="p-4 md:p-8 animate-fade-in">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
-          Find Your <span className="text-[#EC4899]">Wingman</span>
+          Find Your <span className="text-purple-400">Wingman</span>
         </h1>
         <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto">
           Connect with Miami's elite promoters to unlock exclusive access to the city's most sought-after nightlife experiences.

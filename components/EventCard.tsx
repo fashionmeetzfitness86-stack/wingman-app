@@ -76,7 +76,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy: ', err);
-            alert('Sharing is not supported on this browser. Could not copy link.');
+            (window as any).showAppToast?.('Sharing is not supported on this browser. Could not copy link.');
         }
     }
   };
@@ -113,7 +113,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     className={`flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 ${
                         isRsvped
                             ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-[#EC4899] text-white hover:bg-[#d8428a]'
+                            : 'bg-purple-600 text-white hover:bg-[#d8428a]'
                     }`}
                 >
                     {isRsvped ? (
@@ -172,7 +172,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     e.stopPropagation();
                     onBook(event);
                 }}
-                className="flex-grow bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 hover:bg-[#d8428a]"
+                className="flex-grow bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 hover:bg-[#d8428a]"
                 aria-label={`Book tickets for ${event.title}`}
             >
                 <KeyIcon className="w-4 h-4" />
@@ -187,7 +187,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             className={`flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 ${
                 isRsvped
                     ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    : 'bg-[#EC4899] text-white hover:bg-[#d8428a]'
+                    : 'bg-purple-600 text-white hover:bg-[#d8428a]'
             }`}
             aria-label={isRsvped ? `Cancel RSVP for ${event.title}` : `RSVP for ${event.title}`}
         >
@@ -254,7 +254,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <span className="text-xs font-semibold text-white">{attendancePercentage}% Full</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-1.5">
-                <div className="bg-[#EC4899] h-1.5 rounded-full" style={{ width: `${attendancePercentage}%` }}></div>
+                <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: `${attendancePercentage}%` }}></div>
               </div>
             </div>
           )}
@@ -267,7 +267,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                           e.stopPropagation();
                           onToggleLike(event.id);
                       }}
-                      className={`flex-shrink-0 p-2.5 rounded-lg transition-all hover:bg-gray-600 active:scale-95 ${isLiked ? 'bg-pink-500/10 text-[#EC4899] border border-[#EC4899]/30' : 'bg-gray-700 text-gray-300 border border-transparent'}`}
+                      className={`flex-shrink-0 p-2.5 rounded-lg transition-all hover:bg-gray-600 active:scale-95 ${isLiked ? 'bg-pink-500/10 text-purple-400 border border-[#EC4899]/30' : 'bg-gray-700 text-gray-300 border border-transparent'}`}
                       aria-label={isLiked ? `Unlike ${event.title}` : `Like ${event.title}`}
                   >
                       <HeartIcon className="w-5 h-5" isFilled={isLiked} />

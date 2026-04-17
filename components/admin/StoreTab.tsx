@@ -54,7 +54,7 @@ export const StoreTab: React.FC<StoreTabProps> = ({ storeItems, onAddItem, onEdi
                     </select>
                     <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
                 </div>
-                 <button onClick={onAddItem} className="flex items-center justify-center gap-2 bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">
+                 <button onClick={onAddItem} className="flex items-center justify-center gap-2 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
                     <PlusIcon className="w-5 h-5" />
                     Add New Item
                 </button>

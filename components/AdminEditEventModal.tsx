@@ -29,11 +29,11 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
     const handleSave = () => {
         // Basic validation
         if (!editedEvent.title || !editedEvent.date || !editedEvent.venueId) {
-            alert('Please fill out all required fields.');
+            (window as any).showAppToast?.('Please fill out all required fields.');
             return;
         }
         if (editedEvent.recurrence && (!editedEvent.recurrence.frequency || !editedEvent.recurrence.endDate)) {
-            alert('Please provide frequency and end date for recurring events.');
+            (window as any).showAppToast?.('Please provide frequency and end date for recurring events.');
             return;
         }
         onSave(editedEvent as Event);
