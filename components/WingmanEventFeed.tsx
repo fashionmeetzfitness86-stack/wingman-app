@@ -55,13 +55,13 @@ const IconUsers = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
-const IconCheck = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+const IconCheck = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
   </svg>
 );
-const IconBookmark = ({ className, filled }: { className?: string; filled?: boolean }) => (
-  <svg className={className} fill={filled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+const IconBookmark = ({ className, filled, style }: { className?: string; filled?: boolean; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill={filled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
   </svg>
 );
@@ -420,77 +420,23 @@ const BookingModal: React.FC<{
 
               <button
                 onClick={handleAddToCart}
-                className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98]"
+                className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
               >
-                Add to Cart — ${(partySize * instance.pricePerPerson).toLocaleString()}
+                Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
               </button>
             </div>
           )}
 
-          {/* ── Step: Confirm ── */}
-          {step === 'confirm' && (
-            <div className="space-y-4">
-              <div className="rounded-2xl p-4 space-y-2"
-                style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.2)' }}>
-                <p className="text-sm font-bold text-white mb-3">Booking Summary</p>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Event</span><span className="text-white font-medium truncate ml-4">{instance.title}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Date</span><span className="text-white">{formatEventDate(instance.date)}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Time</span><span className="text-white">{instance.time}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Party</span><span className="text-white">{partySize} person{partySize !== 1 ? 's' : ''}</span></div>
-                <div className="flex justify-between text-sm pt-2 border-t border-gray-800"><span className="text-gray-300 font-semibold">Total</span><span className="text-white font-black text-lg">${(partySize * instance.pricePerPerson).toLocaleString()}</span></div>
-              </div>
-
-              <div className="flex gap-3">
-                <button onClick={() => setStep('detail')}
-                  className="flex-1 py-3 rounded-2xl bg-gray-800 text-gray-300 font-semibold text-sm hover:bg-gray-700 transition-colors">
-                  Back
-                </button>
-                <button onClick={handleConfirm}
-                  className="flex-1 py-3 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98]"
-                  style={{ background: '#EC4899' }}>
-                  Confirm Booking
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── Step: Done (reserved — pending payment) ── */}
-          {step === 'done' && (
-            <div className="flex flex-col items-center py-6 gap-4 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(236,72,153,0.12)' }}>
-                <IconCheck className="w-8 h-8" style={{ color: '#EC4899' } as React.CSSProperties} />
-              </div>
-              <div>
-                <p className="font-bold text-white text-lg mb-1">Spot Reserved! 🎉</p>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {existingBooking
-                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — fully paid`
-                    : 'Your spot is held. Go to My Plans to complete your payment and lock in your booking.'}
-                </p>
-              </div>
-              {!existingBooking && onNavigateToPlans && (
-                <button
-                  onClick={() => { onClose(); onNavigateToPlans(); }}
-                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
-                  style={{ background: '#EC4899', boxShadow: '0 8px 24px rgba(236,72,153,0.25)' }}
-                >
-                  Go to My Plans →
-                </button>
-              )}
-              <button onClick={onClose}
-                className="text-sm font-semibold text-gray-500 hover:text-gray-300 transition-colors">
-                {existingBooking ? 'Close' : 'I\'ll pay later'}
-              </button>
-            </div>
-          )}
-
-          {/* Not bookable */}
-          {!canBook && step !== 'done' && (
+          {/* ── Not bookable ── */}
+          {!isBooked && !canBook && (
             <div className="text-center py-4">
               <p className="text-gray-500 text-sm">
-                {instance.status === 'sold-out' ? 'This event is fully booked.' : 'This event was cancelled.'}
+                {instance.status === 'sold-out'
+                  ? 'This event is fully booked.'
+                  : instance.status === 'cancelled'
+                  ? 'This event was cancelled.'
+                  : 'Booking requires an approved active membership.'}
               </p>
             </div>
           )}
