@@ -9,7 +9,7 @@ import { HomeScreen } from './components/HomeScreen';
 import { MembershipRequestModal } from './components/modals/MembershipRequestModal';
 import { PromoterDirectory } from './components/PromoterDirectory';
 import { PromoterProfile } from './components/PromoterProfile';
-import { BookATablePage } from './components/BookATablePage';
+import { FeaturedVenuesPage } from './components/FeaturedVenuesPage';
 import { EventTimeline } from './components/EventTimeline';
 import { ExclusiveExperiencesPage } from './components/ExclusiveExperiencesPage';
 import { WingmanEventFeed } from './components/WingmanEventFeed';
@@ -1094,8 +1094,8 @@ export const App: React.FC = () => {
                     tokenBalance={userTokenBalance}
                     events={appEvents}
                 />;
-            case 'bookATable':
-                return <BookATablePage 
+            case 'featuredVenues':
+                return <FeaturedVenuesPage 
                     onBookVenue={handleBookVenue} 
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 

@@ -1,6 +1,6 @@
 
 /**
- * BookATablePage.tsx  →  Featured Venues
+ * FeaturedVenuesPage.tsx  →  Featured Venues
  * ─────────────────────────────────────────────────────────────
  * Premium venue directory with direct experience booking.
  * Each venue card shows upcoming Wingman experiences with live
@@ -19,7 +19,7 @@ import {
 
 // ─── PROPS ────────────────────────────────────────────────────
 
-interface BookATablePageProps {
+interface FeaturedVenuesPageProps {
   onBookVenue?: (venue: Venue) => void;
   favoriteVenueIds?: number[];
   onToggleFavorite?: (venueId: number) => void;
@@ -124,7 +124,10 @@ const BookingModal: React.FC<{
     if (partySize > spotsLeft) {
       setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} remaining.`); return;
     }
-    setRuleError(''); setStep('confirm');
+    setRuleError('');
+    onConfirm(partySize);
+    onClose();
+    if (onNavigateToPlans) onNavigateToPlans();
   };
 
   return (
@@ -487,7 +490,7 @@ const FeaturedVenueCard: React.FC<{
 
 // ─── MAIN PAGE ────────────────────────────────────────────────
 
-export const BookATablePage: React.FC<BookATablePageProps> = ({
+export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
   favoriteVenueIds = [],
   onToggleFavorite = () => {},
   onViewVenueDetails,

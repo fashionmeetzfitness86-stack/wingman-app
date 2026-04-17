@@ -163,9 +163,9 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
         specialRequests: specialRequests
       }
     };
-    
     onAddToCart(cartItem);
-    setShowSuccessModal(true);
+    onClose();
+    onNavigateToCheckout();
   };
 
   const renderStepContent = () => {

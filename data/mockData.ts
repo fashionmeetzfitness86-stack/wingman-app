@@ -457,8 +457,42 @@ export const challenges: Challenge[] = [
 
 // Mock Store Items
 export const storeItems: StoreItem[] = [
-    { id: 's1', category: 'Merchandise', title: 'Wingman Cap', description: 'Official cap', image: 'https://picsum.photos/seed/cap/400/400', price: 1000, priceUSD: 25 },
-    { id: 's2', category: 'Perk', title: 'Skip the Line Pass', description: 'One time use', image: 'https://picsum.photos/seed/pass/400/400', price: 5000, priceUSD: 100 }
+    {
+        id: 's1', category: 'Merchandise', title: 'Wingman Cap',
+        description: 'Premium embroidered cap. Members-only edition with gradient logo.',
+        image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80',
+        price: 1000, priceUSD: 25,
+    },
+    {
+        id: 's2', category: 'Perk', title: 'Skip the Line Pass',
+        description: 'Priority entry to any Wingman nightclub event. One-time use.',
+        image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&q=80',
+        price: 5000, priceUSD: 100,
+    },
+    {
+        id: 's3', category: 'Merchandise', title: 'Wingman Hoodie',
+        description: 'Oversized premium hoodie. Black on black. Gradient logo chest print.',
+        image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+        price: 2500, priceUSD: 65,
+    },
+    {
+        id: 's4', category: 'NFT', title: 'Wingman Genesis Pass',
+        description: 'Founding member digital collectible. Unlocks exclusive drops & early access.',
+        image: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=600&q=80',
+        price: 10000, priceUSD: 250,
+    },
+    {
+        id: 's5', category: 'Perk', title: 'Table Upgrade Token',
+        description: 'Upgrade any dinner booking to the best table in the house. One-time use.',
+        image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
+        price: 3500, priceUSD: 80,
+    },
+    {
+        id: 's6', category: 'NFT', title: 'Miami Nights #001',
+        description: 'Limited edition generative art. Wingman Miami Nights founding series.',
+        image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80',
+        price: 7500, priceUSD: 175,
+    },
 ];
 
 // Mock Payment Methods

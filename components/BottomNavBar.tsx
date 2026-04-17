@@ -97,7 +97,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
             />
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
                 <button
-                    onClick={() => onNavigate('bookATable')}
+                    onClick={() => onNavigate('featuredVenues')}
                     className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
                     style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
                    aria-label="Featured Venues"
@@ -151,7 +151,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
           />
           <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
               <button
-                  onClick={() => onNavigate('bookATable')}
+                  onClick={() => onNavigate('featuredVenues')}
                   className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
                   style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
                   aria-label="Browse Venues"

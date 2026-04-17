@@ -262,7 +262,7 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                             <PromoterCard
                                 promoter={promoter}
                                 onViewProfile={() => onNavigate('promoterProfile', { promoterId: promoter.id })}
-                                onBook={() => onNavigate('bookATable')}
+                                onBook={() => onNavigate('featuredVenues')}
                                 isFavorite={false}
                                 onToggleFavorite={() => {}}
                                 onJoinGuestlist={() => {}}
