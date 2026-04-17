@@ -36,6 +36,8 @@ interface FeaturedVenuesPageProps {
   onBook?: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
   onToggleBookmark?: (instanceId: string) => void;
   onNavigateToPlans?: () => void;
+  // Cart-pending reservations: { [instanceId]: partySize }
+  pendingCartMap?: Record<string, number>;
 }
 
 // ─── INLINE ICONS ─────────────────────────────────────────────
@@ -103,9 +105,8 @@ const BookingModal: React.FC<{
   onClose: () => void;
   onConfirm: (partySize: number) => void;
   onNavigateToPlans?: () => void;
-}> = ({ instance, currentUser, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans }) => {
+}> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans }) => {
   const [partySize, setPartySize] = useState(1);
-  const [step, setStep] = useState<'detail' | 'confirm' | 'done'>(isBooked ? 'done' : 'detail');
   const [ruleError, setRuleError] = useState('');
 
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
@@ -113,7 +114,7 @@ const BookingModal: React.FC<{
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
   const tc = { color: TYPE_COLORS[instance.experienceType] ?? '#E040FB', icon: TYPE_ICONS[instance.experienceType] ?? '✦' };
 
-  const validateAndProceed = () => {
+  const handleAddToCart = () => {
     const rules = instance.bookingRules;
     if (rules.minMenPerBooking && partySize < rules.minMenPerBooking) {
       setRuleError(`Minimum ${rules.minMenPerBooking} men required per booking.`); return;
@@ -189,8 +190,34 @@ const BookingModal: React.FC<{
             </div>
           )}
 
-          {/* Step: Detail */}
-          {step === 'detail' && canBook && (
+          {/* Already booked */}
+          {isBooked && (
+            <div className="flex flex-col items-center py-4 gap-4 text-center">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, rgba(224,64,251,0.15), rgba(0,212,255,0.15))' }}>
+                <IconCheck className="w-7 h-7" style={{ color: '#E040FB' } as React.CSSProperties} />
+              </div>
+              <div>
+                <p className="font-bold text-white text-lg mb-1">You're In! 🎉</p>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {existingBooking
+                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — paid`
+                    : 'Your spot is reserved and in your cart.'}
+                </p>
+              </div>
+              {onNavigateToPlans && (
+                <button onClick={() => { onClose(); onNavigateToPlans(); }}
+                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}>
+                  View in My Plans →
+                </button>
+              )}
+              <button onClick={onClose} className="text-sm font-semibold text-gray-500 hover:text-gray-300">Close</button>
+            </div>
+          )}
+
+          {/* Booking form */}
+          {!isBooked && canBook && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-3">Party Size</label>
@@ -210,69 +237,22 @@ const BookingModal: React.FC<{
               {ruleError && (
                 <div className="bg-red-900/30 border border-red-700/50 rounded-xl px-4 py-3 text-sm text-red-300">{ruleError}</div>
               )}
-              <button onClick={validateAndProceed}
+              <button onClick={handleAddToCart}
                 className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98]"
                 style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}>
-                Continue — ${(partySize * instance.pricePerPerson).toLocaleString()}
-              </button>
-            </div>
-          )}
-
-          {/* Step: Confirm */}
-          {step === 'confirm' && (
-            <div className="space-y-4">
-              <div className="rounded-2xl p-4 space-y-2"
-                style={{ background: 'rgba(224,64,251,0.06)', border: '1px solid rgba(224,64,251,0.2)' }}>
-                <p className="text-sm font-bold text-white mb-3">Booking Summary</p>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Event</span><span className="text-white font-medium truncate ml-4">{instance.title}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Date</span><span className="text-white">{formatEventDate(instance.date)}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Time</span><span className="text-white">{instance.time}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-400">Party</span><span className="text-white">{partySize} person{partySize !== 1 ? 's' : ''}</span></div>
-                <div className="flex justify-between text-sm pt-2 border-t border-gray-800"><span className="text-gray-300 font-semibold">Total</span><span className="text-white font-black text-lg">${(partySize * instance.pricePerPerson).toLocaleString()}</span></div>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setStep('detail')} className="flex-1 py-3 rounded-2xl bg-gray-800 text-gray-300 font-semibold text-sm hover:bg-gray-700 transition-colors">Back</button>
-                <button onClick={() => { onConfirm(partySize); setStep('done'); }}
-                  className="flex-1 py-3 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}>
-                  Confirm Booking
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step: Done */}
-          {step === 'done' && (
-            <div className="flex flex-col items-center py-6 gap-4 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, rgba(224,64,251,0.15), rgba(0,212,255,0.15))' }}>
-                <IconCheck className="w-8 h-8" style={{ color: '#E040FB' } as React.CSSProperties} />
-              </div>
-              <div>
-                <p className="font-bold text-white text-lg mb-1">Spot Reserved! 🎉</p>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {existingBooking
-                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — paid`
-                    : 'Your spot is held. Go to My Plans to complete your payment and lock in your booking.'}
-                </p>
-              </div>
-              {!existingBooking && onNavigateToPlans && (
-                <button onClick={() => { onClose(); onNavigateToPlans(); }}
-                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}>
-                  Go to My Plans →
-                </button>
-              )}
-              <button onClick={onClose} className="text-sm font-semibold text-gray-500 hover:text-gray-300">
-                {existingBooking ? 'Close' : "I'll pay later"}
+                Add to Cart — ${(partySize * instance.pricePerPerson).toLocaleString()}
               </button>
             </div>
           )}
 
           {/* Not bookable */}
-          {!canBook && step !== 'done' && (
+          {!isBooked && !canBook && (
             <div className="text-center py-4">
-              <p className="text-gray-500 text-sm">{instance.status === 'sold-out' ? 'This event is fully booked.' : 'This event was cancelled.'}</p>
+              <p className="text-gray-500 text-sm">
+                {instance.status === 'sold-out' ? 'This event is fully booked.' :
+                 instance.status === 'cancelled' ? 'This event was cancelled.' :
+                 'Booking requires an approved account.'}
+              </p>
             </div>
           )}
         </div>
@@ -286,14 +266,24 @@ const BookingModal: React.FC<{
 const ExperienceRow: React.FC<{
   instance: EventInstance;
   isBooked: boolean;
+  isInCart: boolean;
   isBookmarked: boolean;
   canBook: boolean;
   onOpenModal: () => void;
   onToggleBookmark: (e: React.MouseEvent) => void;
-}> = ({ instance, isBooked, isBookmarked, canBook, onOpenModal, onToggleBookmark }) => {
+}> = ({ instance, isBooked, isInCart, isBookmarked, canBook, onOpenModal, onToggleBookmark }) => {
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const color = TYPE_COLORS[instance.experienceType] ?? '#E040FB';
   const icon = TYPE_ICONS[instance.experienceType] ?? '✦';
+
+  const ctaLabel = isBooked ? 'Booked ✓' : isInCart ? 'In Cart 🛒' : instance.status === 'sold-out' ? 'Full' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve';
+  const ctaStyle = isBooked
+    ? { background: 'rgba(34,197,94,0.1)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)' }
+    : isInCart
+    ? { background: 'rgba(224,64,251,0.1)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
+    : instance.status === 'sold-out' || instance.status === 'cancelled'
+    ? { background: 'rgba(255,255,255,0.04)', color: '#4B5563', cursor: 'default' }
+    : { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff', boxShadow: '0 2px 8px rgba(224,64,251,0.2)' };
 
   return (
     <div
@@ -341,15 +331,9 @@ const ExperienceRow: React.FC<{
       <button
         onClick={e => { e.stopPropagation(); onOpenModal(); }}
         className="text-[11px] font-bold rounded-full px-3 py-1.5 flex-shrink-0 transition-all"
-        style={
-          isBooked
-            ? { background: 'rgba(224,64,251,0.1)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
-            : instance.status === 'sold-out' || instance.status === 'cancelled'
-            ? { background: 'rgba(255,255,255,0.04)', color: '#4B5563', cursor: 'default' }
-            : { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff', boxShadow: '0 2px 8px rgba(224,64,251,0.2)' }
-        }
+        style={ctaStyle}
       >
-        {isBooked ? 'Booked ✓' : instance.status === 'sold-out' ? 'Full' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve'}
+        {ctaLabel}
       </button>
     </div>
   );
@@ -364,11 +348,12 @@ const FeaturedVenueCard: React.FC<{
   onViewDetails: (venue: Venue) => void;
   experiences: EventInstance[];
   isBooked: (inst: EventInstance) => boolean;
+  isInCart: (inst: EventInstance) => boolean;
   isBookmarked: (inst: EventInstance) => boolean;
   canBook: boolean;
   onOpenBooking: (inst: EventInstance) => void;
   onToggleBookmark: (instanceId: string) => void;
-}> = ({ venue, isFavorite, onToggleFavorite, onViewDetails, experiences, isBooked, isBookmarked, canBook, onOpenBooking, onToggleBookmark }) => {
+}> = ({ venue, isFavorite, onToggleFavorite, onViewDetails, experiences, isBooked, isInCart, isBookmarked, canBook, onOpenBooking, onToggleBookmark }) => {
   const vibeColor = VIBE_COLORS[venue.vibe] ?? '#9CA3AF';
   const [expanded, setExpanded] = useState(true);
 
@@ -465,6 +450,7 @@ const FeaturedVenueCard: React.FC<{
               key={inst.instanceId}
               instance={inst}
               isBooked={isBooked(inst)}
+              isInCart={isInCart(inst)}
               isBookmarked={isBookmarked(inst)}
               canBook={canBook}
               onOpenModal={() => onOpenBooking(inst)}
@@ -502,6 +488,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
   onBook = () => {},
   onToggleBookmark = () => {},
   onNavigateToPlans,
+  pendingCartMap = {},
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
@@ -540,8 +527,16 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
     );
   }, [allInstances]);
 
-  const isBooked = (inst: EventInstance) =>
+  // An instance is 'confirmed booked' if user has a paid InstanceBooking
+  const isConfirmedBooked = (inst: EventInstance) =>
     instanceBookings.some(b => b.instanceId === inst.instanceId && b.userId === currentUser.id);
+
+  // An instance is 'in cart' if user has a pending reservation (unpaid, in cart)
+  const isInCart = (inst: EventInstance) =>
+    (pendingCartMap[inst.instanceId] ?? 0) > 0;
+
+  // Combined: show as 'booked' in the UI if either confirmed OR in cart
+  const isBooked = (inst: EventInstance) => isConfirmedBooked(inst) || isInCart(inst);
 
   const isBookmarked = (inst: EventInstance) => bookmarkedInstanceIds.includes(inst.instanceId);
 
@@ -555,7 +550,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
       guestName: currentUser.name,
       guestEmail: currentUser.email ?? '',
     });
-    setSelectedInstance(null);
+    // Don't close here — the modal's own onClose() fires after onNavigateToPlans()
   }, [selectedInstance, currentUser, onBook]);
 
   return (
@@ -630,6 +625,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
                 onViewDetails={onViewVenueDetails}
                 experiences={getVenueExperiences(venue)}
                 isBooked={isBooked}
+                isInCart={isInCart}
                 isBookmarked={isBookmarked}
                 canBook={canBook}
                 onOpenBooking={setSelectedInstance}

@@ -28,20 +28,33 @@ interface CheckoutPageProps {
 
 const USD_TO_TMKC_RATE = 100;
 
-export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchlist, cartItems = [], bookedItems, venues, onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, onMoveToCart, onViewReceipt, userTokenBalance, onStartChat, onCancelRsvp, initialTab = 'cart', onNavigate }) => {
+const EmptyState: React.FC<{ icon: React.ReactNode; title: string; subtitle: string; action?: React.ReactNode }> = ({ icon, title, subtitle, action }) => (
+  <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+    <div
+      className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5"
+      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+    >
+      {icon}
+    </div>
+    <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+    <p className="text-sm text-gray-500 max-w-xs">{subtitle}</p>
+    {action && <div className="mt-5">{action}</div>}
+  </div>
+);
+
+export const CheckoutPage: React.FC<CheckoutPageProps> = ({
+  currentUser, watchlist, cartItems = [], bookedItems, venues,
+  onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, onMoveToCart,
+  onViewReceipt, userTokenBalance, onStartChat, onCancelRsvp,
+  initialTab = 'cart', onNavigate
+}) => {
   const [activeTab, setActiveTab] = useState<'cart' | 'watchlist' | 'purchased'>(initialTab);
   const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'usd' | 'cashapp'>('usd');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (initialTab) {
-      setActiveTab(initialTab);
-    }
+    if (initialTab) setActiveTab(initialTab);
   }, [initialTab]);
-
-  const watchlistItems = useMemo(() => {
-    return [...watchlist].sort((a, b) => new Date(a.sortableDate || 0).getTime() - new Date(b.sortableDate || 0).getTime());
-  }, [watchlist]);
 
   useEffect(() => {
     if (activeTab === 'cart') {
@@ -51,245 +64,336 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, watchli
     }
   }, [activeTab, cartItems]);
 
-  const sortedBookedItems = useMemo(() => {
-    return [...bookedItems].sort((a, b) => (b.bookedTimestamp || 0) - (a.bookedTimestamp || 0));
-  }, [bookedItems]);
-  
+  const watchlistItems = useMemo(() =>
+    [...watchlist].sort((a, b) => new Date(a.sortableDate || 0).getTime() - new Date(b.sortableDate || 0).getTime()),
+  [watchlist]);
+
+  const sortedBookedItems = useMemo(() =>
+    [...bookedItems].sort((a, b) => (b.bookedTimestamp || 0) - (a.bookedTimestamp || 0)),
+  [bookedItems]);
+
   const selectedItems = useMemo(() => cartItems.filter(item => selectedItemIds.includes(item.id)), [cartItems, selectedItemIds]);
 
-  const totalCostUSD = useMemo(() => {
-    return selectedItems.reduce((total, item) => {
-        const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
-        return total + price;
-    }, 0);
-  }, [selectedItems]);
+  const totalCostUSD = useMemo(() =>
+    selectedItems.reduce((total, item) => {
+      const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+      return total + price;
+    }, 0),
+  [selectedItems]);
 
-  const totalTokensCost = useMemo(() => {
-      return selectedItems.reduce((total, item) => {
-        if (item.type === 'storeItem' && item.storeItemDetails) {
-            return total + item.storeItemDetails.item.price;
-        }
-        const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
-        return total + (price * USD_TO_TMKC_RATE);
-    }, 0);
-  }, [selectedItems]);
-  
+  const totalTokensCost = useMemo(() =>
+    selectedItems.reduce((total, item) => {
+      if (item.type === 'storeItem' && item.storeItemDetails) return total + item.storeItemDetails.item.price;
+      const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+      return total + (price * USD_TO_TMKC_RATE);
+    }, 0),
+  [selectedItems]);
+
   const hasEnoughTokens = userTokenBalance >= totalTokensCost;
-  
+
   useEffect(() => {
-      if (!hasEnoughTokens && paymentMethod === 'tokens') {
-          setPaymentMethod('usd');
-      }
+    if (!hasEnoughTokens && paymentMethod === 'tokens') setPaymentMethod('usd');
   }, [hasEnoughTokens, paymentMethod]);
-  
+
   const handleToggleItemSelection = (itemId: string) => {
     setSelectedItemIds(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
     );
   };
 
-  const handleSelectAll = () => setSelectedItemIds(cartItems.map(item => item.id));
-  const handleDeselectAll = () => setSelectedItemIds([]);
-
+  const TABS = [
+    { key: 'cart' as const, label: 'Cart', count: cartItems.length, color: '#E040FB' },
+    { key: 'watchlist' as const, label: 'Watchlist', count: watchlistItems.length, color: '#7B61FF' },
+    { key: 'purchased' as const, label: 'Purchased', count: sortedBookedItems.length, color: '#22C55E' },
+  ];
 
   return (
-    <div className="animate-fade-in text-white">
-      <div className="p-4 md:p-8">
-        
-        <div className="flex border-b border-gray-700 mb-6">
-            <button 
-              onClick={() => setActiveTab('cart')}
-              className={`relative px-4 py-3 text-lg font-semibold transition-colors w-1/3 ${activeTab === 'cart' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
+    <div className="animate-fade-in text-white min-h-screen">
+      {/* Page Header */}
+      <div className="px-4 md:px-8 pt-6 pb-0 max-w-7xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-black text-white mb-1">My Plans</h1>
+        <p className="text-sm text-gray-500 mb-5">Manage your reservations and purchases</p>
+
+        {/* Tab Bar */}
+        <div
+          className="flex gap-1 rounded-2xl p-1"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="relative flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-200"
+              style={
+                activeTab === tab.key
+                  ? { background: 'rgba(255,255,255,0.10)', color: '#fff' }
+                  : { color: '#6B7280' }
+              }
             >
-              Cart
-              {cartItems.length > 0 && (
-                <span style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }} className="absolute top-2 right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cartItems.length}</span>
+              <span>{tab.label}</span>
+              {tab.count > 0 && (
+                <span
+                  className="text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: activeTab === tab.key ? tab.color : 'rgba(255,255,255,0.08)',
+                    color: activeTab === tab.key ? '#fff' : '#6B7280',
+                  }}
+                >
+                  {tab.count}
+                </span>
               )}
             </button>
-            <button 
-              onClick={() => setActiveTab('watchlist')}
-              className={`relative px-4 py-3 text-lg font-semibold transition-colors w-1/3 ${activeTab === 'watchlist' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
-            >
-              Watchlist
-              {watchlistItems.length > 0 && (
-                <span style={{ background: 'linear-gradient(135deg, #7B61FF, #00D4FF)' }} className="absolute top-2 right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{watchlistItems.length}</span>
-              )}
-            </button>
-            <button 
-              onClick={() => setActiveTab('purchased')}
-              className={`relative px-4 py-3 text-lg font-semibold transition-colors w-1/3 ${activeTab === 'purchased' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
-            >
-              Purchased
-            </button>
+          ))}
         </div>
-
-        {activeTab === 'cart' && (
-          <>
-            {cartItems.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex justify-end gap-4 mb-2">
-                    <button onClick={handleSelectAll} className="text-sm font-semibold text-gray-300 hover:text-white">Select All</button>
-                    <button onClick={handleDeselectAll} className="text-sm font-semibold text-gray-300 hover:text-white">Deselect All</button>
-                </div>
-                {cartItems.map(item => (
-                  <CartItemCard 
-                    key={item.id}
-                    item={item}
-                    venues={venues}
-                    onRemove={onRemoveItem}
-                    onUpdatePaymentOption={onUpdatePaymentOption}
-                    onMoveToCart={onMoveToCart}
-                    isSelected={selectedItemIds.includes(item.id)}
-                    onToggleSelection={handleToggleItemSelection}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 px-4">
-                <div className="mx-auto w-16 h-16 flex items-center justify-center bg-gray-800 rounded-full text-gray-500 mb-4">
-                    <CartIcon className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-semibold text-white">Your Cart is Empty</h3>
-                <p className="text-gray-400 mt-2">Add bookings or store items to get started.</p>
-              </div>
-            )}
-            
-            {cartItems.length > 0 && (
-                <div className="mt-8">
-                    <h2 className="text-xl font-bold text-white mb-4">Payment Method</h2>
-                    <div className="space-y-3">
-                        <button 
-                            onClick={() => setPaymentMethod('tokens')} 
-                            disabled={!hasEnoughTokens}
-                            className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed`}
-                            style={paymentMethod === 'tokens' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
-                        >
-                            <TokenIcon className="w-6 h-6 flex-shrink-0" style={{ color: '#E040FB' } as React.CSSProperties} />
-                            <div className="flex-grow">
-                                <p className="font-bold text-white">Pay with Tokens</p>
-                                <p className={`text-sm ${hasEnoughTokens ? 'text-gray-400' : 'text-red-400'}`}>Balance: {userTokenBalance.toLocaleString()}</p>
-                            </div>
-                            <p className="font-semibold text-white">{totalTokensCost.toLocaleString()}</p>
-                        </button>
-                        <button 
-                            onClick={() => setPaymentMethod('usd')}
-                            className="w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3"
-                            style={paymentMethod === 'usd' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
-                        >
-                            <CreditCardIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
-                            <div className="flex-grow">
-                                <p className="font-bold text-white">Pay with Card</p>
-                                <p className="text-sm text-gray-400">Visa •••• 4567</p>
-                            </div>
-                            <p className="font-semibold text-white">${totalCostUSD.toFixed(2)}</p>
-                        </button>
-                        <button 
-                            onClick={() => setPaymentMethod('cashapp')}
-                            className="w-full text-left p-3 rounded-lg border-2 transition-all duration-200 flex items-center gap-3"
-                            style={paymentMethod === 'cashapp' ? { background: 'rgba(224,64,251,0.08)', borderColor: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
-                        >
-                            <div className="w-10 h-10 bg-green-500 rounded-md flex items-center justify-center text-white flex-shrink-0">
-                                <CurrencyDollarIcon className="w-6 h-6" />
-                            </div>
-                            <div className="flex-grow">
-                                <p className="font-bold text-white">Cash App</p>
-                                <p className="text-sm text-gray-400">Pay with your Cash App balance</p>
-                            </div>
-                            <p className="font-semibold text-white">${totalCostUSD.toFixed(2)}</p>
-                        </button>
-                    </div>
-                    <button 
-                        onClick={() => onNavigate('paymentMethods')}
-                        className="w-full mt-4 text-center text-sm font-semibold hover:underline"
-                        style={{ color: '#00D4FF' }}
-                    >
-                        Add a new card
-                    </button>
-                    {!hasEnoughTokens && paymentMethod === 'tokens' && <p className="text-red-400 text-sm mt-2">Insufficient token balance.</p>}
-                </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'watchlist' && (
-             <>
-                {watchlistItems.length > 0 ? (
-                    <div className="space-y-4">
-                        {watchlistItems.map(item => (
-                            <CartItemCard
-                                key={item.id}
-                                item={item}
-                                venues={venues}
-                                onRemove={onRemoveItem}
-                                onUpdatePaymentOption={onUpdatePaymentOption}
-                                onMoveToCart={onMoveToCart}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-16 px-4">
-                        <div className="mx-auto w-16 h-16 flex items-center justify-center bg-gray-800 rounded-full text-gray-500 mb-4">
-                            <CartIcon className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-white">Your Watchlist is Empty</h3>
-                        <p className="text-gray-400 mt-2">Bookmark events to save them for later.</p>
-                    </div>
-                )}
-            </>
-        )}
-
-        {activeTab === 'purchased' && (
-          <>
-            {sortedBookedItems.length > 0 ? (
-              <div className="space-y-4">
-                {sortedBookedItems.map(item => (
-                  <CartItemCard 
-                    key={item.id}
-                    item={item}
-                    venues={venues}
-                    onRemove={onRemoveItem}
-                    onUpdatePaymentOption={onUpdatePaymentOption}
-                    isBooked={true}
-                    onViewReceipt={onViewReceipt}
-                    onStartChat={onStartChat}
-                    currentUser={currentUser}
-                    onCancelRsvp={onCancelRsvp}
-                  />
-                ))}
-              </div>
-            ) : (
-                <div className="text-center py-16 px-4">
-                    <div className="mx-auto w-16 h-16 flex items-center justify-center bg-gray-800 rounded-full text-gray-500 mb-4">
-                        <BookingsIcon className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white">No Purchased Items</h3>
-                    <p className="text-gray-400 mt-2">Your confirmed bookings and purchases will appear here.</p>
-                </div>
-            )}
-          </>
-        )}
-
       </div>
 
-      {activeTab === 'cart' && cartItems.length > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4 z-10">
-            <div className="container mx-auto max-w-5xl">
-                <div className="flex justify-between items-center mb-4">
-                    <p className="text-gray-300 font-semibold">Total ({selectedItemIds.length} items)</p>
-                    <p className="text-2xl font-bold text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+      {/* Content */}
+      <div className="px-4 md:px-8 pt-6 pb-36 max-w-7xl mx-auto">
+
+        {/* ── CART TAB ── */}
+        {activeTab === 'cart' && (
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+
+            {/* Left: Items List */}
+            <div className="flex-1 min-w-0">
+              {cartItems.length > 0 ? (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-gray-400">
+                      <span className="text-white font-bold">{cartItems.length}</span> item{cartItems.length !== 1 ? 's' : ''} in your cart
+                    </p>
+                    <div className="flex gap-3">
+                      <button onClick={() => setSelectedItemIds(cartItems.map(i => i.id))} className="text-xs font-semibold text-gray-400 hover:text-white transition-colors">Select All</button>
+                      <button onClick={() => setSelectedItemIds([])} className="text-xs font-semibold text-gray-400 hover:text-white transition-colors">Deselect All</button>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {cartItems.map(item => (
+                      <CartItemCard
+                        key={item.id}
+                        item={item}
+                        venues={venues}
+                        onRemove={onRemoveItem}
+                        onUpdatePaymentOption={onUpdatePaymentOption}
+                        onMoveToCart={onMoveToCart}
+                        isSelected={selectedItemIds.includes(item.id)}
+                        onToggleSelection={handleToggleItemSelection}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <EmptyState
+                  icon={<CartIcon className="w-9 h-9 text-gray-600" />}
+                  title="Your Cart is Empty"
+                  subtitle="Reserve an event or experience to get started. They'll appear here ready for checkout."
+                  action={
+                    <button
+                      onClick={() => onNavigate('eventTimeline')}
+                      className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                      style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}
+                    >
+                      Browse Events
+                    </button>
+                  }
+                />
+              )}
+            </div>
+
+            {/* Right: Sticky Order Summary (only on desktop when items exist) */}
+            {cartItems.length > 0 && (
+              <div className="w-full lg:w-80 xl:w-96 lg:sticky lg:top-6 space-y-4">
+
+                {/* Payment Method */}
+                <div
+                  className="rounded-2xl p-5"
+                  style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  <h2 className="text-base font-bold text-white mb-4">Payment Method</h2>
+                  <div className="space-y-2">
+                    {/* Tokens */}
+                    <button
+                      onClick={() => setPaymentMethod('tokens')}
+                      disabled={!hasEnoughTokens}
+                      className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={paymentMethod === 'tokens'
+                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
+                    >
+                      <TokenIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#E040FB' } as React.CSSProperties} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white">Tokens</p>
+                        <p className={`text-xs ${hasEnoughTokens ? 'text-gray-500' : 'text-red-400'}`}>Balance: {userTokenBalance.toLocaleString()} TMKC</p>
+                      </div>
+                      <span className="text-sm font-bold text-white">{totalTokensCost.toLocaleString()}</span>
+                    </button>
+
+                    {/* Card */}
+                    <button
+                      onClick={() => setPaymentMethod('usd')}
+                      className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
+                      style={paymentMethod === 'usd'
+                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
+                    >
+                      <CreditCardIcon className="w-5 h-5 flex-shrink-0 text-gray-300" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white">Card</p>
+                        <p className="text-xs text-gray-500">Visa ···· 4567</p>
+                      </div>
+                      <span className="text-sm font-bold text-white">${totalCostUSD.toFixed(2)}</span>
+                    </button>
+
+                    {/* Cash App */}
+                    <button
+                      onClick={() => setPaymentMethod('cashapp')}
+                      className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
+                      style={paymentMethod === 'cashapp'
+                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
+                    >
+                      <div className="w-6 h-6 bg-green-500 rounded-md flex items-center justify-center flex-shrink-0">
+                        <CurrencyDollarIcon className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white">Cash App</p>
+                        <p className="text-xs text-gray-500">Pay with balance</p>
+                      </div>
+                      <span className="text-sm font-bold text-white">${totalCostUSD.toFixed(2)}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => onNavigate('paymentMethods')}
+                    className="w-full mt-3 text-center text-xs font-semibold hover:underline transition-colors"
+                    style={{ color: '#00D4FF' }}
+                  >
+                    + Add a new card
+                  </button>
                 </div>
-                <button 
+
+                {/* Order Summary */}
+                <div
+                  className="rounded-2xl p-5"
+                  style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  <h2 className="text-base font-bold text-white mb-4">Order Summary</h2>
+                  <div className="space-y-2 text-sm mb-4">
+                    {selectedItems.map(item => (
+                      <div key={item.id} className="flex justify-between items-center">
+                        <p className="text-gray-400 truncate pr-3 flex-1">{item.name}</p>
+                        <p className="text-white font-semibold flex-shrink-0">
+                          ${(item.paymentOption === 'full' ? item.fullPrice : item.depositPrice)?.toLocaleString() ?? '0'}
+                        </p>
+                      </div>
+                    ))}
+                    {selectedItems.length === 0 && (
+                      <p className="text-gray-600 text-xs">No items selected.</p>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-800">
+                    <p className="font-bold text-white">Total</p>
+                    <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  </div>
+
+                  <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
                     disabled={selectedItemIds.length === 0}
-                    className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+                    className="mt-4 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
-                >
-                    <CreditCardIcon className="w-5 h-5"/>
-                    Confirm & Pay
-                </button>
+                  >
+                    <CreditCardIcon className="w-5 h-5" />
+                    Confirm &amp; Pay ({selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''})
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── WATCHLIST TAB ── */}
+        {activeTab === 'watchlist' && (
+          watchlistItems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {watchlistItems.map(item => (
+                <CartItemCard
+                  key={item.id}
+                  item={item}
+                  venues={venues}
+                  onRemove={onRemoveItem}
+                  onUpdatePaymentOption={onUpdatePaymentOption}
+                  onMoveToCart={onMoveToCart}
+                />
+              ))}
             </div>
+          ) : (
+            <EmptyState
+              icon={<CartIcon className="w-9 h-9 text-gray-600" />}
+              title="Watchlist is Empty"
+              subtitle="Bookmark events you're interested in — they'll appear here so you can decide later."
+              action={
+                <button
+                  onClick={() => onNavigate('eventTimeline')}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg, #7B61FF, #00D4FF)' }}
+                >
+                  Browse Events
+                </button>
+              }
+            />
+          )
+        )}
+
+        {/* ── PURCHASED TAB ── */}
+        {activeTab === 'purchased' && (
+          sortedBookedItems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {sortedBookedItems.map(item => (
+                <CartItemCard
+                  key={item.id}
+                  item={item}
+                  venues={venues}
+                  onRemove={onRemoveItem}
+                  onUpdatePaymentOption={onUpdatePaymentOption}
+                  isBooked={true}
+                  onViewReceipt={onViewReceipt}
+                  onStartChat={onStartChat}
+                  currentUser={currentUser}
+                  onCancelRsvp={onCancelRsvp}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<BookingsIcon className="w-9 h-9 text-gray-600" />}
+              title="No Purchases Yet"
+              subtitle="Your confirmed bookings and receipts will appear here after you complete checkout."
+            />
+          )
+        )}
+      </div>
+
+      {/* Mobile sticky checkout bar (only on small screens — desktop uses sidebar) */}
+      {activeTab === 'cart' && cartItems.length > 0 && (
+        <div
+          className="fixed bottom-16 left-0 right-0 z-20 lg:hidden"
+          style={{ background: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <div className="px-4 py-3">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-sm text-gray-400">{selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''} selected</p>
+              <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+            <button
+              onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
+              disabled={selectedItemIds.length === 0}
+              className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
+            >
+              <CreditCardIcon className="w-5 h-5" />
+              Confirm &amp; Pay
+            </button>
+          </div>
         </div>
       )}
     </div>
