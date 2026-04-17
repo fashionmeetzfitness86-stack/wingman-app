@@ -173,7 +173,9 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #E040FB22, #7B61FF22)', border: '1px solid rgba(224,64,251,0.2)' }}
           >
-            <BellIcon className="w-5 h-5" style={{ color: '#E040FB' } as React.CSSProperties} />
+          <div style={{ color: '#E040FB' }}>
+            <BellIcon className="w-5 h-5" />
+          </div>
           </div>
         </div>
       </div>
@@ -210,7 +212,9 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
             className="rounded-2xl p-4 flex items-center gap-3"
             style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)' }}
           >
-            <CheckIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#22C55E' } as React.CSSProperties} />
+            <div style={{ color: '#22C55E' }} className="flex-shrink-0">
+              <CheckIcon className="w-5 h-5" />
+            </div>
             <p className="text-sm font-bold text-white">Push Notifications Active</p>
           </div>
         )}

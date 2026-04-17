@@ -1,3 +1,6 @@
+// DEPRECATED — kept for rollback. Do not import directly.
+// Superseded by WingmanEventFeed.tsx / FeaturedVenuesPage.tsx
+
 
 import React, { useMemo, useState } from 'react';
 import { Experience, User, Venue, ExperienceInvitationRequest, Promoter } from '../types';
