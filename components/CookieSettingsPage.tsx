@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { ToggleSwitch } from './ui/ToggleSwitch';
-import { Button } from './ui/Button';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { Page } from '../types';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
@@ -10,16 +9,18 @@ import { StoreIcon } from './icons/StoreIcon';
 
 interface CookieSettingsPageProps {
   onNavigate: (page: Page) => void;
+  onSave?: () => void;
 }
 
 const CookieCategory: React.FC<{ icon: React.ReactNode; title: string; description: string; isEnabled: boolean; onToggle?: () => void; isRequired?: boolean; }> = ({ icon, title, description, isEnabled, onToggle, isRequired }) => (
-    <div className="flex items-start gap-4 p-4 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors duration-200">
-        <div className="text-amber-400 pt-1">
+    <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/[0.02] transition-colors"
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex-shrink-0 pt-0.5" style={{ color: '#E040FB' }}>
             {icon}
         </div>
         <div className="flex-grow">
-            <h3 className="font-bold text-white">{title} {isRequired && <span className="text-xs text-gray-500 font-normal ml-2">(Always On)</span>}</h3>
-            <p className="text-sm text-gray-400 mt-1">{description}</p>
+            <h3 className="font-bold text-white text-sm">{title} {isRequired && <span className="text-xs text-gray-600 font-normal ml-2">(Always On)</span>}</h3>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{description}</p>
         </div>
         <div className="flex-shrink-0 pt-1">
             <ToggleSwitch checked={isEnabled} onChange={onToggle || (() => {})} label={title} />
@@ -28,17 +29,16 @@ const CookieCategory: React.FC<{ icon: React.ReactNode; title: string; descripti
 );
 
 
-export const CookieSettingsPage: React.FC<CookieSettingsPageProps> = ({ onNavigate }) => {
+export const CookieSettingsPage: React.FC<CookieSettingsPageProps> = ({ onNavigate, onSave }) => {
     const [performanceCookies, setPerformanceCookies] = useState(true);
     const [marketingCookies, setMarketingCookies] = useState(false);
 
     const handleSave = () => {
-        // In a real app, you would save these preferences to localStorage or a server
-        console.log({
-            performance: performanceCookies,
-            marketing: marketingCookies
-        });
-        alert("Preferences saved!");
+        // Persist to localStorage
+        try {
+            localStorage.setItem('wingman_cookie_prefs', JSON.stringify({ performance: performanceCookies, marketing: marketingCookies }));
+        } catch {}
+        onSave?.();
     };
 
     return (
@@ -81,9 +81,11 @@ export const CookieSettingsPage: React.FC<CookieSettingsPageProps> = ({ onNaviga
             </div>
 
             <div className="mt-8">
-                <Button onClick={handleSave} size="lg" className="w-full bg-[#EC4899] text-white font-bold hover:bg-[#d8428a]">
-                    Save Preferences
-                </Button>
+                <button onClick={handleSave}
+                  className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}>
+                    Save Cookie Preferences
+                </button>
             </div>
         </div>
     );

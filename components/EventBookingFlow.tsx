@@ -1,3 +1,6 @@
+// DEPRECATED — kept for rollback. Do not import directly.
+// Superseded by WingmanEventFeed.tsx / FeaturedVenuesPage.tsx
+
 
 import React, { useState, useMemo } from 'react';
 import { Event, CartItem, User } from '../types';

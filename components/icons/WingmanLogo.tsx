@@ -1,11 +1,11 @@
 
 import React from 'react';
 
-export const WingmanLogo: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => (
+export const WingmanLogo: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-10 h-10", style }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     viewBox="0 0 100 100" 
-    className={className}
+    className={className} style={style}
     aria-hidden="true"
   >
     <defs>

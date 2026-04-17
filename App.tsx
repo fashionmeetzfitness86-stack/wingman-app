@@ -228,6 +228,25 @@ export const App: React.FC = () => {
     // cartInstanceMeta: { [cartItemId]: { instanceId, partySize } } — used at checkout to create InstanceBookings
     const [cartInstanceMeta, setCartInstanceMeta] = useState<Record<string, { instanceId: string; partySize: number }>>({});
     // bookedMap: { [instanceId]: total spots taken (confirmed + cart-pending) }
+
+    // Notification preferences — persisted to localStorage
+    const [notificationSettings, setNotificationSettings] = useState(() => {
+        try {
+            const saved = localStorage.getItem('wingman_notification_settings');
+            return saved ? JSON.parse(saved) : {
+                eventAnnouncements: true,
+                bookingUpdates: true,
+                recommendations: true,
+                promotionalOffers: false,
+                communityActivity: false,
+                friendActivity: false,
+            };
+        } catch { return { eventAnnouncements: true, bookingUpdates: true, recommendations: true, promotionalOffers: false, communityActivity: false, friendActivity: false }; }
+    });
+    const handleNotificationSettingsChange = (s: typeof notificationSettings) => {
+        setNotificationSettings(s);
+        try { localStorage.setItem('wingman_notification_settings', JSON.stringify(s)); } catch {}
+    };
     const bookedMap = useMemo(() => {
         const m: Record<string, number> = {};
         for (const b of instanceBookings) {
@@ -1748,13 +1767,13 @@ export const App: React.FC = () => {
             case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => showToast('Account deletion request submitted. Our team will follow up via email.', 'success')} />;
             case 'security': return <SecurityPage onNavigate={handleNavigate} />;
             case 'notificationsSettings': return <NotificationsSettingsPage
-                settings={{ eventAnnouncements: true, bookingUpdates: true, recommendations: true, promotionalOffers: false, communityActivity: false, friendActivity: false }}
-                onSettingsChange={(s) => showToast('Notification preferences saved.', 'success')}
+                settings={notificationSettings}
+                onSettingsChange={(s) => { handleNotificationSettingsChange(s); showToast('Notification preferences saved.', 'success'); }}
                 onNavigate={handleNavigate}
-                pushEnabled={currentUser?.notificationsEnabled}
+                pushEnabled={currentUser?.notificationsEnabled ?? false}
                 onEnablePush={handleEnableNotifications}
             />;
-            case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} />;
+            case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} onSave={() => showToast('Cookie preferences saved.', 'success')} />;
             case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => showToast('Data export request submitted. You will receive an email within 48 hours.', 'success')} onNavigate={handleNavigate} />;
             case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={[]} />;
             case 'editProfile': return <EditProfilePage 
