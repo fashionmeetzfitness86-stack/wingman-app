@@ -26,7 +26,7 @@ export const EventGuestDetailsModal: React.FC<EventGuestDetailsModalProps> = ({ 
             : guestDetails;
         
         if (bookingFor === 'guest' && (!detailsToConfirm.name || !detailsToConfirm.email)) {
-            alert("Please fill in guest name and email.");
+            (window as any).showAppToast?.("Please fill in guest name and email.");
             return;
         }
 
@@ -53,14 +53,14 @@ export const EventGuestDetailsModal: React.FC<EventGuestDetailsModalProps> = ({ 
                         <div className="space-y-4">
                             <button
                                 onClick={() => setBookingFor('self')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-[#EC4899]/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-purple-600/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for Myself</p>
                                 <p className="text-sm text-gray-400">{user.name}</p>
                             </button>
                             <button
                                 onClick={() => setBookingFor('guest')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-[#EC4899]/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-purple-600/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for a Guest</p>
                                 <p className="text-sm text-gray-400">Enter their contact information</p>
@@ -86,12 +86,12 @@ export const EventGuestDetailsModal: React.FC<EventGuestDetailsModalProps> = ({ 
                     </div>
                     <div className="flex justify-between items-center text-lg border-t border-gray-700 pt-4">
                         <span className="font-semibold text-gray-300">Total Price:</span>
-                        <span className="font-bold text-[#EC4899]">{priceText}</span>
+                        <span className="font-bold text-purple-400">{priceText}</span>
                     </div>
                 </div>
                 <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                     <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                    <button onClick={handleConfirm} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#d8428a]">Confirm Payment</button>
+                    <button onClick={handleConfirm} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-[#d8428a]">Confirm Payment</button>
                 </div>
             </div>
         </div>

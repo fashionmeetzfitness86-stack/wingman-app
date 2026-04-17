@@ -29,11 +29,11 @@ export const PushNotificationsTab: React.FC<PushNotificationsTabProps> = ({ even
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim() || !message.trim()) {
-            alert('Please fill in title and message.');
+            (window as any).showAppToast?.('Please fill in title and message.');
             return;
         }
         if ((type === 'event' || type === 'venue') && !targetId) {
-            alert(`Please select a ${type}.`);
+            (window as any).showAppToast?.(`Please select a ${type}.`);
             return;
         }
 
@@ -116,7 +116,7 @@ export const PushNotificationsTab: React.FC<PushNotificationsTabProps> = ({ even
                     </div>
                     
                     <div className="flex justify-end pt-2">
-                        <button type="submit" className="bg-[#EC4899] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors">Launch Campaign</button>
+                        <button type="submit" className="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors">Launch Campaign</button>
                     </div>
                 </form>
             </div>

@@ -62,7 +62,7 @@ export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({ itin
                 setTimeout(() => setIsCopied(false), 2000);
             } catch (err) {
                 console.error('Failed to copy:', err);
-                alert('Could not share itinerary.');
+                (window as any).showAppToast?.('Could not share itinerary.');
             }
         }
     };
@@ -92,7 +92,7 @@ export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({ itin
                     onClone && (
                         <button 
                             onClick={() => onClone(itinerary)}
-                            className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-[#d8428a] transition-colors"
+                            className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-[#d8428a] transition-colors"
                         >
                             <DocumentDuplicateIcon className="w-4 h-4" />
                             Copy to My Itineraries

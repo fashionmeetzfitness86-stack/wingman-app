@@ -136,7 +136,7 @@ export const EventBookingFlow: React.FC<EventBookingFlowProps> = ({ event, curre
                         <button 
                             onClick={handleConfirm}
                             disabled={totalTickets === 0}
-                            className="w-full bg-[#EC4899] text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#d8428a] disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#d8428a] disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                             Add {totalTickets > 0 ? `${totalTickets} Ticket${totalTickets > 1 ? 's' : ''}` : ''} to Cart
                         </button>

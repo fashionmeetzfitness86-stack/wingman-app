@@ -39,12 +39,12 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
             {steps.map((step, index) => (
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${currentStep >= index + 1 ? 'bg-[#EC4899] border-[#EC4899] text-white' : 'border-gray-600 text-gray-400'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${currentStep >= index + 1 ? 'bg-purple-600 border-[#EC4899] text-white' : 'border-gray-600 text-gray-400'}`}>
                             <span className="font-bold">{index + 1}</span>
                         </div>
                         <p className={`text-xs mt-1 transition-colors ${currentStep >= index + 1 ? 'text-white' : 'text-gray-500'}`}>{step}</p>
                     </div>
-                    {index < steps.length - 1 && <div className={`flex-1 h-0.5 mx-2 transition-colors ${currentStep > index + 1 ? 'bg-[#EC4899]' : 'bg-gray-700'}`}></div>}
+                    {index < steps.length - 1 && <div className={`flex-1 h-0.5 mx-2 transition-colors ${currentStep > index + 1 ? 'bg-purple-600' : 'bg-gray-700'}`}></div>}
                 </React.Fragment>
             ))}
         </div>
@@ -208,7 +208,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
                                     className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center text-center hover:border-[#EC4899] transition-colors"
                                 >
                                     <CloudArrowUpIcon className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-[#EC4899] font-semibold text-sm">Upload Photo</span>
+                                    <span className="text-purple-400 font-semibold text-sm">Upload Photo</span>
                                     <input ref={fileInputRef} type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" />
                                 </div>
                             )}
@@ -217,7 +217,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <label className="block text-sm font-medium text-gray-400">About Me / Bio</label>
-                                <button type="button" onClick={handleImproveBio} disabled={isImprovingBio} className="flex items-center gap-1 text-xs font-semibold text-[#EC4899] hover:text-pink-300 disabled:text-gray-500">
+                                <button type="button" onClick={handleImproveBio} disabled={isImprovingBio} className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-pink-300 disabled:text-gray-500">
                                     {isImprovingBio ? <Spinner className="w-4 h-4" /> : <SparkleIcon className="w-4 h-4" />}
                                     Improve with AI
                                 </button>
@@ -248,7 +248,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
             <div className="p-4 border-t border-gray-800 flex justify-between gap-3">
                 <button onClick={handleBack} disabled={isSaving || step === 1} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">Back</button>
                 {step < 3 ? (
-                    <button onClick={handleNext} disabled={isSaving} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg">Next</button>
+                    <button onClick={handleNext} disabled={isSaving} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">Next</button>
                 ) : (
                     <button onClick={handleSave} disabled={isSaving} className="bg-green-500 text-white font-bold py-2 px-4 rounded-lg w-32 flex items-center justify-center disabled:bg-green-500/50">
                         {isSaving ? <Spinner className="w-5 h-5" /> : 'Create User'}

@@ -30,13 +30,13 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
 
     const handleSave = () => {
         if (!editedEvent.title || !editedEvent.date || !editedEvent.venueId || !editedEvent.image) {
-            alert('Please fill out all required fields, including an image.');
+            (window as any).showAppToast?.('Please fill out all required fields, including an image.');
             return;
         }
         
         // Recurrence Validation
         if (editedEvent.recurrence && (!editedEvent.recurrence.frequency || !editedEvent.recurrence.endDate)) {
-            alert('Please provide frequency and end date for recurring events.');
+            (window as any).showAppToast?.('Please provide frequency and end date for recurring events.');
             return;
         }
 
@@ -44,13 +44,13 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
         if ((editedEvent.priceFemale !== undefined && editedEvent.priceFemale < 0) ||
             (editedEvent.priceMale !== undefined && editedEvent.priceMale < 0) ||
             (editedEvent.priceGeneral !== undefined && editedEvent.priceGeneral < 0)) {
-            alert('Prices cannot be negative.');
+            (window as any).showAppToast?.('Prices cannot be negative.');
             return;
         }
 
         // Capacity Validation
         if (editedEvent.capacity !== undefined && editedEvent.capacity < 0) {
-            alert('Capacity cannot be negative.');
+            (window as any).showAppToast?.('Capacity cannot be negative.');
             return;
         }
 

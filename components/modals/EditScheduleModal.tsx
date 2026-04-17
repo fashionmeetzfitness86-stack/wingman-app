@@ -90,7 +90,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({ isOpen, on
       const dayItems = [...(newMap.get(selectingDay) || [])];
       
       if (dayItems.length >= 5) {
-          alert("You can only add up to 5 items per day.");
+          (window as any).showAppToast?.("You can only add up to 5 items per day.");
           return;
       }
       

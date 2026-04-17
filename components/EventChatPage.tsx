@@ -32,7 +32,7 @@ const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Promot
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
         <div className={`rounded-xl p-3 max-w-[80%] md:max-w-[70%] ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
             {!isCurrentUser && sender && (
-                 <p className="font-bold text-sm text-[#EC4899] mb-1">{sender.name}</p>
+                 <p className="font-bold text-sm text-purple-400 mb-1">{sender.name}</p>
             )}
             <p className="text-white whitespace-pre-wrap text-sm">{message.text}</p>
             <div className="flex justify-end items-center gap-2 mt-1.5">
@@ -176,7 +176,7 @@ export const EventChatPage: React.FC<EventChatPageProps> = ({ chatId, currentUse
                         <button
                             type="submit"
                             disabled={!inputValue.trim()}
-                            className="w-12 h-12 flex-shrink-0 bg-[#EC4899] rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+                            className="w-12 h-12 flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
                             aria-label="Send message"
                         >
                             <SendIcon className="w-6 h-6" />

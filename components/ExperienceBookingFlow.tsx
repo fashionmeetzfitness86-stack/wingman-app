@@ -79,7 +79,7 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
 
     const handleAddToCart = () => {
         if (bookingFor === 'guest' && (!guestDetails.name || !guestDetails.email)) {
-            alert("Please enter the guest's name and email.");
+            (window as any).showAppToast?.("Please enter the guest's name and email.");
             return;
         }
 
@@ -153,7 +153,7 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
                             <div className="flex justify-between text-base"><span className="text-gray-200 font-bold">Total (USD):</span> <span className="text-amber-400 font-bold">${totalPriceInUSD.toLocaleString()}</span></div>
                         </div>
                         
-                        <button onClick={validateAndProceed} className="mt-6 w-full bg-[#EC4899] text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-[#d8428a]">
+                        <button onClick={validateAndProceed} className="mt-6 w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-[#d8428a]">
                             Continue
                         </button>
                     </div>

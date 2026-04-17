@@ -63,7 +63,7 @@ export const DataExportPage: React.FC<DataExportPageProps> = ({ requests, onNewR
                 <Button
                     onClick={handleRequest}
                     disabled={isRequesting || isRequestPending}
-                    className="w-full bg-[#EC4899] text-white font-bold hover:bg-[#d8428a] disabled:bg-gray-700 disabled:text-gray-400"
+                    className="w-full bg-purple-600 text-white font-bold hover:bg-[#d8428a] disabled:bg-gray-700 disabled:text-gray-400"
                 >
                     {isRequesting ? 'Requesting...' : isRequestPending ? 'Request Already Pending' : 'Request Data Export'}
                 </Button>

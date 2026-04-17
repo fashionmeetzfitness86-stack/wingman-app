@@ -121,7 +121,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                                     <div className="flex items-center gap-3 mb-1">
                                         <p className="font-bold text-white text-lg tracking-wide">{card.type}</p>
                                         <p className="text-white/60 font-mono">•••• {card.last4}</p>
-                                        {card.isDefault && <span className="text-[10px] bg-[#EC4899] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide shadow-sm">Default</span>}
+                                        {card.isDefault && <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide shadow-sm">Default</span>}
                                     </div>
                                     <div className="flex gap-4 text-sm text-white/50">
                                         <p>Exp: {card.expiry}</p>
@@ -178,7 +178,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                                 <div className="flex-grow">
                                     <div className="flex items-center gap-2">
                                         <p className="font-bold text-white">{method.type}</p>
-                                        {method.isDefault && <span className="text-[10px] bg-[#EC4899] text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
+                                        {method.isDefault && <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
                                     </div>
                                     {method.detail && (
                                         <p className="text-sm text-gray-400 truncate max-w-[200px]">{method.detail}</p>
@@ -223,7 +223,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                 <div className="container mx-auto max-w-5xl">
                     <button 
                         onClick={handleOpenAdd}
-                        className="w-full bg-[#EC4899] text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
+                        className="w-full bg-purple-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
                     >
                         <PlusIcon className="w-5 h-5"/>
                         Add Payment Method

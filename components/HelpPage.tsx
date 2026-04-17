@@ -15,7 +15,7 @@ interface HelpPageProps {
 
 const TopicCard: React.FC<{ icon: React.ReactNode; label: string; }> = ({ icon, label }) => (
     <button 
-        onClick={() => alert(`Navigating to ${label} help topic.`)}
+        onClick={() => (window as any).showAppToast?.(`Navigating to ${label} help topic.`)}
         className="flex flex-col items-center justify-center gap-3 bg-gray-900 p-4 rounded-xl w-full aspect-square hover:bg-gray-800 transition-colors border border-gray-800" 
         aria-label={`Go to help topic: ${label}`}
     >
@@ -28,7 +28,7 @@ const TopicCard: React.FC<{ icon: React.ReactNode; label: string; }> = ({ icon, 
 
 const VideoCard: React.FC<{ image: string; title: string; }> = ({ image, title }) => (
     <button 
-        onClick={() => alert(`Playing tutorial: ${title}`)}
+        onClick={() => (window as any).showAppToast?.(`Playing tutorial: ${title}`)}
         className="flex-shrink-0 w-64 rounded-xl overflow-hidden relative group text-left border border-gray-800" 
         aria-label={`Watch tutorial: ${title}`}
     >

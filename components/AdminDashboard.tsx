@@ -265,39 +265,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white">
             <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
-                <button onClick={() => setActiveTab('analytics')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'analytics' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('analytics')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'analytics' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Analytics
                 </button>
-                 <button onClick={() => setActiveTab('promoterStats')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoterStats' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                 <button onClick={() => setActiveTab('promoterStats')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoterStats' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Promoter Stats
                 </button>
-                <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoters' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoters' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Promoters
                 </button>
-                <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Users
                     {pendingApprovalsCount > 0 && (
-                        <span className="absolute top-1 right-0 w-5 h-5 bg-[#EC4899] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute top-1 right-0 w-5 h-5 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                             {pendingApprovalsCount}
                         </span>
                     )}
                 </button>
-                <button onClick={() => setActiveTab('events')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'events' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('events')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'events' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Events
                 </button>
-                <button onClick={() => setActiveTab('venues')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'venues' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('venues')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'venues' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Venues
                 </button>
-                <button onClick={() => setActiveTab('store')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'store' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('store')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'store' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Store
                 </button>
-                 <button onClick={() => setActiveTab('management')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'management' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                 <button onClick={() => setActiveTab('management')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'management' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Approvals
                     {pendingRequestsCount > 0 && (
                         <span className="absolute top-1 right-0 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">{pendingRequestsCount}</span>
                     )}
                 </button>
-                <button onClick={() => setActiveTab('pushNotifications')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'pushNotifications' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('pushNotifications')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'pushNotifications' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}>
                     Push Notifications
                 </button>
             </div>
@@ -344,7 +344,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 {activeTab === 'promoters' && (
                     <div className="space-y-3">
                         <div className="flex justify-end mb-4">
-                            <button onClick={() => props.onNavigate('promoterApplication')} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">Add Promoter</button>
+                            <button onClick={() => props.onNavigate('promoterApplication')} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Promoter</button>
                         </div>
                         {filteredPromoters.length > 0 ? filteredPromoters.map(promoter => {
                             const user = props.users.find(u => u.id === promoter.id);
@@ -357,23 +357,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                     <div className="space-y-3">
                         {/* Pass 4: Pending approvals queue strip — only renders when there are users to action */}
                         {pendingApprovalsCount > 0 && (
-                            <div className="flex items-center justify-between bg-[#EC4899]/10 border border-[#EC4899]/30 rounded-xl px-4 py-3 mb-2 animate-fade-in">
+                            <div className="flex items-center justify-between bg-purple-600/10 border border-[#EC4899]/30 rounded-xl px-4 py-3 mb-2 animate-fade-in">
                                 <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#EC4899] animate-pulse" />
+                                    <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
                                     <p className="text-sm font-semibold text-pink-300">
                                         {pendingApprovalsCount} user{pendingApprovalsCount !== 1 ? 's' : ''} awaiting approval
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setUserApprovalFilter('pending')}
-                                    className="text-xs font-bold text-[#EC4899] border border-[#EC4899]/40 rounded-full px-3 py-1 hover:bg-[#EC4899]/10 transition-colors"
+                                    className="text-xs font-bold text-purple-400 border border-[#EC4899]/40 rounded-full px-3 py-1 hover:bg-purple-600/10 transition-colors"
                                 >
                                     Review
                                 </button>
                             </div>
                         )}
                         <div className="flex justify-end mb-4">
-                            <button onClick={props.onAddUser} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">Create User</button>
+                            <button onClick={props.onAddUser} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Create User</button>
                         </div>
                         {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={(u) => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
                     </div>
@@ -396,7 +396,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             ) : (
                                 <button onClick={handleSelectAllEvents} className="text-sm text-gray-400 hover:text-white font-semibold">Select All Visible</button>
                             )}
-                            <button onClick={props.onAddEvent} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">Add Event</button>
+                            <button onClick={props.onAddEvent} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Event</button>
                         </div>
                         {filteredEvents.length > 0 ? filteredEvents.map(event => <AdminEventListItem key={event.id} event={event} venueName={getVenueName(event.venueId)} onEdit={props.onEditEvent} onDelete={props.onDeleteEvent} onPreview={props.onPreviewEvent} isSelected={selectedEventIds.includes(event.id)} onToggleSelect={handleToggleEventSelection} />) : <p className="text-center text-gray-500 py-8">No events found.</p>}
                     </div>
@@ -404,7 +404,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                  {activeTab === 'venues' && (
                     <div className="space-y-3">
                          <div className="flex justify-end mb-4">
-                            <button onClick={props.onAddVenue} className="bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">Add Venue</button>
+                            <button onClick={props.onAddVenue} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Venue</button>
                         </div>
                         {filteredVenues.length > 0 ? filteredVenues.map(venue => <AdminVenueListItem key={venue.id} venue={venue} onEdit={props.onEditVenue} onDelete={props.onDeleteVenue} onPreview={props.onPreviewVenue} />) : <p className="text-center text-gray-500 py-8">No venues found.</p>}
                     </div>

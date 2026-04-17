@@ -156,13 +156,13 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
       <div className="flex border-b border-gray-700 mb-6">
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'upcoming' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'upcoming' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
         >
           Upcoming
         </button>
         <button
           onClick={() => setActiveTab('past')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'past' ? 'text-[#EC4899] border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'past' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
         >
           Past
         </button>

@@ -203,9 +203,10 @@ export function computeStatus(
   spotsBooked: number,
   totalCapacity: number,
   cancelled: boolean,
+  forceSoldOut: boolean,
 ): EventInstance['status'] {
   if (cancelled) return 'cancelled';
-  if (spotsBooked >= totalCapacity) return 'sold-out';
+  if (forceSoldOut || spotsBooked >= totalCapacity) return 'sold-out';
   if (spotsBooked >= totalCapacity * 0.7) return 'limited';
   return 'available';
 }
@@ -229,7 +230,8 @@ export function computeStatus(
 export function generateEventFeed(
   bookedMap: Record<string, number> = {},
   cancelMap: Record<string, boolean> = {},
-  weeksAhead = 4,
+  weeksAhead: number = 4,
+  forceSoldOutMap: Record<string, boolean> = {}
 ): EventInstance[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -249,7 +251,8 @@ export function generateEventFeed(
       const dateStr = toYMD(d);
       const instanceId = `${entry.id}-${dateStr}`;
       const spotsBooked = bookedMap[instanceId] ?? 0;
-      const cancelled = cancelMap[instanceId] ?? false;
+      const cancelled = !!cancelMap[instanceId];
+      const forceSoldOut = !!forceSoldOutMap[instanceId];
 
       instances.push({
         instanceId,
@@ -265,7 +268,7 @@ export function generateEventFeed(
         spotsBooked,
         bookingRules: entry.bookingRules,
         coverImage: entry.coverImage,
-        status: computeStatus(spotsBooked, entry.totalCapacity, cancelled),
+        status: computeStatus(spotsBooked, entry.totalCapacity, cancelled, forceSoldOut),
         isCancelledByAdmin: cancelled,
       });
     }

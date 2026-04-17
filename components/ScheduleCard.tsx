@@ -24,7 +24,7 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ venue, day, onBook, 
                 <h3 className="text-2xl font-bold text-white mt-1">{venue.name}</h3>
                 <button 
                   onClick={handleBookClick}
-                  className="mt-4 w-full bg-[#EC4899] text-white font-bold py-2.5 rounded-lg hover:bg-[#d8428a] transition-colors"
+                  className="mt-4 w-full bg-purple-600 text-white font-bold py-2.5 rounded-lg hover:bg-[#d8428a] transition-colors"
                   aria-label={`Book a table at ${venue.name} for ${day}`}
                 >
                     Book Table

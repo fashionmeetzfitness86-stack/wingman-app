@@ -142,7 +142,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
     if (!selectedVenue || !selectedTable || !selectedDate) return;
     
     if (bookingFor === 'guest' && (!guestDetails.name || !guestDetails.email)) {
-        alert("Please enter the guest's name and email.");
+        (window as any).showAppToast?.("Please enter the guest's name and email.");
         return;
     }
 
@@ -267,7 +267,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                     </div>
                     <button 
                         onClick={validateAndProceed} 
-                        className="mt-10 w-full bg-[#EC4899] text-white font-bold py-3.5 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#d8428a] active:scale-95 shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none"
+                        className="mt-10 w-full bg-purple-600 text-white font-bold py-3.5 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#d8428a] active:scale-95 shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none"
                     >
                         Next
                     </button>

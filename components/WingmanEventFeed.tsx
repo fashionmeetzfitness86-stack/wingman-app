@@ -94,9 +94,11 @@ interface WingmanEventFeedProps {
   onToggleBookmark: (instanceId: string) => void;
   onBook: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
   onNavigateToPlans?: () => void;
+  onViewDetail?: (instance: EventInstance) => void;
   cancelMap: Record<string, boolean>;
   onAdminCancel?: (instanceId: string) => void;
   onAdminRestore?: (instanceId: string) => void;
+  onAdminForceSoldOut?: (instanceId: string) => void;
 }
 
 // ─── EVENT CARD ───────────────────────────────────────────────
@@ -247,10 +249,12 @@ const BookingModal: React.FC<{
   onClose: () => void;
   onConfirm: (partySize: number) => void;
   onNavigateToPlans?: () => void;
+  onViewDetail?: () => void;
   isAdmin: boolean;
   onAdminCancel?: () => void;
   onAdminRestore?: () => void;
-}> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans, isAdmin, onAdminCancel, onAdminRestore }) => {
+  onAdminForceSoldOut?: () => void;
+}> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans, onViewDetail, isAdmin, onAdminCancel, onAdminRestore, onAdminForceSoldOut }) => {
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
   const tc = TYPE_CONFIG[instance.experienceType];
@@ -311,6 +315,16 @@ const BookingModal: React.FC<{
           >
             <IconClose className="w-5 h-5" />
           </button>
+          {/* Full Details link */}
+          {onViewDetail && (
+            <button
+              onClick={() => { onClose(); onViewDetail(); }}
+              className="absolute top-4 left-4 text-xs font-bold text-white/70 hover:text-white flex items-center gap-1 transition-colors"
+              style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '999px', padding: '6px 10px' }}
+            >
+              Full Details →
+            </button>
+          )}
           <div className="absolute bottom-4 left-4">
             <div
               className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold mb-2"
@@ -445,14 +459,19 @@ const BookingModal: React.FC<{
           {isAdmin && (
             <div className="pt-3 border-t border-gray-800 flex items-center gap-2">
               <span className="text-xs text-gray-600 flex-1">Admin</span>
+              {instance.status !== 'sold-out' && onAdminForceSoldOut && (
+                  <button onClick={() => { onAdminForceSoldOut(); onClose(); }} className="text-[10px] text-pink-400 border border-pink-900/50 rounded-lg px-2 py-1.5 hover:bg-pink-900/20 transition-colors">
+                    Mark Sold Out
+                  </button>
+              )}
               {instance.status !== 'cancelled' ? (
-                <button onClick={onAdminCancel}
-                  className="text-xs text-red-400 border border-red-900/50 rounded-lg px-3 py-1.5 hover:bg-red-900/20 transition-colors">
+                <button onClick={() => { if(onAdminCancel) onAdminCancel(); onClose(); }}
+                  className="text-[10px] text-red-400 border border-red-900/50 rounded-lg px-2 py-1.5 hover:bg-red-900/20 transition-colors">
                   Cancel Event
                 </button>
               ) : (
-                <button onClick={onAdminRestore}
-                  className="text-xs text-green-400 border border-green-900/50 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-colors">
+                <button onClick={() => { if(onAdminRestore) onAdminRestore(); onClose(); }}
+                  className="text-[10px] text-green-400 border border-green-900/50 rounded-lg px-2 py-1.5 hover:bg-green-900/20 transition-colors">
                   Restore Event
                 </button>
               )}
@@ -635,7 +654,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
             style={{ background: 'rgba(236,72,153,0.07)', border: '1px solid rgba(236,72,153,0.2)' }}>
             <span className="text-xl">🔒</span>
             <p className="text-gray-300">
-              <span className="font-bold text-[#EC4899]">Approved members only.</span> You can browse all events — booking requires an approved account and active membership.
+              <span className="font-bold text-purple-400">Approved members only.</span> You can browse all events — booking requires an approved account and active membership.
             </p>
           </div>
         )}
@@ -659,7 +678,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
             <p className="text-4xl mb-3">🗓</p>
             <p className="font-semibold">No events match your filters.</p>
             <button onClick={() => { setTypeFilter('All'); setDayFilter(null); }}
-              className="mt-4 text-sm text-[#EC4899] hover:text-pink-300 transition-colors">
+              className="mt-4 text-sm text-purple-400 hover:text-pink-300 transition-colors">
               Clear filters
             </button>
           </div>
@@ -697,7 +716,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
                   }}>
                   <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <span className="text-xs font-black text-gray-400 uppercase tracking-widest w-8">{day}</span>
-                    {isToday && <span className="text-xs font-bold text-[#EC4899]">Today</span>}
+                    {isToday && <span className="text-xs font-bold text-purple-400">Today</span>}
                   </div>
                   {entries.map(entry => {
                     const tc2 = TYPE_CONFIG[entry.experienceType];
@@ -733,9 +752,11 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           onClose={() => setSelected(null)}
           onConfirm={canBook ? handleBook : () => {}}
           onNavigateToPlans={onNavigateToPlans}
+          onViewDetail={onViewDetail ? () => onViewDetail(selected) : undefined}
           isAdmin={isAdmin}
           onAdminCancel={onAdminCancel ? () => { onAdminCancel(selected.instanceId); setSelected(null); } : undefined}
           onAdminRestore={onAdminRestore ? () => { onAdminRestore(selected.instanceId); setSelected(null); } : undefined}
+          onAdminForceSoldOut={onAdminForceSoldOut ? () => { onAdminForceSoldOut(selected.instanceId); setSelected(null); } : undefined}
         />
       )}
     </div>

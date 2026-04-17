@@ -48,7 +48,7 @@ const MemberAccessCard: React.FC<{
                 </div>
             </div>
             <span className={`flex-shrink-0 px-2 py-1 text-xs font-semibold rounded-full ${
-                request.status === 'pending'  ? 'bg-[#EC4899]/15 text-pink-300' :
+                request.status === 'pending'  ? 'bg-purple-600/15 text-pink-300' :
                 request.status === 'approved' ? 'bg-green-900/50 text-green-300' :
                 'bg-red-900/50 text-red-300'
             }`}>
@@ -143,7 +143,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                 <div className="flex items-center gap-3 mb-4">
                     <h3 className="text-xl font-bold">Member Access Requests</h3>
                     {pendingMembershipRequests.length > 0 && (
-                        <span className="bg-[#EC4899] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                             {pendingMembershipRequests.length} pending
                         </span>
                     )}
@@ -202,7 +202,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
             <div className="border-t border-gray-800 pt-8">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold">Group Management</h3>
-                    <button onClick={() => onNavigate('createGroup')} className="flex items-center gap-2 bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg text-sm">
+                    <button onClick={() => onNavigate('createGroup')} className="flex items-center gap-2 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
                         <PlusIcon className="w-5 h-5"/>
                         Create Group
                     </button>
@@ -239,7 +239,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                                 <img className="w-14 h-14 rounded-full object-cover" src={user.profilePhoto} alt={user.name} />
                                 <div className="flex-grow">
                                     <p><span className="font-bold text-white">{user.name}</span> requested an invite to</p>
-                                    <p className="font-semibold text-[#EC4899]">{event.title}</p>
+                                    <p className="font-semibold text-purple-400">{event.title}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => onApproveRequest(req.id)} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Approve</button>

@@ -120,7 +120,7 @@ export const SendInvitations: React.FC<SendInvitationsProps> = ({ users, events,
                     const statusInfo = getInvitationStatus(user.id, parseInt(selectedEventId, 10));
                     return (
                         <div key={user.id} className="flex items-center gap-3 bg-gray-900/50 p-2 rounded-lg">
-                            <input type="checkbox" checked={selectedUserIds.includes(user.id)} onChange={() => handleUserToggle(user.id)} className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-[#EC4899] focus:ring-[#EC4899] flex-shrink-0" />
+                            <input type="checkbox" checked={selectedUserIds.includes(user.id)} onChange={() => handleUserToggle(user.id)} className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-purple-400 focus:ring-[#EC4899] flex-shrink-0" />
                             <img src={user.profilePhoto} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                             <div className="flex-grow">
                                 <p className="font-semibold text-white">{user.name}</p>

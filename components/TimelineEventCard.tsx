@@ -77,7 +77,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy: ', err);
-            alert('Sharing is not supported on this browser. Could not copy link.');
+            (window as any).showAppToast?.('Sharing is not supported on this browser. Could not copy link.');
         }
     }
   };
@@ -112,7 +112,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     className={`font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-24 ${
                         isRsvped
                             ? 'bg-gray-700 text-gray-300'
-                            : 'bg-[#EC4899] text-white'
+                            : 'bg-purple-600 text-white'
                     }`}
                 >
                     {isRsvped ? (
@@ -167,7 +167,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     e.stopPropagation();
                     onBook(event);
                 }}
-                className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-[#EC4899] text-white hover:bg-[#d8428a]"
+                className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-purple-600 text-white hover:bg-[#d8428a]"
                 aria-label={`Book tickets for ${event.title}`}
             >
                 <KeyIcon className="w-4 h-4" />
@@ -182,7 +182,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             className={`font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-24 ${
                 isRsvped
                     ? 'bg-gray-700 text-gray-300'
-                    : 'bg-[#EC4899] text-white'
+                    : 'bg-purple-600 text-white'
             }`}
             aria-label={isRsvped ? `Cancel RSVP for ${event.title}` : `RSVP for ${event.title}`}
         >
@@ -244,7 +244,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             <div className="flex items-center gap-1">
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleLike(event.id); }}
-                    className={`p-2 rounded-full transition-all active:scale-95 ${isLiked ? 'text-[#EC4899] bg-[#EC4899]/10' : 'text-gray-400 hover:bg-gray-800'}`}
+                    className={`p-2 rounded-full transition-all active:scale-95 ${isLiked ? 'text-purple-400 bg-purple-600/10' : 'text-gray-400 hover:bg-gray-800'}`}
                     aria-label={isLiked ? `Unlike ${event.title}` : `Like ${event.title}`}
                 >
                     <HeartIcon className="w-5 h-5" isFilled={isLiked} />

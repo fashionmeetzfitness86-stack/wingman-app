@@ -296,6 +296,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
 
+                  <p className="text-[10px] text-gray-500 text-center mt-4 mb-3 px-2 leading-tight">
+                    By confirming, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a>, <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>, <a href="#" className="underline hover:text-white transition-colors">Liability Waiver</a>, and <a href="#" className="underline hover:text-white transition-colors">Refund Policy</a>.
+                  </p>
+
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
                     disabled={selectedItemIds.length === 0}
@@ -380,10 +384,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           style={{ background: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.08)' }}
         >
           <div className="px-4 py-3">
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex justify-between items-center mb-2">
               <p className="text-sm text-gray-400">{selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''} selected</p>
               <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
+            <p className="text-[10px] text-gray-500 text-center mb-3 leading-tight">
+              By confirming, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a>, <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>, <a href="#" className="underline hover:text-white transition-colors">Liability Waiver</a>, and <a href="#" className="underline hover:text-white transition-colors">Refund Policy</a>.
+            </p>
             <button
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
               disabled={selectedItemIds.length === 0}

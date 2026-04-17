@@ -86,7 +86,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
         if (experience.access === 'invite-only') {
             if (invitationStatus === 'approved') {
                  return (
-                    <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
+                    <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
                         Book Now
                     </button>
                 );
@@ -116,7 +116,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
         }
         
         return (
-             <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-[#EC4899] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
+             <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
                 Book Now
             </button>
         );

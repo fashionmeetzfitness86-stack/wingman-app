@@ -66,7 +66,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                     {onMoveToCart && (
                         <button 
                             onClick={() => onMoveToCart(item)} 
-                            className="mt-2 w-full bg-[#EC4899] text-white text-xs font-bold py-2 rounded hover:bg-[#d8428a] transition-colors"
+                            className="mt-2 w-full bg-purple-600 text-white text-xs font-bold py-2 rounded hover:bg-[#d8428a] transition-colors"
                         >
                             Add to Cart
                         </button>
@@ -112,7 +112,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                                 type="checkbox" 
                                 checked={isSelected} 
                                 onChange={() => onToggleSelection(item.id)}
-                                className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-[#EC4899] focus:ring-[#EC4899]"
+                                className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-400 focus:ring-[#EC4899]"
                             />
                         </div>
                     )}
@@ -136,7 +136,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                             ) : (
                                 <div className="flex gap-2">
                                     {onStartChat && (
-                                        <button onClick={() => onStartChat(item)} className="text-gray-400 hover:text-[#EC4899] transition-colors" title="Chat">
+                                        <button onClick={() => onStartChat(item)} className="text-gray-400 hover:text-purple-400 transition-colors" title="Chat">
                                             <ChatIcon className="w-5 h-5" />
                                         </button>
                                     )}
@@ -169,7 +169,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                                         </button>
                                         <button 
                                             onClick={() => onUpdatePaymentOption(item.id, 'full')}
-                                            className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors ${item.paymentOption === 'full' ? 'bg-[#EC4899] text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                            className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors ${item.paymentOption === 'full' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                                         >
                                             Full
                                         </button>
