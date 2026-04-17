@@ -1237,7 +1237,7 @@ export const App: React.FC = () => {
                     onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
                     onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
                 />;
-            case 'eventDetail':
+            case 'eventDetail': {
                 const inst = pageParams.instance || (pageParams.instanceId ? generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap).find(i => i.instanceId === pageParams.instanceId) : null);
                 if (!inst) return <div className="text-white p-8">Event not found</div>;
                 return <EventDetailPage
@@ -1249,6 +1249,7 @@ export const App: React.FC = () => {
                     onBook={handleInstanceBook}
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                 />;
+            }
             case 'challenges':
                 return <ChallengesPage 
                     challenges={appChallenges} 
