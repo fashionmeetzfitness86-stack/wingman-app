@@ -1139,7 +1139,7 @@ export const App: React.FC = () => {
                     onNavigate={handleNavigate}
                     onJoinGuestlist={(p) => handleOpenGuestlistModal({ promoter: p })}
                 />;
-            case 'promoterProfile':
+            case 'promoterProfile': {
                 const promoter = appPromoters.find(p => p.id === (pageParams.promoterId || 1));
                 if (!promoter) return <div>Promoter not found</div>;
                 return <PromoterProfile 
@@ -1158,6 +1158,7 @@ export const App: React.FC = () => {
                     tokenBalance={userTokenBalance}
                     events={appEvents}
                 />;
+            }
             case 'featuredVenues':
                 return <FeaturedVenuesPage 
                     onBookVenue={handleBookVenue} 
@@ -1237,7 +1238,7 @@ export const App: React.FC = () => {
                     onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
                     onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
                 />;
-            case 'eventDetail':
+            case 'eventDetail': {
                 const inst = pageParams.instance || (pageParams.instanceId ? generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap).find(i => i.instanceId === pageParams.instanceId) : null);
                 if (!inst) return <div className="text-white p-8">Event not found</div>;
                 return <EventDetailPage
@@ -1249,6 +1250,7 @@ export const App: React.FC = () => {
                     onBook={handleInstanceBook}
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                 />;
+            }
             case 'challenges':
                 return <ChallengesPage 
                     challenges={appChallenges} 
@@ -1387,7 +1389,7 @@ export const App: React.FC = () => {
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
                 />;
-            case 'promoterDashboard':
+            case 'promoterDashboard': {
                 const myPromoter = appPromoters.find(p => p.id === currentUser.id);
                 if (!myPromoter) return <div>Promoter dashboard unavailable.</div>;
                 return <PromoterDashboard 
@@ -1406,13 +1408,14 @@ export const App: React.FC = () => {
                     eventInvitations={mockEventInvitations} 
                     onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
                 />;
+            }
             case 'bookings':
                 return <BookingsPage 
                     onNavigate={handleNavigate} 
                     bookedItems={bookedItems} 
                     venues={appVenues} 
                 />;
-            case 'settings':
+            case 'settings': {
                 // Check if the current user is admin OR if we have a persistent admin session active
                 const isAdminSession = currentUser.role === UserRole.ADMIN || !!realAdminUser;
                 return <SettingsPage 
@@ -1420,6 +1423,7 @@ export const App: React.FC = () => {
                     users={isAdminSession ? appUsers : undefined} 
                     onSwitchUser={isAdminSession ? handleSwitchUser : undefined} 
                 />;
+            }
             case 'chatbot':
                 return <ChatbotPage initialPrompt={pageParams.initialPrompt} />;
             case 'liveChat':
@@ -1467,7 +1471,7 @@ export const App: React.FC = () => {
                     onNavigate={handleNavigate} 
                     onViewItinerary={(id) => handleNavigate('itineraryDetails', { itineraryId: id })} 
                 />;
-            case 'itineraryDetails':
+            case 'itineraryDetails': {
                 const itinerary = itineraries.find(i => i.id === pageParams.itineraryId);
                 if (!itinerary) return <div>Itinerary not found</div>;
                 return <ItineraryDetailsPage 
@@ -1480,7 +1484,8 @@ export const App: React.FC = () => {
                         showToast('Itinerary cloned.', 'success');
                     }} 
                 />;
-            case 'itineraryBuilder':
+            }
+            case 'itineraryBuilder': {
                 const existingItinerary = itineraries.find(i => i.id === pageParams.itineraryId);
                 return <ItineraryBuilderPage 
                     onSave={(i) => {
@@ -1499,6 +1504,7 @@ export const App: React.FC = () => {
                     users={appUsers} 
                     currentUser={currentUser} 
                 />;
+            }
             case 'bookingConfirmed':
                 return <BookingConfirmedPage 
                     items={pageParams.items || []}
@@ -1771,7 +1777,7 @@ export const App: React.FC = () => {
                     bookmarkedExperienceIds={bookmarkedExperienceIds}
                     onToggleBookmarkExperience={handleToggleBookmarkExperience}
                 />;
-            case 'venueDetails':
+            case 'venueDetails': {
                 const venue = appVenues.find(v => v.id === pageParams.venueId);
                 if (!venue) return <div>Venue not found</div>;
                 return <VenueDetailsPage 
@@ -1796,6 +1802,7 @@ export const App: React.FC = () => {
                         showToast('Check-in successful! Welcome. 🎉', 'success');
                     }} 
                 />;
+            }
             case 'help': return <HelpPage onNavigate={handleNavigate} />;
             case 'reportIssue': return <ReportIssuePage onNavigate={handleNavigate} />;
             case 'privacy': return <PrivacyPage onNavigate={handleNavigate} onDeleteAccountRequest={() => showToast('Account deletion request submitted. Our team will follow up via email.', 'success')} />;

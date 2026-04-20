@@ -20,6 +20,7 @@ export const AskGabyModal: React.FC<AskGabyModalProps> = ({ isOpen, onClose }) =
     setTimeout(() => { setSent(false); setMessage(''); onClose(); }, 1200);
   };
 
+  return (
     <div
       className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
       role="dialog"
@@ -69,3 +70,5 @@ export const AskGabyModal: React.FC<AskGabyModalProps> = ({ isOpen, onClose }) =
         </div>
       </div>
     </div>
+  );
+};
