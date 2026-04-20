@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const BellIcon: React.FC<{ className?: string; style?: React.CSSProperties; isFilled?: boolean }> = ({ className = "w-6 h-6", isFilled = false }) => (
+export const BellIcon: React.FC<{ className?: string; style?: React.CSSProperties; isFilled?: boolean }> = ({ className = "w-6 h-6", isFilled = false, style }) => (
     isFilled ? (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
             <path d="M14 18.5a2.5 2.5 0 0 1-4 0" />

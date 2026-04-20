@@ -493,9 +493,11 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   onToggleBookmark,
   onBook,
   onNavigateToPlans,
+  onViewDetail,
   cancelMap,
   onAdminCancel,
   onAdminRestore,
+  onAdminForceSoldOut,
 }) => {
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const isApproved = currentUser.approvalStatus === 'approved';
