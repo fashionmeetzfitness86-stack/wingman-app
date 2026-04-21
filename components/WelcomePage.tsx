@@ -151,12 +151,233 @@ const PreviewEventCard: React.FC<{ title: string; date: string; time: string; ty
 interface WelcomePageProps {
   onAccessGranted: () => void;
   onLoginInstead: () => void;
+  onLogin?: (email: string, password: string) => boolean;
 }
+
+// ─── Login Screen ──────────────────────────────────────────────
+
+const LoginScreen: React.FC<{
+  onBack: () => void;
+  onLogin: (email: string, password: string) => boolean;
+  onForgotPassword: () => void;
+}> = ({ onBack, onLogin, onForgotPassword }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!email.trim()) { setError('Please enter your email.'); return; }
+    if (!password.trim()) { setError('Please enter your password.'); return; }
+    setLoading(true);
+    setTimeout(() => {
+      const ok = onLogin(email.trim().toLowerCase(), password);
+      if (!ok) {
+        setError('Email or password not recognised. Please try again.');
+      }
+      setLoading(false);
+    }, 900);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
+        <button onClick={onBack} className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1">
+          ← Back
+        </button>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-5 py-8">
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="mb-10 text-center">
+            <WingmanWordmark />
+          </div>
+
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Welcome Back
+            </h1>
+            <p className="text-xs text-gray-500">Log in to access your exclusive concierge.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setError(''); }}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError(''); }}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all pr-12"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${error ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                />
+                <button type="button" onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors">
+                  <IcoEye shown={showPw} />
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-xl px-4 py-3 text-[11px] text-red-400"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full font-bold py-4 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-60 mt-2"
+              style={{
+                background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                color: loading ? '#9CA3AF' : '#000',
+              }}>
+              {loading ? 'Signing in…' : 'Log In'}
+            </button>
+          </form>
+
+          <button
+            onClick={onForgotPassword}
+            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-5">
+            Forgot your password?
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Forgot Password Screen ────────────────────────────────────
+
+const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!email.trim()) { setError('Please enter your email address.'); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) { setError('Please enter a valid email address.'); return; }
+    setLoading(true);
+    setTimeout(() => { setLoading(false); setSent(true); }, 1000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
+      <div className="flex items-center px-5 pt-5 pb-2 flex-shrink-0">
+        <button onClick={onBack} className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1">
+          ← Back to Login
+        </button>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-5 py-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-10 text-center"><WingmanWordmark /></div>
+
+          {sent ? (
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Check Your Email</h2>
+              <p className="text-sm text-gray-500 leading-relaxed mb-6">
+                If an account exists for <span className="text-white font-semibold">{email}</span>, you will receive a password reset link shortly.
+              </p>
+              <p className="text-[10px] text-gray-700">Didn't receive it? Check your spam folder or contact your host.</p>
+              <button onClick={onBack}
+                className="mt-8 w-full font-bold py-4 rounded-xl text-sm transition-all"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff' }}>
+                Back to Login
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Forgot Password?
+                </h1>
+                <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+                  Enter the email linked to your account. We'll send you a reset link.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => { setEmail(e.target.value); setError(''); }}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${error ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                  />
+                </div>
+
+                {error && (
+                  <div className="rounded-xl px-4 py-3 text-[11px] text-red-400"
+                    style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full font-bold py-4 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-60 mt-2"
+                  style={{
+                    background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                    color: loading ? '#9CA3AF' : '#000',
+                  }}>
+                  {loading ? 'Sending…' : 'Send Reset Link'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 
-export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead }) => {
-  const [mode, setMode] = useState<'browse' | 'enter' | 'success'>('browse');
+export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin }) => {
+  const [mode, setMode] = useState<'browse' | 'enter' | 'login' | 'forgotPassword' | 'success'>('browse');
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
@@ -214,6 +435,22 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
       setIsSubmitting(false);
     }, 800);
   };
+
+  // ── Login Mode ───────────────────────────────────────────────
+  if (mode === 'login') {
+    return (
+      <LoginScreen
+        onBack={() => setMode('browse')}
+        onLogin={onLogin ?? (() => false)}
+        onForgotPassword={() => setMode('forgotPassword')}
+      />
+    );
+  }
+
+  // ── Forgot Password Mode ─────────────────────────────────────
+  if (mode === 'forgotPassword') {
+    return <ForgotPasswordScreen onBack={() => setMode('login')} />;
+  }
 
   // ── Success State ────────────────────────────────────────────
 
@@ -398,7 +635,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
       <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
         <WingmanWordmark />
         <button
-          onClick={onLoginInstead}
+          onClick={() => setMode('login')}
           className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
         >
           Login

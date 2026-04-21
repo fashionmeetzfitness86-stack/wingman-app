@@ -1862,10 +1862,22 @@ export const App: React.FC = () => {
     // This MUST be the first thing unauthenticated users see.
     // It prevents OnboardingModal (z-100) from overlaying the gate.
     if (!isLoggedInUser && !passcodeAccessActive) {
+        const handleLogin = (email: string, _password: string): boolean => {
+            // Match user by email (password check is simulated — replace with real auth when backend is ready)
+            const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (found) {
+                setCurrentUser(found);
+                setPasscodeAccessActive(true);
+                setCurrentPage('home');
+                return true;
+            }
+            return false;
+        };
         return (
             <WelcomePage
                 onAccessGranted={handleAccessGranted}
                 onLoginInstead={handleLoginInstead}
+                onLogin={handleLogin}
             />
         );
     }
