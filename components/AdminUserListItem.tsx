@@ -22,7 +22,7 @@ export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEd
         switch (status) {
             case 'approved': return 'bg-green-900/50 text-green-300 border border-green-700/50';
             case 'rejected': return 'bg-red-900/50 text-red-400 border border-red-700/50';
-            case 'pending':  return 'bg-purple-600/15 text-pink-300 border border-[#EC4899]/40';
+            case 'pending':  return 'bg-white text-black hover:bg-gray-200/15 text-pink-300 border border-[#FFFFFF]/40';
             default:         return 'bg-gray-800 text-gray-500 border border-gray-700';
         }
     };

@@ -30,7 +30,7 @@ interface FriendZoneChatPageProps {
 const MessageBubble: React.FC<{ message: FriendZoneChatMessage, sender: User | Promoter | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
-        <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-purple-600 rounded-br-none text-white' : 'bg-gray-800 rounded-bl-none text-white'}`}>
+        <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-white text-black hover:bg-gray-200 rounded-br-none text-white' : 'bg-gray-800 rounded-bl-none text-white'}`}>
             {sender && !isCurrentUser && (
                  <div className="flex items-center gap-2 mb-1">
                     <p className="font-bold text-sm text-gray-300">{sender.name}</p>
@@ -103,7 +103,7 @@ export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, 
                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Wingmen</span>
                          <button 
                             onClick={() => setIsPromoterModalOpen(true)}
-                            className="text-xs bg-purple-600 text-white font-bold px-3 py-1.5 rounded-full hover:bg-[#d8428a] transition-colors"
+                            className="text-xs bg-white text-black hover:bg-gray-200 text-white font-bold px-3 py-1.5 rounded-full hover:bg-[#E5E5E5] transition-colors"
                         >
                             + Add Promoter
                         </button>
@@ -167,14 +167,14 @@ export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, 
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Type a message..."
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                         aria-label="Chat input"
                         autoFocus
                     />
                     <button
                         type="submit"
                         disabled={!inputValue.trim()}
-                        className="w-12 h-12 flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed shadow-lg shadow-pink-900/20"
+                        className="w-12 h-12 flex-shrink-0 bg-white text-black hover:bg-gray-200 rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed shadow-lg shadow-pink-900/20"
                         aria-label="Send message"
                     >
                         <SendIcon className="w-6 h-6" />

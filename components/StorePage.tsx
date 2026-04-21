@@ -59,7 +59,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               <span style={{
-                background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
+                background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -72,9 +72,9 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
           {/* Token balance pill */}
           <div
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-            style={{ background: 'rgba(224,64,251,0.08)', border: '1px solid rgba(224,64,251,0.25)' }}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.25)' }}
           >
-            <TokenIcon className="w-3.5 h-3.5" style={{ color: '#E040FB' } as React.CSSProperties} />
+            <TokenIcon className="w-3.5 h-3.5" style={{ color: '#FFFFFF' } as React.CSSProperties} />
             <span className="text-xs font-bold text-white">{userTokenBalance.toLocaleString()}</span>
           </div>
         </div>
@@ -87,7 +87,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
               onClick={() => setActiveCategory(cat)}
               className="flex-shrink-0 text-xs font-bold rounded-full px-3 py-1.5 transition-all"
               style={activeCategory === cat
-                ? { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff' }
+                ? { background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', color: '#fff' }
                 : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }
               }
             >
@@ -123,7 +123,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
             <button
               onClick={() => setActiveCategory('All')}
               className="mt-4 text-sm font-semibold hover:underline"
-              style={{ color: '#E040FB' }}
+              style={{ color: '#FFFFFF' }}
             >
               View all items
             </button>
@@ -133,11 +133,11 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
         {/* ── Token info banner ── */}
         <div
           className="mt-10 rounded-2xl px-5 py-4 flex items-center gap-4"
-          style={{ background: 'rgba(224,64,251,0.05)', border: '1px solid rgba(224,64,251,0.15)' }}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
         >
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}
+            style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)' }}
           >
             <TokenIcon className="w-5 h-5 text-white" />
           </div>

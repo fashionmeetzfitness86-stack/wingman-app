@@ -24,7 +24,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onNa
                     <div className="flex flex-col items-center gap-4 animate-fade-in-up">
                         <button 
                             onClick={() => handleNavigate('liveChat')}
-                            className="w-14 h-14 bg-white rounded-full flex flex-col items-center justify-center text-purple-400 shadow-md transition-transform hover:scale-110"
+                            className="w-14 h-14 bg-white rounded-full flex flex-col items-center justify-center text-gray-300 shadow-md transition-transform hover:scale-110"
                             aria-label="Ask Gaby with voice"
                         >
                             <MicrophoneIcon className="w-6 h-6"/>
@@ -32,7 +32,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onNa
                         </button>
                         <button 
                             onClick={() => handleNavigate('chatbot')}
-                            className="w-14 h-14 bg-white rounded-full flex flex-col items-center justify-center text-purple-400 shadow-md transition-transform hover:scale-110"
+                            className="w-14 h-14 bg-white rounded-full flex flex-col items-center justify-center text-gray-300 shadow-md transition-transform hover:scale-110"
                             aria-label="Ask Gaby with text"
                         >
                             <ChatBubbleLeftIcon className="w-6 h-6"/>
@@ -42,7 +42,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onNa
                 )}
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#EC4899]/40 transition-transform hover:scale-110"
+                    className="w-16 h-16 bg-white text-black hover:bg-gray-200 rounded-full flex items-center justify-center text-white shadow-lg shadow-[#FFFFFF]/40 transition-transform hover:scale-110"
                     aria-label="Toggle AI assistant menu"
                     aria-expanded={isOpen}
                 >

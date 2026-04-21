@@ -153,7 +153,7 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
                             <div className="flex justify-between text-base"><span className="text-gray-200 font-bold">Total (USD):</span> <span className="text-amber-400 font-bold">${totalPriceInUSD.toLocaleString()}</span></div>
                         </div>
                         
-                        <button onClick={validateAndProceed} className="mt-6 w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-[#d8428a]">
+                        <button onClick={validateAndProceed} className="mt-6 w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-[#E5E5E5]">
                             Continue
                         </button>
                     </div>
@@ -165,14 +165,14 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
                         <div className="space-y-4">
                             <button
                                 onClick={() => setBookingFor('self')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-pink-500/10 border-pink-500' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-white/10 border-gray-500' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for Myself</p>
                                 <p className="text-sm text-gray-400">{user.name}</p>
                             </button>
                             <button
                                 onClick={() => setBookingFor('guest')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-pink-500/10 border-pink-500' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-white/10 border-gray-500' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for a Guest</p>
                                 <p className="text-sm text-gray-400">Enter their contact information</p>
@@ -183,15 +183,15 @@ export const ExperienceBookingFlow: React.FC<ExperienceBookingFlowProps> = ({ ex
                             <div className="mt-6 space-y-4 animate-fade-in">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Full Name</label>
-                                    <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" />
+                                    <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Email</label>
-                                    <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" />
+                                    <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Phone</label>
-                                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" />
+                                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" />
                                 </div>
                             </div>
                         )}

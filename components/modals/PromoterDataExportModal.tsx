@@ -148,18 +148,22 @@ export const PromoterDataExportModal: React.FC<PromoterDataExportModalProps> = (
         <div>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Date Range</h3>
             <div className="grid grid-cols-2 gap-4">
-                <Input 
-                    label="Start Date" 
-                    type="date" 
-                    value={startDate} 
-                    onChange={e => setStartDate(e.target.value)} 
-                />
-                <Input 
-                    label="End Date" 
-                    type="date" 
-                    value={endDate} 
-                    onChange={e => setEndDate(e.target.value)} 
-                />
+                <label className="flex flex-col gap-1 text-sm font-semibold text-gray-300">
+                    Start Date
+                    <Input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={e => setStartDate(e.target.value)} 
+                    />
+                </label>
+                <label className="flex flex-col gap-1 text-sm font-semibold text-gray-300">
+                    End Date
+                    <Input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={e => setEndDate(e.target.value)} 
+                    />
+                </label>
             </div>
         </div>
 

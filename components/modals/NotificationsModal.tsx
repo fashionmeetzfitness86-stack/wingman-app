@@ -9,9 +9,9 @@ interface NotificationsModalProps {
 }
 
 const PREVIEW_ITEMS = [
-  { emoji: '🎉', title: 'Wingman @ LIV — Tonight', sub: '5 spots remaining · Reserve now', color: '#E040FB' },
+  { emoji: '🎉', title: 'Wingman @ LIV — Tonight', sub: '5 spots remaining · Reserve now', color: '#FFFFFF' },
   { emoji: '✅', title: 'Booking Confirmed', sub: 'Thu, Apr 30 · LIV Miami · 11PM', color: '#22C55E' },
-  { emoji: '⚡', title: 'Exclusive Drop', sub: 'New yacht experience available for you', color: '#00D4FF' },
+  { emoji: '⚡', title: 'Exclusive Drop', sub: 'New yacht experience available for you', color: '#374151' },
 ];
 
 export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose, onEnable, onManagePreferences }) => {
@@ -57,12 +57,12 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
         <div className="flex flex-col items-center px-6 pb-4">
           <div
             className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5 relative"
-            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)' }}
+            style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)' }}
           >
             {/* Animated pulse ring */}
             <span
               className="absolute inset-0 rounded-2xl animate-ping opacity-20"
-              style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }}
+              style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)' }}
             />
             <svg className="w-10 h-10 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -103,7 +103,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
             id="enable-notifications-btn"
             onClick={onEnable}
             className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 32px rgba(224,64,251,0.3)' }}
+            style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 32px rgba(255,255,255,0.3)' }}
           >
             Enable Notifications
           </button>
@@ -121,7 +121,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
                 <button
                   onClick={() => { onClose(); onManagePreferences(); }}
                   className="flex-1 py-3 text-sm font-semibold transition-colors"
-                  style={{ color: '#E040FB' }}
+                  style={{ color: '#FFFFFF' }}
                 >
                   Manage Preferences
                 </button>

@@ -116,7 +116,7 @@ export const PushNotificationsTab: React.FC<PushNotificationsTabProps> = ({ even
                     </div>
                     
                     <div className="flex justify-end pt-2">
-                        <button type="submit" className="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors">Launch Campaign</button>
+                        <button type="submit" className="bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E5E5E5] transition-colors">Launch Campaign</button>
                     </div>
                 </form>
             </div>

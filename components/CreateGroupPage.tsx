@@ -29,19 +29,19 @@ export const CreateGroupPage: React.FC<CreateGroupPageProps> = ({ onSave, onCanc
             <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
                 <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">Group Name</label>
-                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" required />
+                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" required />
                 </div>
                 <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                    <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" required />
+                    <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" required />
                 </div>
                 <div>
                     <label htmlFor="coverImage" className="block text-sm font-medium text-gray-300 mb-2">Cover Image URL</label>
-                    <input type="url" id="coverImage" value={coverImage} onChange={e => setCoverImage(e.target.value)} placeholder="https://picsum.photos/seed/..." className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" required />
+                    <input type="url" id="coverImage" value={coverImage} onChange={e => setCoverImage(e.target.value)} placeholder="https://picsum.photos/seed/..." className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" required />
                 </div>
                 <div className="flex gap-4 pt-4">
                     <button type="button" onClick={onCancel} className="w-full bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
-                    <button type="submit" className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-[#f472b6] transition-transform hover:scale-105">Create Group</button>
+                    <button type="submit" className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3 rounded-lg hover:bg-[#f472b6] transition-transform hover:scale-105">Create Group</button>
                 </div>
             </form>
         </div>

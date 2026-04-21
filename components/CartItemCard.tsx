@@ -66,7 +66,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                     {onMoveToCart && (
                         <button 
                             onClick={() => onMoveToCart(item)} 
-                            className="mt-2 w-full bg-purple-600 text-white text-xs font-bold py-2 rounded hover:bg-[#d8428a] transition-colors"
+                            className="mt-2 w-full bg-white text-black hover:bg-gray-200 text-white text-xs font-bold py-2 rounded hover:bg-[#E5E5E5] transition-colors"
                         >
                             Add to Cart
                         </button>
@@ -93,17 +93,17 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
             return <div className="flex items-center gap-1 bg-green-900/30 text-green-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-green-900/50"><CheckCircleIcon className="w-3 h-3" /> Approved</div>;
         }
         if (status === 'pending') {
-            return <div className="flex items-center gap-1 bg-yellow-900/30 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-yellow-900/50"><ClockIcon className="w-3 h-3" /> Pending</div>;
+            return <div className="flex items-center gap-1 bg-yellow-900/30 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-yellow-900/50"><ClockIcon className="w-3 h-3" /> Under Review</div>;
         }
         if (status === 'rejected') {
-            return <div className="flex items-center gap-1 bg-red-900/30 text-red-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-red-900/50"><CloseIcon className="w-3 h-3" /> Rejected</div>;
+            return <div className="flex items-center gap-1 bg-red-900/30 text-red-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-red-900/50"><CloseIcon className="w-3 h-3" /> Restricted</div>;
         }
         return null;
     };
 
     return (
         <>
-            <div className={`bg-gray-900 rounded-lg p-4 border transition-all duration-200 ${isSelected ? 'border-[#EC4899] bg-gray-900/80' : 'border-gray-800 hover:border-gray-700'}`}>
+            <div className={`bg-gray-900 rounded-lg p-4 border transition-all duration-200 ${isSelected ? 'border-[#FFFFFF] bg-gray-900/80' : 'border-gray-800 hover:border-gray-700'}`}>
                 <div className="flex gap-3">
                     {/* Selection Checkbox (Only for unbooked items in cart) */}
                     {!isBooked && onToggleSelection && (
@@ -112,7 +112,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                                 type="checkbox" 
                                 checked={isSelected} 
                                 onChange={() => onToggleSelection(item.id)}
-                                className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-400 focus:ring-[#EC4899]"
+                                className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-gray-300 focus:ring-[#FFFFFF]"
                             />
                         </div>
                     )}
@@ -136,7 +136,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                             ) : (
                                 <div className="flex gap-2">
                                     {onStartChat && (
-                                        <button onClick={() => onStartChat(item)} className="text-gray-400 hover:text-purple-400 transition-colors" title="Chat">
+                                        <button onClick={() => onStartChat(item)} className="text-gray-400 hover:text-gray-300 transition-colors" title="Chat">
                                             <ChatIcon className="w-5 h-5" />
                                         </button>
                                     )}
@@ -169,7 +169,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                                         </button>
                                         <button 
                                             onClick={() => onUpdatePaymentOption(item.id, 'full')}
-                                            className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors ${item.paymentOption === 'full' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                            className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors ${item.paymentOption === 'full' ? 'bg-white text-black hover:bg-gray-200 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                                         >
                                             Full
                                         </button>
@@ -218,7 +218,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                                 <DetailRow label="Venue" value={item.guestlistDetails.venue.name} />
                                 <DetailRow label="Promoter" value={item.guestlistDetails.promoter.name} />
                                 <DetailRow label="Guests" value={item.guestlistDetails.numberOfGuests} />
-                                <DetailRow label="Status" value={status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending'} />
+                                <DetailRow label="Status" value={status === 'rejected' ? 'Restricted' : status === 'pending' ? 'Under Review' : status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Under Review'} />
                             </>
                         )}
 

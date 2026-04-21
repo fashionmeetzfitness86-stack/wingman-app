@@ -103,7 +103,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
     <>
     <div 
         onClick={() => onViewDetails(venue)}
-        className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#EC4899] hover:shadow-2xl hover:shadow-[#EC4899]/10 group cursor-pointer"
+        className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#FFFFFF] hover:shadow-2xl hover:shadow-[#FFFFFF]/10 group cursor-pointer"
     >
       <div className="relative">
         {venue.coverImage ? (
@@ -155,7 +155,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
         <div className="mt-4 pt-4 border-t border-gray-800 flex flex-col gap-2">
             <button
                 onClick={handleBookClick}
-                className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 group-hover:bg-[#d8428a]"
+                className="w-full text-center bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all duration-300 group-hover:bg-[#E5E5E5]"
                 aria-label={`Book now at ${venue.name}`}
             >
                 Book Now

@@ -15,8 +15,8 @@ export const LiveChatPage: React.FC = () => {
                     <div
                         className="w-20 h-20 rounded-full flex items-center justify-center animate-pulse-glow"
                         style={{
-                            background: 'linear-gradient(135deg, #7B61FF, #00D4FF)',
-                            boxShadow: '0 0 40px rgba(0,212,255,0.2)',
+                            background: 'linear-gradient(135deg, #9CA3AF, #374151)',
+                            boxShadow: '0 0 40px rgba(55,65,81,0.2)',
                         }}
                     >
                         <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -30,7 +30,7 @@ export const LiveChatPage: React.FC = () => {
                 </h2>
                 <p className="text-[11px] font-bold tracking-widest uppercase mb-4"
                     style={{
-                        background: 'linear-gradient(90deg, #7B61FF, #00D4FF)',
+                        background: 'linear-gradient(90deg, #9CA3AF, #374151)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -43,7 +43,7 @@ export const LiveChatPage: React.FC = () => {
                 </p>
 
                 <div className="mt-8 flex items-center gap-2 text-xs text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#00D4FF' }} />
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#374151' }} />
                     In development
                 </div>
             </div>

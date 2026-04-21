@@ -19,7 +19,7 @@ const ExclusivityPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ i
   <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
   >
-    <span style={{ color: '#E040FB' }}>{icon}</span>
+    <span style={{ color: '#fff' }}>{icon}</span>
     <span className="text-xs font-semibold text-gray-400 whitespace-nowrap">{label}</span>
   </div>
 );
@@ -55,9 +55,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                             onClick={handleDashboardShortcut}
                             className="text-xs font-semibold rounded-full px-3 py-1.5 transition-colors"
                             style={{
-                                color: '#E040FB',
-                                border: '1px solid rgba(224,64,251,0.3)',
-                                background: 'rgba(224,64,251,0.06)'
+                                color: '#000',
+                                border: '1px solid #fff',
+                                background: '#fff'
                             }}
                             aria-label="Open dashboard"
                         >
@@ -80,14 +80,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
             <main className="flex-grow px-6 pt-4 pb-8 flex flex-col">
 
                 <div className="mb-8">
-                    <p className="text-[11px] font-bold tracking-widest uppercase mb-3"
-                        style={{
-                            background: 'linear-gradient(90deg, #E040FB, #00D4FF)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}
-                    >
+                    <p className="text-[11px] font-bold tracking-widest uppercase mb-3 text-gray-400">
                         Members Only
                     </p>
                     <h2
@@ -96,12 +89,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                     >
                         Exclusive<br />
                         Experiences.<br />
-                        <span style={{
-                            background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}>Limited Access.</span>
+                        <span className="text-white">Limited Access.</span>
                     </h2>
                     <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
                         Scroll through upcoming Wingman experiences and reserve your spot. Weekly events. Curated venues. Limited seats.
@@ -112,25 +100,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                 <div className="flex flex-col gap-3 mb-7">
                     <button
                         onClick={() => onNavigate('eventTimeline')}
-                        className="w-full flex items-center justify-between font-bold text-base rounded-2xl px-5 py-4 active:scale-[0.98] transition-all text-white"
+                        className="w-full flex items-center justify-between font-bold text-base rounded-md px-5 py-4 active:scale-[0.98] transition-all text-black bg-white"
                         style={{
-                            background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
-                            boxShadow: '0 8px 28px rgba(224,64,251,0.25)'
+                            boxShadow: '0 8px 28px rgba(255,255,255,0.1)'
                         }}
                         aria-label="Browse upcoming experiences"
                         id="home-browse-experiences"
                     >
                         <span className="flex items-center gap-2">
                             <SparkleIcon className="w-5 h-5" />
-                            Browse Experiences
+                            View Experiences
                         </span>
                         <span className="text-white/60 text-xl">→</span>
                     </button>
 
                     <button
                         onClick={() => onNavigate('checkout')}
-                        className="w-full flex items-center justify-between font-semibold text-sm rounded-2xl px-5 py-4 active:scale-[0.98] transition-all text-white"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="w-full flex items-center justify-between font-semibold text-sm rounded-md px-5 py-4 active:scale-[0.98] transition-all text-white"
+                        style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}
                         aria-label="View my plans"
                         id="home-my-plans"
                     >
@@ -169,20 +156,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                         style={
                             isApproved && hasActiveSub
                                 ? { background: 'rgba(34,197,94,0.06)', borderColor: 'rgba(34,197,94,0.2)' }
-                                : { background: 'rgba(224,64,251,0.05)', borderColor: 'rgba(224,64,251,0.2)' }
+                                : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)' }
                         }
                     >
                         <div>
                             <p
                                 className="text-xs font-bold uppercase tracking-wide mb-0.5"
-                                style={{ color: isApproved && hasActiveSub ? '#22c55e' : '#E040FB' }}
+                                style={{ color: isApproved && hasActiveSub ? '#fff' : '#6b7280' }}
                             >
-                                {isApproved && hasActiveSub ? '✓ Access Active' : 'Access Pending'}
+                                {isApproved && hasActiveSub ? 'Access Granted' : 'Under Review'}
                             </p>
                             <p className="text-xs text-gray-500">
                                 {isApproved && hasActiveSub
-                                    ? 'Membership approved. You may book experiences.'
-                                    : 'Booking requires an approved account and active membership.'
+                                    ? 'Access Granted. Environment Unlocked.'
+                                    : 'Access Restricted. Account approval required.'
                                 }
                             </p>
                         </div>
@@ -191,9 +178,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
                                 onClick={() => onRequestAccess?.()}
                                 className="text-xs font-bold rounded-full px-3 py-1.5 transition-colors ml-3 whitespace-nowrap"
                                 style={{
-                                    color: '#E040FB',
-                                    border: '1px solid rgba(224,64,251,0.35)',
-                                    background: 'rgba(224,64,251,0.06)',
+                                    color: '#fff',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    background: 'transparent',
                                 }}
                             >
                                 Apply →

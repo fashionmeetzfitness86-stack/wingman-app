@@ -12,7 +12,7 @@ interface BookingsPageProps {
   venues?: Venue[];
 }
 
-const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => {
+const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void }> = ({ booking, onNavigate }) => {
     const renderBookingStatus = (status: Booking['status']) => {
         switch (status) {
             case 'Confirmed':
@@ -39,33 +39,66 @@ const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => {
                 <p className="text-gray-400">{booking.date}</p>
                 <p className="text-gray-300">Table: <span className="font-semibold text-white">{booking.tableTier}</span></p>
             </div>
+            <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
+                <button 
+                  onClick={() => alert('Opening receipt...')}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                >
+                  View Receipt
+                </button>
+                <button 
+                  onClick={() => onNavigate('chatbot')} 
+                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
+                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
+                >
+                  Chat with Wingman
+                </button>
+            </div>
         </div>
     );
 };
 
-const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string }> = ({ item, venue, status }) => {
+const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string, onNavigate: (page: Page) => void }> = ({ item, venue, status, onNavigate }) => {
     let statusColor = 'text-blue-400';
     if (status === 'Approved' || status === 'Confirmed') statusColor = 'text-green-400 bg-green-900/20 border-green-900/50';
-    else if (status === 'Pending') statusColor = 'text-yellow-400 bg-yellow-900/20 border-yellow-900/50';
-    else if (status === 'Rejected') statusColor = 'text-red-400 bg-red-900/20 border-red-900/50';
+    else if (status === 'Pending' || status === 'Under Review') statusColor = 'text-yellow-400 bg-yellow-900/20 border-yellow-900/50';
+    else if (status === 'Rejected' || status === 'Restricted') statusColor = 'text-red-400 bg-red-900/20 border-red-900/50';
     else statusColor = 'text-blue-400 bg-blue-900/20 border-blue-900/50';
 
     return (
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex gap-4">
-            <img src={item.image} alt={item.name} className="w-20 h-20 rounded object-cover flex-shrink-0" />
-            <div className="flex-grow">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-white text-lg">{item.name}</h3>
-                    <span className={`text-xs px-2 py-1 rounded font-bold border ${statusColor}`}>{status}</span>
+        <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex flex-col gap-4">
+            <div className="flex gap-4">
+                <img src={item.image} alt={item.name} className="w-20 h-20 rounded object-cover flex-shrink-0" />
+                <div className="flex-grow">
+                    <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-white text-lg">{item.name}</h3>
+                        <span className={`text-xs px-2 py-1 rounded font-bold border ${statusColor}`}>{status}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                        <LocationMarkerIcon className="w-4 h-4" />
+                        <span>{venue?.name || 'Unknown Venue'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>{item.date || item.sortableDate}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                    <LocationMarkerIcon className="w-4 h-4" />
-                    <span>{venue?.name || 'Unknown Venue'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>{item.date || item.sortableDate}</span>
-                </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                <button 
+                  onClick={() => alert('Opening receipt...')}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                >
+                  View Receipt
+                </button>
+                <button 
+                  onClick={() => onNavigate('chatbot')} 
+                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
+                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
+                >
+                  Chat with Wingman
+                </button>
             </div>
         </div>
     );
@@ -85,7 +118,8 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
           date: b.date,
           status: b.status,
           originalData: b,
-          isEvent: false
+          isEvent: false,
+          venueName: b.venueName
       }));
 
       const normalizedSessionBookings = bookedItems.map(item => {
@@ -101,9 +135,12 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
           } else if (item.type === 'guestlist' && item.guestlistDetails) {
               venueName = item.guestlistDetails.venue.name;
               if (item.guestlistDetails.status) {
-                  status = item.guestlistDetails.status.charAt(0).toUpperCase() + item.guestlistDetails.status.slice(1);
+                  let s = item.guestlistDetails.status;
+                  if (s === 'pending') status = 'Under Review';
+                  else if (s === 'rejected') status = 'Restricted';
+                  else status = s.charAt(0).toUpperCase() + s.slice(1);
               } else {
-                  status = 'Pending';
+                  status = 'Under Review';
               }
           }
 
@@ -156,13 +193,13 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
       <div className="flex border-b border-gray-700 mb-6">
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'upcoming' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'upcoming' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
         >
           Upcoming
         </button>
         <button
           onClick={() => setActiveTab('past')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'past' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'past' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
         >
           Past
         </button>
@@ -187,10 +224,10 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                   // It's a CartItem of type event or guestlist
                   const cartItem = item.originalData as CartItem;
                   const venue = venues.find(v => v.name === item.venueName);
-                  return <EventBookingCard key={item.id} item={cartItem} venue={venue} status={item.status} />;
+                  return <EventBookingCard key={item.id} item={cartItem} venue={venue} status={item.status} onNavigate={onNavigate} />;
               } else if (item.type === 'table' && 'tableTier' in item.originalData) {
                   // It's a mock Booking
-                  return <BookingCard key={item.id} booking={item.originalData as Booking} />;
+                  return <BookingCard key={item.id} booking={item.originalData as Booking} onNavigate={onNavigate} />;
               } else if (item.type === 'table') {
                    // It's a CartItem of type table
                    const cartItem = item.originalData as CartItem;
@@ -206,6 +243,21 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                             <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
                                 <p className="text-gray-400">{item.date}</p>
                                 <p className="text-gray-300">Table: <span className="font-semibold text-white">{cartItem.tableDetails?.tableOption?.name || 'Standard'}</span></p>
+                            </div>
+                            <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
+                                <button 
+                                  onClick={() => alert('Opening receipt...')}
+                                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                                >
+                                  View Receipt
+                                </button>
+                                <button 
+                                  onClick={() => onNavigate('chatbot')} 
+                                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
+                                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
+                                >
+                                  Chat with Wingman
+                                </button>
                             </div>
                         </div>
                    )

@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { hasActivePasscodeSession } from './utils/accessControl';
 import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
 import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
@@ -53,6 +54,7 @@ import { DataExportPage } from './components/DataExportPage';
 import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
+import { WelcomePage } from './components/WelcomePage';
 
 // Layout & Modals
 import { Header } from './components/Header';
@@ -209,6 +211,7 @@ export const App: React.FC = () => {
     const [appAccessGroups, setAppAccessGroups] = useState<AccessGroup[]>(accessGroups);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
     const [pushCampaigns, setPushCampaigns] = useState<PushCampaign[]>([]);
+    const [appItineraries, setAppItineraries] = useState<Itinerary[]>(itineraries);
 
     // Group notification preferences: { [groupId]: notificationsOn }
     const [groupNotificationSettings, setGroupNotificationSettings] = useState<Record<number, boolean>>(() => {
@@ -314,6 +317,41 @@ export const App: React.FC = () => {
     // TODO: Re-enable auth flow when email-approval login system is ready.
     // Set to false to restore the OnboardingModal / login screen.
     const [hasOnboarded, setHasOnboarded] = useState(true);
+
+    // ── Gated Access System ─────────────────────────────────────────────────
+    // Determines whether we show the WelcomePage gate.
+    // Logged-in admin/user accounts bypass the gate entirely.
+    const isLoggedInUser = currentUser.role === UserRole.ADMIN ||
+        currentUser.role === UserRole.WINGMAN ||
+        currentUser.role === UserRole.PROMOTER;
+
+    const [passcodeAccessActive, setPasscodeAccessActive] = useState<boolean>(() => {
+        // Admins & logged-in accounts bypass gate
+        if (isLoggedInUser) return true;
+        return hasActivePasscodeSession();
+    });
+
+    // Re-validate session every minute (handles expiry while app is open)
+    useEffect(() => {
+        if (isLoggedInUser) return;
+        const interval = setInterval(() => {
+            const stillValid = hasActivePasscodeSession();
+            if (!stillValid && passcodeAccessActive) {
+                setPasscodeAccessActive(false);
+            }
+        }, 60_000);
+        return () => clearInterval(interval);
+    }, [isLoggedInUser, passcodeAccessActive]);
+
+    const handleAccessGranted = useCallback(() => {
+        setPasscodeAccessActive(true);
+    }, []);
+
+    const handleLoginInstead = useCallback(() => {
+        // Grant access for logged-in users — navigate to home
+        setPasscodeAccessActive(true);
+        setCurrentPage('home');
+    }, []);
 
     // Persistence Effects
     useEffect(() => { localStorage.setItem('wingman_users', JSON.stringify(appUsers)); }, [appUsers]);
@@ -1112,6 +1150,7 @@ export const App: React.FC = () => {
             depositPrice: booking.totalPaid,
             paymentOption: 'full',
             bookedTimestamp: Date.now(),
+            quantity: 1,
         };
         setCartItems(prev => [...prev, newCartItem]);
         setCartInstanceMeta(prev => ({ ...prev, [cartId]: { instanceId: booking.instanceId, partySize: booking.partySize } }));
@@ -1197,6 +1236,7 @@ export const App: React.FC = () => {
                             depositPrice: booking.totalPaid,
                             paymentOption: 'full',
                             bookedTimestamp: Date.now(),
+                            quantity: 1,
                         };
                         setCartItems(prev => [...prev, newCartItem]);
                         // 3. Store meta for checkout conversion
@@ -1407,6 +1447,7 @@ export const App: React.FC = () => {
                     bookedItems={bookedItems} 
                     eventInvitations={mockEventInvitations} 
                     onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
+                    promoters={appPromoters}
                 />;
             }
             case 'bookings':
@@ -1455,7 +1496,7 @@ export const App: React.FC = () => {
                     allGroups={appAccessGroups} 
                     onToggleLike={(id) => {
                         setAppAccessGroups(prev => prev.map(g => g.id === id
-                            ? { ...g, likeCount: (g.likeCount ?? 0) + 1 }
+                            ? { ...g, likeCount: ((g as any).likeCount ?? 0) + 1 }
                             : g
                         ));
                     }} 
@@ -1467,29 +1508,29 @@ export const App: React.FC = () => {
             case 'myItineraries':
                 return <MyItinerariesPage 
                     currentUser={currentUser} 
-                    itineraries={itineraries} 
+                    itineraries={appItineraries} 
                     onNavigate={handleNavigate} 
                     onViewItinerary={(id) => handleNavigate('itineraryDetails', { itineraryId: id })} 
                 />;
             case 'itineraryDetails': {
-                const itinerary = itineraries.find(i => i.id === pageParams.itineraryId);
+                const itinerary = appItineraries.find(i => i.id === pageParams.itineraryId);
                 if (!itinerary) return <div>Itinerary not found</div>;
                 return <ItineraryDetailsPage 
                     itinerary={itinerary} 
                     currentUser={currentUser} 
                     onEdit={(i) => handleNavigate('itineraryBuilder', { itineraryId: i.id })} 
                     onClone={(i) => {
-                        const cloned = { ...i, id: `${i.id}-copy-${Date.now()}`, name: `${i.name} (Copy)` };
-                        setItineraries(prev => [...prev, cloned as any]);
+                        const cloned = { ...i, id: Date.now(), title: `${i.title} (Copy)` };
+                        setAppItineraries(prev => [...prev, cloned as any]);
                         showToast('Itinerary cloned.', 'success');
                     }} 
                 />;
             }
             case 'itineraryBuilder': {
-                const existingItinerary = itineraries.find(i => i.id === pageParams.itineraryId);
+                const existingItinerary = appItineraries.find(i => i.id === pageParams.itineraryId);
                 return <ItineraryBuilderPage 
                     onSave={(i) => {
-                        setItineraries(prev => {
+                        setAppItineraries(prev => {
                             const exists = prev.find(it => it.id === i.id);
                             return exists ? prev.map(it => it.id === i.id ? i as any : it) : [...prev, i as any];
                         });
@@ -1516,9 +1557,9 @@ export const App: React.FC = () => {
                 />;
             case 'promoterApplication':
                 return <PromoterApplicationPage 
-                    onApply={(app) => { 
-                        setPromoterApplications(prev => [...prev, { ...app, id: Date.now(), userId: currentUser.id, status: 'pending' }]);
-                        showToast('Application submitted!', 'success'); 
+                    onApply={(app) => {
+                        setPromoterApplications(prev => [...prev, { ...app, id: Date.now(), userId: currentUser.id, status: 'pending', submissionDate: new Date().toISOString() }]);
+                        showToast('Application submitted successfully!', 'success');
                         handleNavigate('home'); 
                     }} 
                     onCancel={() => handleNavigate('home')} 
@@ -1564,6 +1605,7 @@ export const App: React.FC = () => {
                         depositPrice: inst!.pricePerPerson,
                         paymentOption: 'full' as const,
                         bookedTimestamp: 0,
+                        quantity: 1,
                     }));
                 // Build purchased list from InstanceBookings + existing bookedItems
                 const instancePurchased: CartItem[] = instanceBookings
@@ -1581,6 +1623,7 @@ export const App: React.FC = () => {
                             depositPrice: b.totalPaid,
                             paymentOption: 'full' as const,
                             bookedTimestamp: new Date(b.bookedAt).getTime(),
+                            quantity: 1,
                         };
                     });
                 return <CheckoutPage
@@ -1927,16 +1970,16 @@ export const App: React.FC = () => {
                         <Modal isOpen={true} onClose={() => setOnboardingReward(null)} className="max-w-sm">
                             <div className="text-center p-6">
                                 <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(224,64,251,0.1)' }}>
-                                    <TokenIcon className="w-10 h-10" style={{ color: '#E040FB' }} />
+                                    <TokenIcon className="w-10 h-10" style={{ color: '#FFFFFF' }} />
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-2">Welcome to Wingman</h3>
                                 <p className="text-gray-300 mb-6">
-                                    You've earned <span className="font-bold text-lg" style={{ color: '#E040FB' }}>{onboardingReward} Tokens</span> to use towards your first booking.
+                                    You've earned <span className="font-bold text-lg" style={{ color: '#FFFFFF' }}>{onboardingReward} Tokens</span> to use towards your first booking.
                                 </p>
                                 <button
                                     onClick={() => setOnboardingReward(null)}
                                     className="w-full text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all font-inter"
-                                    style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}
+                                    style={{ background: 'linear-gradient(135deg, #FFFFFF, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}
                                 >
                                     Start Exploring
                                 </button>
@@ -2123,6 +2166,14 @@ export const App: React.FC = () => {
                         user={previewUser}
                     />
                 </>
+            )}
+
+            {/* ── Gated Access Gate ──────────────────────────────────────── */}
+            {!isLoggedInUser && !passcodeAccessActive && (
+                <WelcomePage
+                    onAccessGranted={handleAccessGranted}
+                    onLoginInstead={handleLoginInstead}
+                />
             )}
         </div>
     );

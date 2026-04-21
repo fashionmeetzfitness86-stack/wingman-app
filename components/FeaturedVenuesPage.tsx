@@ -83,7 +83,7 @@ const CAT_ICONS: Record<string, string> = {
 };
 
 const VIBE_COLORS: Record<string, string> = {
-  'High Energy': '#A855F7', 'Trendy': '#E040FB', 'Sophisticated': '#06B6D4',
+  'High Energy': '#9CA3AF', 'Trendy': '#FFFFFF', 'Sophisticated': '#06B6D4',
   'Relaxed': '#22C55E', 'Luxurious': '#F59E0B', 'Vibrant': '#EF4444',
 };
 
@@ -93,7 +93,7 @@ const DAYS_SHORT: Record<string, string> = {
 };
 
 const TYPE_ICONS: Record<string, string> = { Nightclub: '🌙', Dinner: '🍽', Yacht: '⚓' };
-const TYPE_COLORS: Record<string, string> = { Nightclub: '#A855F7', Dinner: '#F59E0B', Yacht: '#06B6D4' };
+const TYPE_COLORS: Record<string, string> = { Nightclub: '#9CA3AF', Dinner: '#F59E0B', Yacht: '#06B6D4' };
 
 // ─── BOOKING MODAL ────────────────────────────────────────────
 
@@ -112,13 +112,10 @@ const BookingModal: React.FC<{
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
-  const tc = { color: TYPE_COLORS[instance.experienceType] ?? '#E040FB', icon: TYPE_ICONS[instance.experienceType] ?? '✦' };
+  const tc = { color: TYPE_COLORS[instance.experienceType] ?? '#FFFFFF', icon: TYPE_ICONS[instance.experienceType] ?? '✦' };
 
   const handleAddToCart = () => {
     const rules = instance.bookingRules;
-    if (rules.minMenPerBooking && partySize < rules.minMenPerBooking) {
-      setRuleError(`Minimum ${rules.minMenPerBooking} men required per booking.`); return;
-    }
     if (rules.maxPerBooking && partySize > rules.maxPerBooking) {
       setRuleError(`Maximum ${rules.maxPerBooking} people per booking.`); return;
     }
@@ -164,7 +161,7 @@ const BookingModal: React.FC<{
           {/* Meta */}
           <div className="flex flex-wrap gap-3 text-sm text-gray-400">
             <span>📅 {formatEventDate(instance.date)}</span>
-            <span>🕐 {instance.time}</span>
+            <span>🕐 {instance.arrivalTime || instance.time}</span>
             <span>📍 {instance.venue}</span>
           </div>
 
@@ -181,11 +178,10 @@ const BookingModal: React.FC<{
           </div>
 
           {/* Rules */}
-          {(instance.bookingRules.minMenPerBooking || instance.bookingRules.maxPerBooking) && (
+          {(instance.bookingRules.maxPerBooking) && (
             <div className="rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
               <p className="font-semibold text-gray-300 mb-1">Booking Rules</p>
-              {instance.bookingRules.minMenPerBooking && <p>• Min {instance.bookingRules.minMenPerBooking} men per booking</p>}
               {instance.bookingRules.maxPerBooking && <p>• Max {instance.bookingRules.maxPerBooking} people per booking</p>}
             </div>
           )}
@@ -194,8 +190,8 @@ const BookingModal: React.FC<{
           {isBooked && (
             <div className="flex flex-col items-center py-4 gap-4 text-center">
               <div className="w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, rgba(224,64,251,0.15), rgba(0,212,255,0.15))' }}>
-                <IconCheck className="w-7 h-7" style={{ color: '#E040FB' } as React.CSSProperties} />
+                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(55,65,81,0.15))' }}>
+                <IconCheck className="w-7 h-7" style={{ color: '#FFFFFF' } as React.CSSProperties} />
               </div>
               <div>
                 <p className="font-bold text-white text-lg mb-1">You're In! 🎉</p>
@@ -208,7 +204,7 @@ const BookingModal: React.FC<{
               {onNavigateToPlans && (
                 <button onClick={() => { onClose(); onNavigateToPlans(); }}
                   className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}>
+                  style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.2)' }}>
                   View in My Plans →
                 </button>
               )}
@@ -239,7 +235,7 @@ const BookingModal: React.FC<{
               )}
               <button onClick={handleAddToCart}
                 className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}>
+                style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}>
                 Add to Cart — ${(partySize * instance.pricePerPerson).toLocaleString()}
               </button>
             </div>
@@ -273,17 +269,17 @@ const ExperienceRow: React.FC<{
   onToggleBookmark: (e: React.MouseEvent) => void;
 }> = ({ instance, isBooked, isInCart, isBookmarked, canBook, onOpenModal, onToggleBookmark }) => {
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
-  const color = TYPE_COLORS[instance.experienceType] ?? '#E040FB';
+  const color = TYPE_COLORS[instance.experienceType] ?? '#FFFFFF';
   const icon = TYPE_ICONS[instance.experienceType] ?? '✦';
 
   const ctaLabel = isBooked ? 'Booked ✓' : isInCart ? 'In Cart 🛒' : instance.status === 'sold-out' ? 'Full' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve';
   const ctaStyle = isBooked
     ? { background: 'rgba(34,197,94,0.1)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)' }
     : isInCart
-    ? { background: 'rgba(224,64,251,0.1)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
+    ? { background: 'rgba(255,255,255,0.1)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.3)' }
     : instance.status === 'sold-out' || instance.status === 'cancelled'
     ? { background: 'rgba(255,255,255,0.04)', color: '#4B5563', cursor: 'default' }
-    : { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff', boxShadow: '0 2px 8px rgba(224,64,251,0.2)' };
+    : { background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', color: '#fff', boxShadow: '0 2px 8px rgba(255,255,255,0.2)' };
 
   return (
     <div
@@ -302,11 +298,11 @@ const ExperienceRow: React.FC<{
           <span className="text-[10px] text-gray-500">{daysUntilLabel(instance.date)}</span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-gray-500">
-          <span>{instance.time}</span>
+          <span>{instance.arrivalTime || instance.time}</span>
           <span>·</span>
           <span
             style={{
-              color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
+              color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#FFFFFF' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
               fontWeight: spotsLeft <= 2 ? 700 : 400,
             }}
           >
@@ -323,7 +319,7 @@ const ExperienceRow: React.FC<{
           className="p-1 rounded-full transition-colors"
           aria-label="Bookmark"
         >
-          <IconBookmark className="w-3.5 h-3.5" filled={isBookmarked} style={{ color: isBookmarked ? '#E040FB' : 'rgba(255,255,255,0.3)' } as React.CSSProperties} />
+          <IconBookmark className="w-3.5 h-3.5" filled={isBookmarked} style={{ color: isBookmarked ? '#FFFFFF' : 'rgba(255,255,255,0.3)' } as React.CSSProperties} />
         </button>
       </div>
 
@@ -366,7 +362,7 @@ const FeaturedVenueCard: React.FC<{
       style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
     >
       {/* Cover */}
-      <div className="relative h-44 overflow-hidden cursor-pointer group" onClick={() => onViewDetails(venue)}>
+      <div className="relative h-36 sm:h-44 overflow-hidden cursor-pointer group" onClick={() => onViewDetails(venue)}>
         {venue.coverImage ? (
           <img src={venue.coverImage} alt={venue.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
         ) : (
@@ -386,7 +382,7 @@ const FeaturedVenueCard: React.FC<{
           className="absolute top-3 right-3 p-2 rounded-full transition-all"
           style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
         >
-          <IconHeart className="w-4 h-4" filled={isFavorite} style={{ color: isFavorite ? '#E040FB' : 'white' } as React.CSSProperties} />
+          <IconHeart className="w-4 h-4" filled={isFavorite} style={{ color: isFavorite ? '#FFFFFF' : 'white' } as React.CSSProperties} />
         </button>
 
         {/* Name overlay */}
@@ -416,7 +412,7 @@ const FeaturedVenueCard: React.FC<{
             const open = full ? venue.operatingDays.includes(full) : false;
             return (
               <span key={short} className="text-[10px] rounded px-1 py-0.5 font-semibold"
-                style={open ? { background: 'rgba(224,64,251,0.1)', color: '#E040FB' } : { background: 'rgba(255,255,255,0.04)', color: '#374151' }}>
+                style={open ? { background: 'rgba(255,255,255,0.1)', color: '#FFFFFF' } : { background: 'rgba(255,255,255,0.04)', color: '#374151' }}>
                 {short}
               </span>
             );
@@ -436,7 +432,7 @@ const FeaturedVenueCard: React.FC<{
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Upcoming Experiences</span>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold rounded-full px-2 py-0.5 text-white"
-                style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}>
+                style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)' }}>
                 {upcomingExp.length}
               </span>
               <svg className={`w-3.5 h-3.5 text-gray-600 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -593,7 +589,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
             <button key={cat} onClick={() => setCategoryFilter(cat)}
               className="flex-shrink-0 text-xs font-bold rounded-full px-3 py-1.5 transition-all"
               style={categoryFilter === cat
-                ? { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff' }
+                ? { background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', color: '#fff' }
                 : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}>
               {CAT_ICONS[cat]} {cat}
             </button>
@@ -604,10 +600,10 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
       {/* ── Access notice ── */}
       {!canBook && (
         <div className="mx-4 mt-5 rounded-2xl px-4 py-3 text-sm flex items-center gap-3"
-          style={{ background: 'rgba(224,64,251,0.06)', border: '1px solid rgba(224,64,251,0.2)' }}>
+          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.2)' }}>
           <span className="text-xl">🔒</span>
           <p className="text-gray-300">
-            <span className="font-bold" style={{ color: '#E040FB' }}>Approved members only.</span> Browse venues and experiences — booking requires an approved account.
+            <span className="font-bold" style={{ color: '#FFFFFF' }}>Approved members only.</span> Browse venues and experiences — booking requires an approved account.
           </p>
         </div>
       )}
@@ -638,7 +634,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
             <span className="text-5xl mb-4">🏛</span>
             <p className="font-semibold text-gray-500">No venues match your search.</p>
             <button onClick={() => { setSearchTerm(''); setCategoryFilter('All'); }}
-              className="mt-4 text-sm font-semibold hover:underline transition-colors" style={{ color: '#E040FB' }}>
+              className="mt-4 text-sm font-semibold hover:underline transition-colors" style={{ color: '#FFFFFF' }}>
               Clear filters
             </button>
           </div>

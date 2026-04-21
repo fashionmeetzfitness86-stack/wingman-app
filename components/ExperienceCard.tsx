@@ -86,7 +86,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
         if (experience.access === 'invite-only') {
             if (invitationStatus === 'approved') {
                  return (
-                    <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
+                    <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#E5E5E5]" aria-label={`Book ${experience.title} now`}>
                         Book Now
                     </button>
                 );
@@ -106,7 +106,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
                         if (onRequestAccess) onRequestAccess(experience.id); 
                         else onViewDetails(experience);
                     }} 
-                    className="w-full text-center bg-purple-600/20 border-2 border-purple-500 text-purple-400 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-600/30 transition-colors" 
+                    className="w-full text-center bg-white text-black hover:bg-gray-200/20 border-2 border-gray-500 text-gray-300 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-white text-black hover:bg-gray-200/30 transition-colors" 
                     aria-label={`Request invite for ${experience.title}`}
                 >
                     <LockClosedIcon className="w-4 h-4" />
@@ -116,7 +116,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
         }
         
         return (
-             <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#d8428a]" aria-label={`Book ${experience.title} now`}>
+             <button onClick={(e) => { e.stopPropagation(); onBook(experience); }} className="w-full text-center bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 group-hover:bg-[#E5E5E5]" aria-label={`Book ${experience.title} now`}>
                 Book Now
             </button>
         );
@@ -152,7 +152,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
                                 e.stopPropagation();
                                 onToggleLike();
                             }}
-                            className={`p-2 rounded-full transition-all active:scale-95 backdrop-blur-sm ${isLiked ? 'bg-pink-500/80 text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
+                            className={`p-2 rounded-full transition-all active:scale-95 backdrop-blur-sm ${isLiked ? 'bg-white/80 text-black text-white' : 'bg-black/40 text-white hover:bg-black/60'}`}
                             aria-label={isLiked ? `Unlike ${experience.title}` : `Like ${experience.title}`}
                         >
                             <HeartIcon className="w-4 h-4" isFilled={isLiked} />

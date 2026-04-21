@@ -33,13 +33,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
     const { error, info } = this.state;
     return (
       <div style={{ minHeight: '100vh', padding: 24, background: '#121212', color: '#F9FAFB', fontFamily: 'Inter, sans-serif', overflow: 'auto' }}>
-        <h1 style={{ color: '#EC4899', fontSize: 24, marginBottom: 12 }}>WINGMAN crashed on render</h1>
+        <h1 style={{ color: '#FFFFFF', fontSize: 24, marginBottom: 12 }}>WINGMAN crashed on render</h1>
         <p style={{ color: '#9CA3AF', marginBottom: 16 }}>
           Likely cause: old data in localStorage doesn't match the new code. Click the reset button, then reload.
         </p>
         <button
           onClick={this.handleReset}
-          style={{ background: '#EC4899', color: '#fff', border: 0, padding: '10px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', marginBottom: 24 }}
+          style={{ background: '#FFFFFF', color: '#fff', border: 0, padding: '10px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', marginBottom: 24 }}
         >
           Reset local data & reload
         </button>

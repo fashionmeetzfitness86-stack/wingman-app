@@ -282,13 +282,13 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
                 const isYacht       = cat.includes('yacht') || cat.includes('beach') || cat.includes('pool');
 
                 const experiences = isNightclub ? [
-                  { label: 'Nightclub Experience', desc: 'Join Wingman at the VIP table — minimum 2 men per booking', price: 500, capacity: 5, tag: '🌙 Nightclub' },
+                  { label: 'Nightclub Experience', desc: 'Join Wingman at the VIP table', price: 500, capacity: 5, tag: '🌙 Nightclub' },
                 ] : isDinner ? [
                   { label: 'Dinner Experience', desc: 'Curated dinner — max 2 guests per booking, 5 tables of 2', price: 400, capacity: 10, tag: '🍽 Dinner' },
                 ] : isYacht ? [
                   { label: 'Yacht Experience', desc: 'Friday – Sunday 3:00 PM departure — open booking', price: 350, capacity: 12, tag: '⚓ Yacht' },
                 ] : [
-                  { label: 'Nightclub Experience', desc: 'VIP table — minimum 2 men per booking', price: 500, capacity: 5, tag: '🌙 Nightclub' },
+                  { label: 'Nightclub Experience', desc: 'VIP table access', price: 500, capacity: 5, tag: '🌙 Nightclub' },
                   { label: 'Dinner Experience', desc: 'Curated dinner — max 2 guests per booking', price: 400, capacity: 10, tag: '🍽 Dinner' },
                 ];
 
@@ -301,7 +301,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-bold rounded-full px-2.5 py-0.5"
-                          style={{ background: 'rgba(236,72,153,0.1)', color: '#EC4899', border: '1px solid rgba(236,72,153,0.25)' }}
+                          style={{ background: 'rgba(156,163,175,0.1)', color: '#FFFFFF', border: '1px solid rgba(156,163,175,0.25)' }}
                         >{exp.tag}</span>
                       </div>
                       <h3 className="font-bold text-white">{exp.label}</h3>

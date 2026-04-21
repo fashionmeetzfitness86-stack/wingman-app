@@ -37,7 +37,7 @@ export const StoreTab: React.FC<StoreTabProps> = ({ storeItems, onAddItem, onEdi
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search store items..."
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
@@ -47,14 +47,14 @@ export const StoreTab: React.FC<StoreTabProps> = ({ storeItems, onAddItem, onEdi
                     <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#EC4899] focus:border-[#EC4899] pr-8"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8"
                     >
                         <option value="all">All Categories</option>
                         {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                     <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
                 </div>
-                 <button onClick={onAddItem} className="flex items-center justify-center gap-2 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                 <button onClick={onAddItem} className="flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">
                     <PlusIcon className="w-5 h-5" />
                     Add New Item
                 </button>

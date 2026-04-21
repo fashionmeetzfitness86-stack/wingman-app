@@ -17,14 +17,14 @@ interface AdminEventListItemProps {
 
 export const AdminEventListItem: React.FC<AdminEventListItemProps> = ({ event, venueName, onEdit, onDelete, onPreview, isSelected, onToggleSelect }) => {
     return (
-        <div className={`bg-gray-900 border ${isSelected ? 'border-[#EC4899] bg-gray-800/50' : 'border-gray-800'} rounded-lg p-4 flex items-center gap-4 transition-colors`}>
+        <div className={`bg-gray-900 border ${isSelected ? 'border-[#FFFFFF] bg-gray-800/50' : 'border-gray-800'} rounded-lg p-4 flex items-center gap-4 transition-colors`}>
             {onToggleSelect && (
                 <div className="flex-shrink-0">
                     <input 
                         type="checkbox" 
                         checked={isSelected} 
                         onChange={() => onToggleSelect(event.id)}
-                        className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-400 focus:ring-[#EC4899] cursor-pointer"
+                        className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-gray-300 focus:ring-[#FFFFFF] cursor-pointer"
                     />
                 </div>
             )}

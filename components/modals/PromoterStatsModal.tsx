@@ -92,9 +92,9 @@ export const PromoterStatsModal: React.FC<PromoterStatsModalProps> = ({ isOpen, 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <StatCard icon={<CurrencyDollarIcon className="w-6 h-6" />} label="Revenue" value={`$${promoterStats.totalRevenue.toFixed(2)}`} />
-                    <StatCard icon={<BookingsIcon className="w-6 h-6" />} label="Bookings" value={promoterStats.totalBookings} />
-                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist Shows" value={promoterStats.guestlistShows} />
-                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist No-Shows" value={promoterStats.guestlistNoShows} />
+                    <StatCard icon={<BookingsIcon className="w-6 h-6" />} label="Bookings" value={promoterStats.totalBookings.toString()} />
+                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist Shows" value={promoterStats.guestlistShows.toString()} />
+                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist No-Shows" value={promoterStats.guestlistNoShows.toString()} />
                 </div>
             </div>
         </Modal>

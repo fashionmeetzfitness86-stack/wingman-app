@@ -13,8 +13,8 @@ export const ChatbotPage: React.FC<ChatbotPageProps> = () => {
             <div
                 className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
                 style={{
-                    background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
-                    boxShadow: '0 0 32px rgba(224,64,251,0.3)',
+                    background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)',
+                    boxShadow: '0 0 32px rgba(255,255,255,0.3)',
                 }}
             >
                 <SparkleIcon className="w-9 h-9 text-white" />
@@ -25,7 +25,7 @@ export const ChatbotPage: React.FC<ChatbotPageProps> = () => {
             </h2>
             <p className="text-[11px] font-bold tracking-widest uppercase mb-4"
                 style={{
-                    background: 'linear-gradient(90deg, #E040FB, #00D4FF)',
+                    background: 'linear-gradient(90deg, #FFFFFF, #374151)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -38,7 +38,7 @@ export const ChatbotPage: React.FC<ChatbotPageProps> = () => {
             </p>
 
             <div className="mt-8 flex items-center gap-2 text-xs text-gray-600">
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#E040FB' }} />
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FFFFFF' }} />
                 Coming soon
             </div>
         </div>

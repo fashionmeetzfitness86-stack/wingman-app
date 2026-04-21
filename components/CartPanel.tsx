@@ -65,7 +65,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({ isOpen, onClose, cartItems
                 </div>
                 <button 
                     onClick={onNavigateToCheckout}
-                    className="w-full bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-transform duration-200 hover:scale-105"
+                    className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-6 rounded-lg transition-transform duration-200 hover:scale-105"
                 >
                     Proceed to Checkout
                 </button>

@@ -102,8 +102,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   };
 
   const TABS = [
-    { key: 'cart' as const, label: 'Cart', count: cartItems.length, color: '#E040FB' },
-    { key: 'watchlist' as const, label: 'Watchlist', count: watchlistItems.length, color: '#7B61FF' },
+    { key: 'cart' as const, label: 'Cart', count: cartItems.length, color: '#FFFFFF' },
+    { key: 'watchlist' as const, label: 'Watchlist', count: watchlistItems.length, color: '#9CA3AF' },
     { key: 'purchased' as const, label: 'Purchased', count: sortedBookedItems.length, color: '#22C55E' },
   ];
 
@@ -191,7 +191,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <button
                       onClick={() => onNavigate('eventTimeline')}
                       className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                      style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)' }}
                     >
                       Browse Events
                     </button>
@@ -217,10 +217,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       disabled={!hasEnoughTokens}
                       className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
                       style={paymentMethod === 'tokens'
-                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        ? { background: 'rgba(255,255,255,0.1)', borderColor: '#FFFFFF' }
                         : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
                     >
-                      <TokenIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#E040FB' } as React.CSSProperties} />
+                      <TokenIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#FFFFFF' } as React.CSSProperties} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white">Tokens</p>
                         <p className={`text-xs ${hasEnoughTokens ? 'text-gray-500' : 'text-red-400'}`}>Balance: {userTokenBalance.toLocaleString()} TMKC</p>
@@ -233,7 +233,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       onClick={() => setPaymentMethod('usd')}
                       className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
                       style={paymentMethod === 'usd'
-                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        ? { background: 'rgba(255,255,255,0.1)', borderColor: '#FFFFFF' }
                         : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
                     >
                       <CreditCardIcon className="w-5 h-5 flex-shrink-0 text-gray-300" />
@@ -249,7 +249,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       onClick={() => setPaymentMethod('cashapp')}
                       className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
                       style={paymentMethod === 'cashapp'
-                        ? { background: 'rgba(224,64,251,0.1)', borderColor: '#E040FB' }
+                        ? { background: 'rgba(255,255,255,0.1)', borderColor: '#FFFFFF' }
                         : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
                     >
                       <div className="w-6 h-6 bg-green-500 rounded-md flex items-center justify-center flex-shrink-0">
@@ -266,7 +266,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <button
                     onClick={() => onNavigate('paymentMethods')}
                     className="w-full mt-3 text-center text-xs font-semibold hover:underline transition-colors"
-                    style={{ color: '#00D4FF' }}
+                    style={{ color: '#374151' }}
                   >
                     + Add a new card
                   </button>
@@ -304,7 +304,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
                     disabled={selectedItemIds.length === 0}
                     className="mt-4 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-                    style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
+                    style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
                   >
                     <CreditCardIcon className="w-5 h-5" />
                     Confirm &amp; Pay ({selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''})
@@ -339,7 +339,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <button
                   onClick={() => onNavigate('eventTimeline')}
                   className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                  style={{ background: 'linear-gradient(135deg, #7B61FF, #00D4FF)' }}
+                  style={{ background: 'linear-gradient(135deg, #9CA3AF, #374151)' }}
                 >
                   Browse Events
                 </button>
@@ -395,7 +395,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
               disabled={selectedItemIds.length === 0}
               className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
+              style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
             >
               <CreditCardIcon className="w-5 h-5" />
               Confirm &amp; Pay

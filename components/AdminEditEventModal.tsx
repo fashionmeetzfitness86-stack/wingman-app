@@ -104,7 +104,7 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
                                         type="checkbox"
                                         checked={editedEvent.accessLevels?.includes(level) ?? true}
                                         onChange={() => handleAccessLevelToggle(level)}
-                                        className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-pink-500 focus:ring-pink-500"
+                                        className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-gray-300 focus:ring-pink-500"
                                     />
                                     <span className="text-white">{level}</span>
                                 </label>
@@ -128,7 +128,7 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
                                 type="checkbox"
                                 checked={!!editedEvent.recurrence}
                                 onChange={(e) => handleRecurrenceChange(e.target.checked)}
-                                className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-pink-500 focus:ring-pink-500"
+                                className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-gray-300 focus:ring-pink-500"
                             />
                             <span className="font-semibold text-white">Make this a recurring event</span>
                         </label>

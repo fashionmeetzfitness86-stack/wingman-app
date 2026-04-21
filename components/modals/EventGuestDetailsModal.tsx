@@ -53,14 +53,14 @@ export const EventGuestDetailsModal: React.FC<EventGuestDetailsModalProps> = ({ 
                         <div className="space-y-4">
                             <button
                                 onClick={() => setBookingFor('self')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-purple-600/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'self' ? 'bg-white text-black hover:bg-gray-200/10 border-[#FFFFFF]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for Myself</p>
                                 <p className="text-sm text-gray-400">{user.name}</p>
                             </button>
                             <button
                                 onClick={() => setBookingFor('guest')}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-purple-600/10 border-[#EC4899]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${bookingFor === 'guest' ? 'bg-white text-black hover:bg-gray-200/10 border-[#FFFFFF]' : 'bg-gray-800 border-gray-800 hover:border-gray-700'}`}
                             >
                                 <p className="font-bold text-white">Book for a Guest</p>
                                 <p className="text-sm text-gray-400">Enter their contact information</p>
@@ -71,27 +71,27 @@ export const EventGuestDetailsModal: React.FC<EventGuestDetailsModalProps> = ({ 
                             <div className="mt-6 space-y-4 animate-fade-in">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Full Name</label>
-                                    <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" />
+                                    <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Email</label>
-                                    <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" />
+                                    <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-300 mb-2">Guest Phone</label>
-                                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" />
+                                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" />
                                 </div>
                             </div>
                         )}
                     </div>
                     <div className="flex justify-between items-center text-lg border-t border-gray-700 pt-4">
                         <span className="font-semibold text-gray-300">Total Price:</span>
-                        <span className="font-bold text-purple-400">{priceText}</span>
+                        <span className="font-bold text-gray-300">{priceText}</span>
                     </div>
                 </div>
                 <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                     <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                    <button onClick={handleConfirm} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-[#d8428a]">Confirm Payment</button>
+                    <button onClick={handleConfirm} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E5E5E5]">Confirm Payment</button>
                 </div>
             </div>
         </div>

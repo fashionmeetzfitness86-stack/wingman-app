@@ -222,7 +222,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
     const steps = [
         {
             id: 'auth',
-            icon: <SparkleIcon className="w-12 h-12 text-purple-400" />,
+            icon: <SparkleIcon className="w-12 h-12 text-gray-300" />,
             title: authMode === 'login' ? "Welcome Back" : "Create Account",
             description: authMode === 'login' ? "Log in to access your exclusive nightlife concierge." : "Join Miami's premier nightlife community.",
             customContent: (
@@ -267,7 +267,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                         name="name"
                                         value={authData.name}
                                         onChange={handleAuthChange}
-                                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                         placeholder="John Doe"
                                     />
                                 </div>
@@ -286,7 +286,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                 name="email"
                                 value={authData.email}
                                 onChange={handleAuthChange}
-                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                 placeholder="you@example.com"
                             />
                         </div>
@@ -304,7 +304,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                     name="phone"
                                     value={authData.phone}
                                     onChange={handleAuthChange}
-                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                     placeholder="+1 (555) 000-0000"
                                 />
                             </div>
@@ -323,7 +323,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                     name="password"
                                     value={authData.password}
                                     onChange={handleAuthChange}
-                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -336,7 +336,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                     name="confirmPassword"
                                     value={authData.confirmPassword}
                                     onChange={handleAuthChange}
-                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -346,7 +346,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                     <button 
                         onClick={handleAuthSubmit} 
                         disabled={isAuthenticating}
-                        className="mt-6 w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow-lg shadow-pink-500/30 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="mt-6 w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3 rounded-lg shadow-lg shadow-pink-500/30 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isAuthenticating && <Spinner className="w-5 h-5" />}
                         {authMode === 'login' ? 'Log In' : 'Create Account'}
@@ -356,12 +356,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                         {authMode === 'login' ? (
                             <p className="text-sm text-gray-400">
                                 Don't have an account? {' '}
-                                <button onClick={() => setAuthMode('signup')} className="text-purple-400 font-bold hover:underline">Sign Up</button>
+                                <button onClick={() => setAuthMode('signup')} className="text-gray-300 font-bold hover:underline">Sign Up</button>
                             </p>
                         ) : (
                              <p className="text-sm text-gray-400">
                                 Already have an account? {' '}
-                                <button onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline">Log In</button>
+                                <button onClick={() => setAuthMode('login')} className="text-gray-300 font-bold hover:underline">Log In</button>
                             </p>
                         )}
                     </div>
@@ -371,13 +371,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
         },
         {
             id: 'welcome',
-            icon: <HandWavingIcon className="w-12 h-12 text-purple-400" />,
+            icon: <HandWavingIcon className="w-12 h-12 text-gray-300" />,
             title: `Welcome, ${user.name ? user.name.split(' ')[0] : 'Guest'}!`,
             description: "You've just unlocked access to Miami's most exclusive nightlife experiences. Let's take a quick tour.",
         },
         {
             id: 'promoter',
-            icon: <PromotersIcon className="w-12 h-12 text-purple-400" />,
+            icon: <PromotersIcon className="w-12 h-12 text-gray-300" />,
             title: "Your Personal Wingman",
             description: "Connect with elite promoters for direct access to tables and guestlists.",
             customContent: (
@@ -390,7 +390,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                 onClick={() => handlePromoterSelection(promoter.id)}
                                 className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
                                     selectedPromoterId === promoter.id 
-                                    ? 'bg-purple-600/20 border-[#EC4899]' 
+                                    ? 'bg-white text-black hover:bg-gray-200/20 border-[#FFFFFF]' 
                                     : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
                                 }`}
                             >
@@ -402,7 +402,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                         <span className="text-xs text-gray-400">{promoter.rating} • {promoter.city}</span>
                                     </div>
                                 </div>
-                                {selectedPromoterId === promoter.id && <div className="w-4 h-4 bg-purple-600 rounded-full"></div>}
+                                {selectedPromoterId === promoter.id && <div className="w-4 h-4 bg-white text-black hover:bg-gray-200 rounded-full"></div>}
                             </button>
                         ))}
                     </div>
@@ -417,7 +417,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
         },
         {
             id: 'profile',
-            icon: <ProfileIcon className="w-12 h-12 text-purple-400" />,
+            icon: <ProfileIcon className="w-12 h-12 text-gray-300" />,
             title: "Build Your Profile",
             description: "Complete your profile to get personalized recommendations and faster approvals.",
             customContent: (
@@ -428,7 +428,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                                 <img src={user.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
-                                    {isUploading ? <Spinner className="w-8 h-8 text-purple-400" /> : <ProfileIcon className="w-16 h-16" />}
+                                    {isUploading ? <Spinner className="w-8 h-8 text-gray-300" /> : <ProfileIcon className="w-16 h-16" />}
                                 </div>
                             )}
                             
@@ -448,7 +448,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                         />
                         <button 
                             onClick={() => fileInputRef.current?.click()}
-                            className="mt-2 text-sm text-purple-400 font-bold hover:underline"
+                            className="mt-2 text-sm text-gray-300 font-bold hover:underline"
                         >
                             {user.profilePhoto && !user.profilePhoto.includes('seed') ? "Change Photo" : "Upload Photo"}
                         </button>
@@ -459,14 +459,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
                 <div
                     className="mt-6 bg-gray-800/50 border border-gray-700 text-gray-300 font-bold py-3 px-6 rounded-lg text-lg flex items-center justify-center gap-2 mx-auto cursor-default pointer-events-none"
                 >
-                    <TokenIcon className="w-6 h-6 text-purple-400" />
+                    <TokenIcon className="w-6 h-6 text-gray-300" />
                     <span>500 TMKC for Setting Up Profile</span>
                 </div>
             )
         },
         {
             id: 'discover',
-            icon: <SparkleIcon className="w-12 h-12 text-purple-400" />,
+            icon: <SparkleIcon className="w-12 h-12 text-gray-300" />,
             title: "Discover & Connect",
             description: "Browse events, book tables, and unlock exclusive experiences curated just for you.",
             visuals: (
@@ -488,7 +488,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
         },
         {
             id: 'notifications',
-            icon: <BellIcon className="w-12 h-12 text-purple-400" />,
+            icon: <BellIcon className="w-12 h-12 text-gray-300" />,
             title: "Don't Miss Out",
             description: "Enable notifications to stay updated on your bookings and exclusive invites.",
             action: (
@@ -511,10 +511,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
         },
         {
             id: 'reward',
-            icon: <TokenIcon className="w-16 h-16 text-purple-400 animate-bounce" />,
+            icon: <TokenIcon className="w-16 h-16 text-gray-300 animate-bounce" />,
             title: "You're All Set!",
             description: `As a welcome gift, we've added ${ONBOARDING_REWARD} TMKC tokens to your wallet. Enjoy!`,
-            action: <button onClick={() => onFinish(true)} className="mt-8 bg-purple-600 text-white font-bold py-3 px-10 rounded-lg text-lg shadow-lg shadow-pink-500/30 hover:scale-105 transition-transform">Start Exploring</button>
+            action: <button onClick={() => onFinish(true)} className="mt-8 bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-10 rounded-lg text-lg shadow-lg shadow-pink-500/30 hover:scale-105 transition-transform">Start Exploring</button>
         },
     ];
 
@@ -541,7 +541,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
             <header className="relative flex-shrink-0 p-6 flex justify-between items-center z-10">
                 <div className="flex gap-2">
                     {steps.map((_, index) => (
-                        <div key={index} className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep ? 'w-8 bg-purple-600' : 'w-2 bg-gray-700'}`} />
+                        <div key={index} className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep ? 'w-8 bg-white text-black hover:bg-gray-200' : 'w-2 bg-gray-700'}`} />
                     ))}
                 </div>
                 {!isAuthStep && (
@@ -551,7 +551,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ user, onFinish
             
             <main className="relative flex-grow flex flex-col justify-center items-center text-center p-6 z-10 overflow-y-auto">
                 <div className="w-full max-w-lg animate-fade-in-up">
-                    <div className="w-24 h-24 bg-gray-800/50 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-8 border border-gray-700 shadow-2xl shadow-[#EC4899]/10">
+                    <div className="w-24 h-24 bg-gray-800/50 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-8 border border-gray-700 shadow-2xl shadow-[#FFFFFF]/10">
                         {activeStep.icon}
                     </div>
                     <h1 className="text-4xl font-black tracking-tight mb-4">{activeStep.title}</h1>

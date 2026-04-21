@@ -213,7 +213,7 @@ export const AdminEditVenueModal: React.FC<AdminEditVenueModalProps> = ({ venue,
                             type="checkbox"
                             checked={isGuestlistAvailable}
                             onChange={(e) => setIsGuestlistAvailable(e.target.checked)}
-                            className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-pink-500 focus:ring-pink-500"
+                            className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-gray-300 focus:ring-pink-500"
                         />
                         <span className="font-semibold text-white">Enable Guestlist</span>
                     </label>
