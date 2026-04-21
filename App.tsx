@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess } from './utils/accessControl';
 import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
-import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
+import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
 
 // Component Imports
@@ -233,6 +233,8 @@ export const App: React.FC = () => {
     const [experienceInvitationRequests, setExperienceInvitationRequests] = useState<ExperienceInvitationRequest[]>([]);
     const [friendZoneChats, setFriendZoneChats] = useState<FriendZoneChat[]>(mockFriendZoneChats);
     const [friendZoneChatMessages, setFriendZoneChatMessages] = useState<FriendZoneChatMessage[]>(mockFriendZoneChatMessages);
+    const [wingmanChats, setWingmanChats] = useState<WingmanChat[]>(mockWingmanChats);
+    const [wingmanChatMessages, setWingmanChatMessages] = useState<WingmanChatMessage[]>(mockWingmanChatMessages);
     const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>([]);
     const [promoterApplications, setPromoterApplications] = useState(mockPromoterApplications);
     // Membership access requests — separate system from PromoterApplication
@@ -502,6 +504,50 @@ export const App: React.FC = () => {
         handleNavigate('bookingConfirmed', { items: newBookedItems });
     };
 
+
+    const handleSendWingmanMessage = (chatId: number | undefined, text: string) => {
+        let actualChatId = chatId;
+        
+        // If no chatId is provided, check if an open chat exists or create one
+        if (!actualChatId) {
+            const existingChat = wingmanChats.find(c => c.userId === currentUser.id && c.status === 'open');
+            if (existingChat) {
+                actualChatId = existingChat.id;
+            } else {
+                actualChatId = Math.max(0, ...wingmanChats.map(c => c.id)) + 1;
+                const newChat: WingmanChat = {
+                    id: actualChatId,
+                    userId: currentUser.id,
+                    title: 'Concierge Request',
+                    status: 'open',
+                    createdAt: new Date().toISOString()
+                };
+                setWingmanChats(prev => [...prev, newChat]);
+            }
+        }
+
+        const newMessage: WingmanChatMessage = {
+            id: wingmanChatMessages.length > 0 ? Math.max(...wingmanChatMessages.map(m => m.id)) + 1 : 1,
+            chatId: actualChatId!,
+            senderId: currentUser.id,
+            text,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        setWingmanChatMessages(prev => [...prev, newMessage]);
+
+        // Auto-reply simulation
+        setTimeout(() => {
+            const replyMessage: WingmanChatMessage = {
+                id: newMessage.id + 1,
+                chatId: actualChatId!,
+                senderId: 'wingman',
+                text: 'A Wingman concierge will be with you shortly. How can we elevate your experience?',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setWingmanChatMessages(prev => [...prev, replyMessage]);
+        }, 1500);
+    };
 
     const handleStartBookingChat = (item: CartItem) => {
         if (item.type === 'table' || item.type === 'guestlist') {
@@ -1445,8 +1491,24 @@ export const App: React.FC = () => {
                     onSwitchUser={isAdminSession ? handleSwitchUser : undefined} 
                 />;
             }
-            case 'chatbot':
-                return <ChatbotPage initialPrompt={pageParams.initialPrompt} />;
+            case 'chatbot': {
+                let activeChatId = pageParams.chatId;
+                if (!activeChatId) {
+                    const openChat = wingmanChats.find(c => c.userId === currentUser.id && c.status === 'open');
+                    if (openChat) {
+                        activeChatId = openChat.id;
+                    }
+                }
+                return <ChatbotPage 
+                    chatId={activeChatId}
+                    initialPrompt={pageParams.initialPrompt}
+                    currentUser={currentUser}
+                    wingmanChats={wingmanChats}
+                    messages={wingmanChatMessages}
+                    onSendMessage={handleSendWingmanMessage}
+                    onBack={() => handleNavigate('eventChatsList')}
+                />;
+            }
             case 'liveChat':
                 return <LiveChatPage />;
             case 'accessGroups':
@@ -1639,8 +1701,9 @@ export const App: React.FC = () => {
                 return <EventChatsListPage 
                     currentUser={currentUser} 
                     onNavigate={handleNavigate} 
-                    eventChats={eventChats} 
-                    guestlistChats={guestlistChats} 
+                    eventChats={mockEventChats} 
+                    guestlistChats={mockGuestlistChats} 
+                    wingmanChats={wingmanChats}
                     allEvents={appEvents} 
                     venues={appVenues} 
                     promoters={appPromoters} 

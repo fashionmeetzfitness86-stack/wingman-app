@@ -492,6 +492,24 @@ export interface FriendZoneChatMessage {
 }
 // --------------------------------------
 
+// --- WINGMAN CHAT ---
+export interface WingmanChat {
+    id: number;
+    userId: number;
+    title: string;
+    status: 'open' | 'closed';
+    createdAt: string;
+}
+
+export interface WingmanChatMessage {
+    id: number;
+    chatId: number;
+    senderId: number | 'wingman'; // User ID, or 'wingman' for the concierge/admin
+    text: string;
+    timestamp: string;
+}
+// --------------------------------------
+
 export interface GroupJoinRequest {
   id: number;
   groupId: number;

@@ -1,5 +1,5 @@
 
-import { Venue, Promoter, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, PromoterApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod } from '../types';
+import { Venue, Promoter, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, PromoterApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
 
 // Mock Users
 export const users: User[] = [
@@ -424,6 +424,16 @@ export const mockFriendZoneChatMessages: FriendZoneChatMessage[] = [
 
 export const mockGroupChatMessages: any[] = [
     { senderId: 101, text: 'Hey everyone!', timestamp: '10:00 AM' }
+];
+
+// Mock Wingman Chats
+export const mockWingmanChats: WingmanChat[] = [
+    { id: 1, userId: 101, title: 'LIV Booking Inquiry', status: 'open', createdAt: '2023-12-01T10:00:00Z' }
+];
+
+export const mockWingmanChatMessages: WingmanChatMessage[] = [
+    { id: 1, chatId: 1, senderId: 101, text: 'Hey Wingman, can you secure a table for LIV this Saturday?', timestamp: '2023-12-01T10:00:00Z' },
+    { id: 2, chatId: 1, senderId: 'wingman', text: 'Absolutely. What is your budget?', timestamp: '2023-12-01T10:05:00Z' }
 ];
 
 // Mock Requests

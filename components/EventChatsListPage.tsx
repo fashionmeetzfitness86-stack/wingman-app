@@ -1,28 +1,36 @@
 
 import React, { useMemo, useState } from 'react';
 // Fix: Imported UserRole to resolve type errors.
-import { Page, User, EventChat, Event, UserAccessLevel, GuestlistChat, Venue, Promoter, UserRole } from '../types';
+import { Page, User, EventChat, Event, UserAccessLevel, GuestlistChat, Venue, Promoter, UserRole, WingmanChat } from '../types';
 import { users, bookingHistory } from '../data/mockData';
+import { SparkleIcon } from './icons/SparkleIcon';
 
 interface EventChatsListPageProps {
   currentUser: User;
   onNavigate: (page: Page, params?: Record<string, any>) => void;
   eventChats: EventChat[];
   guestlistChats: GuestlistChat[];
+  wingmanChats?: WingmanChat[];
   allEvents: Event[];
   venues: Venue[];
   promoters: Promoter[];
   allUsers: User[];
 }
 
-export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentUser, onNavigate, eventChats, guestlistChats, allEvents, venues, promoters, allUsers }) => {
-    const [activeTab, setActiveTab] = useState<'guestlists' | 'events'>('guestlists');
-
+export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentUser, onNavigate, eventChats, guestlistChats, wingmanChats = [], allEvents, venues, promoters, allUsers }) => {
+    
     const myEventChats = useMemo(() => eventChats.filter(chat => chat.memberIds.includes(currentUser.id)), [currentUser.id, eventChats]);
     
     const myGuestlistChats = useMemo(() => {
         return guestlistChats.filter(chat => chat.memberIds.includes(currentUser.id));
     }, [currentUser.id, guestlistChats]);
+
+    const myWingmanChats = useMemo(() => {
+        return wingmanChats.filter(chat => chat.userId === currentUser.id);
+    }, [currentUser.id, wingmanChats]);
+
+    const showGuestlists = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const [activeTab, setActiveTab] = useState<'guestlists' | 'events' | 'wingman'>(showGuestlists ? 'guestlists' : 'wingman');
 
     const EventChatList = () => (
         <div className="space-y-4">
@@ -80,28 +88,47 @@ export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentU
         </div>
     );
 
-    const showTabs = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const WingmanChatList = () => (
+         <div className="space-y-4">
+            {myWingmanChats.length > 0 ? myWingmanChats.map(chat => (
+                <button key={chat.id} onClick={() => onNavigate('chatbot', { chatId: chat.id })} className="w-full flex items-center gap-4 p-3 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 text-left">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #FFFFFF, #738596, #1A252C)' }}>
+                      <SparkleIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-bold text-white text-lg">{chat.title}</p>
+                    <p className="text-sm text-gray-400">{new Date(chat.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded font-bold border capitalize ${chat.status === 'open' ? 'text-green-400 border-green-900/50 bg-green-900/20' : 'text-gray-400 border-gray-700 bg-gray-800'}`}>{chat.status}</span>
+                </button>
+            )) : (
+              <div className="text-center py-16">
+                  <h3 className="text-xl font-semibold text-white">No Wingman Chats</h3>
+                  <p className="text-gray-400 mt-2">Book a table or ask a question to start a chat with Wingman.</p>
+                  <button onClick={() => onNavigate('chatbot')} className="mt-4 px-4 py-2 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors">
+                      Start New Chat
+                  </button>
+              </div>
+            )}
+        </div>
+    );
 
-    if (showTabs) {
-        return (
-            <div className="p-4 md:p-8 animate-fade-in text-white">
-                <div className="flex border-b border-gray-700 mb-6">
-                    <button onClick={() => setActiveTab('guestlists')} className={`px-4 py-2 text-lg font-semibold transition-colors w-1/2 ${activeTab === 'guestlists' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}>
-                        Guestlists
-                    </button>
-                    <button onClick={() => setActiveTab('events')} className={`px-4 py-2 text-lg font-semibold transition-colors w-1/2 ${activeTab === 'events' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}>
-                        Events
-                    </button>
-                </div>
-                {activeTab === 'guestlists' ? <GuestlistChatList /> : <EventChatList />}
-            </div>
-        );
-    }
-
-    // Default view for general users (and now Access Male) who might only have event chats
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white">
-            <EventChatList />
+            <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
+                {showGuestlists && (
+                    <button onClick={() => setActiveTab('guestlists')} className={`px-4 py-2 text-lg font-semibold transition-colors flex-shrink-0 ${activeTab === 'guestlists' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}>
+                        Guestlists
+                    </button>
+                )}
+                <button onClick={() => setActiveTab('events')} className={`px-4 py-2 text-lg font-semibold transition-colors flex-shrink-0 ${activeTab === 'events' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}>
+                    Events
+                </button>
+                <button onClick={() => setActiveTab('wingman')} className={`px-4 py-2 text-lg font-semibold transition-colors flex-shrink-0 ${activeTab === 'wingman' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}>
+                    Wingman
+                </button>
+            </div>
+            {activeTab === 'guestlists' ? <GuestlistChatList /> : activeTab === 'events' ? <EventChatList /> : <WingmanChatList />}
         </div>
     );
 };
