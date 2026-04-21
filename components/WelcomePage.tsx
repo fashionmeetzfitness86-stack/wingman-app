@@ -649,41 +649,14 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
       
       {/* Top bar */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 relative z-50">
+      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
         <WingmanWordmark />
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="text-gray-400 hover:text-white transition-colors p-1 -mr-1"
+          onClick={() => goToLogin('browse')}
+          className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
         >
-          {isMenuOpen ? <IcoClose /> : <IcoMenu />}
+          Login
         </button>
-        
-        {/* Dropdown Menu */}
-        {isMenuOpen && (
-          <div 
-            className="absolute top-16 right-5 w-56 rounded-2xl overflow-hidden shadow-2xl"
-            style={{ 
-              background: 'rgba(20,20,20,0.95)', 
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.08)' 
-            }}
-          >
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-              <p className="text-xs font-semibold text-gray-400 leading-tight">
-                Previewing events — access required to see prices, spots & book.
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                goToLogin('browse');
-              }}
-              className="w-full px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/5 transition-colors"
-            >
-              Login
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Hero section */}
@@ -736,44 +709,13 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
 
 
 
-      {/* Event preview grid */}
-      <div className="px-5 pb-4 flex-shrink-0">
-        <div className="grid grid-cols-2 gap-3">
-          {previewInstances.length > 0
-            ? previewInstances.map(inst => (
-                <PreviewEventCard
-                  key={inst.instanceId}
-                  title={inst.title}
-                  date={inst.date}
-                  time={inst.arrivalTime || inst.time}
-                  type={inst.experienceType}
-                />
-              ))
-            : [1, 2, 3, 4].map(i => (
-                <div key={i} className="rounded-2xl h-36 animate-pulse"
-                  style={{ background: 'rgba(255,255,255,0.04)' }} />
-              ))
-          }
-        </div>
-      </div>
-
-      {/* Bottom CTA sticky */}
-      <div
-        className="sticky bottom-0 px-5 py-4 flex-shrink-0"
-        style={{
-          background: 'linear-gradient(to top, #080808 60%, rgba(8,8,8,0.9) 100%)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+      {/* Viewing events link */}
+      <div className="px-5 pb-12 text-center flex-shrink-0">
         <button
           onClick={() => setMode('enter')}
-          className="w-full font-bold py-4 rounded-xl text-black text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%)',
-            boxShadow: '0 8px 32px rgba(255,255,255,0.15)',
-          }}
+          className="text-sm font-bold text-gray-400 hover:text-white transition-colors underline underline-offset-4 decoration-gray-600 hover:decoration-white"
         >
-          Enter Passcode to Unlock Full Access
+          Viewing events
         </button>
       </div>
     </div>
