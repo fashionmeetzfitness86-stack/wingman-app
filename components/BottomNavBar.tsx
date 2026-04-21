@@ -30,20 +30,20 @@ const NavItem: React.FC<{
     className={`relative flex flex-col items-center justify-center gap-0.5 w-full pt-2 transition-all ${
       isActive ? 'scale-105' : 'opacity-60 hover:opacity-90'
     }`}
-    style={isActive ? { color: '#E040FB' } : { color: '#6B6B6B' }}
+    style={isActive ? { color: '#FFFFFF' } : { color: '#6B6B6B' }}
   >
     {/* Gradient glow dot under active item */}
     {isActive && (
       <span
         className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
-        style={{ background: 'linear-gradient(90deg, #E040FB, #00D4FF)' }}
+        style={{ background: 'linear-gradient(90deg, #FFFFFF, #374151)' }}
       />
     )}
     {icon}
     <span
       className="text-[10px] font-semibold"
       style={isActive ? {
-        background: 'linear-gradient(90deg, #E040FB, #7B61FF, #00D4FF)',
+        background: 'linear-gradient(90deg, #FFFFFF, #9CA3AF, #374151)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -54,7 +54,7 @@ const NavItem: React.FC<{
     {badgeCount !== undefined && badgeCount > 0 && (
       <span
         className="absolute top-1 right-3 w-4 h-4 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-black"
-        style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }}
+        style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)' }}
       >
         {badgeCount > 9 ? '9+' : badgeCount}
       </span>
@@ -99,7 +99,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
                 <button
                     onClick={() => onNavigate('featuredVenues')}
                     className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
-                    style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
+                    style={{ background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)' }}
                    aria-label="Featured Venues"
                 >
                     <BookIcon className="w-6 h-6"/>
@@ -153,7 +153,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
               <button
                   onClick={() => onNavigate('featuredVenues')}
                   className="w-14 h-14 rounded-full flex items-center justify-center text-white border-[3px] border-black transition-all hover:scale-110 active:scale-95 animate-pulse-glow"
-                  style={{ background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)' }}
                   aria-label="Browse Venues"
               >
                   <BookIcon className="w-6 h-6"/>

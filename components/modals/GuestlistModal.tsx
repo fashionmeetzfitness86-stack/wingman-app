@@ -179,7 +179,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
                     setSelectedVenueId(Number(e.target.value));
                     setSelectedDate('');
                 }}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
               >
                 {selectableVenues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
               </select>
@@ -195,7 +195,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
                 onChange={handleDateChange} 
                 min={minDate} 
                 max={maxDate} 
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
               />
                <p className="text-xs text-gray-500 mt-2">Open on: {selectedVenue.operatingDays.join(', ')}</p>
             </div>
@@ -206,11 +206,11 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
               <div className="flex gap-4">
                   <div className="relative w-1/2">
                       <UsersIcon className="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" />
-                      <input type="number" value={maleGuests} onChange={e => setMaleGuests(parseInt(e.target.value) || 0)} placeholder="Males" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]" min="0" />
+                      <input type="number" value={maleGuests} onChange={e => setMaleGuests(parseInt(e.target.value) || 0)} placeholder="Males" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" min="0" />
                   </div>
                   <div className="relative w-1/2">
                       <UsersIcon className="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" />
-                      <input type="number" value={femaleGuests} onChange={e => setFemaleGuests(parseInt(e.target.value) || 0)} placeholder="Females" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]" min="0" />
+                      <input type="number" value={femaleGuests} onChange={e => setFemaleGuests(parseInt(e.target.value) || 0)} placeholder="Females" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" min="0" />
                   </div>
               </div>
           </div>
@@ -295,7 +295,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
             <button 
                 onClick={handleConfirm}
                 disabled={!selectedDate}
-                className={`w-full text-black font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed ${isVipUser ? 'bg-amber-400 hover:bg-amber-300' : 'bg-purple-600 text-white hover:bg-[#d8428a]'}`}
+                className={`w-full text-black font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed ${isVipUser ? 'bg-amber-400 hover:bg-amber-300' : 'bg-white text-black hover:bg-gray-200 text-white hover:bg-[#E5E5E5]'}`}
             >
                 {isVipUser ? 'Confirm VIP Entry' : 'Join Guestlist'}
             </button>

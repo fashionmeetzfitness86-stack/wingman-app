@@ -37,7 +37,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isRsv
         switch (invitationStatus) {
             case 'none':
                 return (
-                    <button onClick={() => onRequestInvite(event.id)} className="w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg bg-pink-500 text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                    <button onClick={() => onRequestInvite(event.id)} className="w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg bg-white text-black hover:bg-gray-200 text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400">
                         <KeyIcon className="w-5 h-5"/>
                         Request Invite
                     </button>
@@ -64,7 +64,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isRsv
           className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg ${
             isRsvped
               ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-pink-500 text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400'
+              : 'bg-white text-black hover:bg-gray-200 text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-400'
           }`}
           aria-label={isRsvped ? `Cancel RSVP for ${event.title}` : `RSVP for ${event.title}`}
         >
@@ -105,14 +105,14 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isRsv
         </div>
 
         <div className="p-6 flex-grow overflow-y-auto">
-          <p className={`text-sm font-bold uppercase tracking-wider ${event.type === 'EXCLUSIVE' ? 'text-green-400' : 'text-purple-400'}`}>
+          <p className={`text-sm font-bold uppercase tracking-wider ${event.type === 'EXCLUSIVE' ? 'text-green-400' : 'text-gray-300'}`}>
             {event.type}
           </p>
           <h2 id={`event-title-${event.id}`} className="text-3xl font-bold text-white mt-2">{event.title}</h2>
           
           <div className="flex items-center gap-4 text-gray-400 text-sm mt-4 border-y border-gray-800 py-3">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-pink-400" />
+              <CalendarIcon className="w-5 h-5 text-gray-400" />
               <span>{formattedDate}</span>
             </div>
           </div>
@@ -124,7 +124,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isRsv
            <div className="flex items-center justify-between mb-4">
              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="bg-pink-500 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white">F</span>
+                  <span className="bg-white text-black hover:bg-gray-200 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white">F</span>
                   <span className="text-white font-semibold text-lg">{event.priceFemale === 0 ? 'Free' : `$${event.priceFemale}`}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isRsv
                   className="w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm bg-gray-800 text-white hover:bg-gray-700"
                   aria-label={`View experiences at ${venue.name}`}
               >
-                  <SparkleIcon className="w-5 h-5 text-pink-400" />
+                  <SparkleIcon className="w-5 h-5 text-gray-400" />
                   View Experiences at {venue.name}
               </button>
           )}

@@ -33,7 +33,7 @@ export const AskGabyModal: React.FC<AskGabyModalProps> = ({ isOpen, onClose }) =
         <div className="flex justify-between items-center p-4 border-b border-white/5">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base"
-              style={{ background: 'linear-gradient(135deg, #E040FB22, #7B61FF22)' }}>✦</div>
+              style={{ background: 'linear-gradient(135deg, #FFFFFF22, #9CA3AF22)' }}>✦</div>
             <h2 id="ask-gaby-title" className="text-lg font-black text-white">Ask Gaby</h2>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors" aria-label="Close">
@@ -62,7 +62,7 @@ export const AskGabyModal: React.FC<AskGabyModalProps> = ({ isOpen, onClose }) =
             onClick={handleSend}
             disabled={!message.trim() || sent}
             className="w-full flex items-center justify-center gap-2 font-bold py-3.5 px-4 rounded-2xl text-white transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: !message.trim() ? 'none' : '0 8px 24px rgba(224,64,251,0.25)' }}
+            style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: !message.trim() ? 'none' : '0 8px 24px rgba(255,255,255,0.25)' }}
           >
             <PaperAirplaneIcon className="w-5 h-5" />
             {sent ? 'Sent ✓' : 'Send to Gaby'}

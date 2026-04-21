@@ -58,7 +58,7 @@ const UserSearchCard: React.FC<{ user: User, onAdd: () => void, isAdded: boolean
         {!isAdded && (
             <button 
                 onClick={onAdd} 
-                className="p-2 bg-purple-600 rounded-full text-white hover:bg-[#d8428a] transition-colors"
+                className="p-2 bg-white text-black hover:bg-gray-200 rounded-full text-white hover:bg-[#E5E5E5] transition-colors"
                 aria-label="Add friend"
             >
                 <PlusIcon className="w-5 h-5" />
@@ -92,12 +92,12 @@ const FriendZoneChatCard: React.FC<{ chat: FriendZoneChat, onOpen: () => void, o
     const activePromoterCount = chat.promoterIds?.length || 0;
     
     return (
-    <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 flex items-center justify-between group transition-colors hover:border-[#EC4899]/30">
+    <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 flex items-center justify-between group transition-colors hover:border-[#FFFFFF]/30">
         <button onClick={onOpen} className="flex items-center gap-4 text-left flex-grow">
             <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-amber-400 relative">
                 <ChatIcon className="w-6 h-6" />
                 {activePromoterCount > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-purple-600 p-1 rounded-full border-2 border-gray-900" title="Promoter in Chat">
+                    <div className="absolute -top-1 -right-1 bg-white text-black hover:bg-gray-200 p-1 rounded-full border-2 border-gray-900" title="Promoter in Chat">
                         <StarIcon className="w-3 h-3 text-white fill-current" />
                     </div>
                 )}
@@ -107,7 +107,7 @@ const FriendZoneChatCard: React.FC<{ chat: FriendZoneChat, onOpen: () => void, o
                 <div className="flex items-center gap-2">
                     <p className="text-xs text-gray-400">{chat.memberIds.length} participants</p>
                     {activePromoterCount > 0 && (
-                        <span className="text-[10px] bg-purple-600/20 text-purple-400 px-1.5 py-0.5 rounded font-bold uppercase">
+                        <span className="text-[10px] bg-white text-black hover:bg-gray-200/20 text-gray-300 px-1.5 py-0.5 rounded font-bold uppercase">
                             {activePromoterCount > 1 ? `${activePromoterCount} Promoters` : 'Promoter Active'}
                         </span>
                     )}
@@ -187,25 +187,25 @@ export const FriendsZonePage: React.FC<FriendsZonePageProps> = ({ currentUser, a
             <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
                 <button 
                     onClick={() => setActiveTab('chats')}
-                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'chats' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'chats' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
                 >
                     Chat Rooms
                 </button>
                 <button 
                     onClick={() => setActiveTab('circle')}
-                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'circle' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'circle' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
                 >
                     My Circle
                 </button>
                 <button 
                     onClick={() => setActiveTab('find')}
-                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'find' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'find' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
                 >
                     Find Friends
                 </button>
                 <button 
                     onClick={() => setActiveTab('activity')}
-                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'activity' ? 'text-purple-400 border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm md:text-lg font-semibold transition-colors ${activeTab === 'activity' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
                 >
                     Activity
                 </button>
@@ -216,7 +216,7 @@ export const FriendsZonePage: React.FC<FriendsZonePageProps> = ({ currentUser, a
                     {!isCreatingChat ? (
                         <button 
                             onClick={() => setIsCreatingChat(true)}
-                            className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#d8428a] transition-colors"
+                            className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E5E5E5] transition-colors"
                         >
                             <PlusIcon className="w-5 h-5" />
                             Create New Chat Room
@@ -229,7 +229,7 @@ export const FriendsZonePage: React.FC<FriendsZonePageProps> = ({ currentUser, a
                                 placeholder="e.g., Weekend Plans, Birthday Bash" 
                                 value={newChatName}
                                 onChange={(e) => setNewChatName(e.target.value)}
-                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                                 autoFocus
                             />
                             <div className="flex gap-2">
@@ -274,7 +274,7 @@ export const FriendsZonePage: React.FC<FriendsZonePageProps> = ({ currentUser, a
                     ) : (
                         <div className="text-center py-12 bg-gray-900/50 rounded-lg border border-dashed border-gray-800">
                             <p className="text-gray-500">Your circle is empty.</p>
-                            <button onClick={() => setActiveTab('find')} className="mt-4 text-purple-400 font-bold text-sm hover:underline">Find friends to add</button>
+                            <button onClick={() => setActiveTab('find')} className="mt-4 text-gray-300 font-bold text-sm hover:underline">Find friends to add</button>
                         </div>
                     )}
                 </div>
@@ -287,7 +287,7 @@ export const FriendsZonePage: React.FC<FriendsZonePageProps> = ({ currentUser, a
                         placeholder="Search by name or handle..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                     />
                     
                     {friendCount >= MAX_FRIENDS && (

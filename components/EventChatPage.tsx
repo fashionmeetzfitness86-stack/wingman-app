@@ -27,12 +27,12 @@ const ChatHeader: React.FC<{ event: Event; onBack: () => void; onOpenParticipant
 };
 
 
-const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Promoter | undefined; isCurrentUser: boolean; isRead: boolean; reader: User | undefined; }> = ({ message, sender, isCurrentUser, isRead, reader }) => (
+const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Promoter | undefined; isCurrentUser: boolean; isRead: boolean; reader: User | Promoter | undefined; }> = ({ message, sender, isCurrentUser, isRead, reader }) => (
     <div className={`flex items-end gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
         <div className={`rounded-xl p-3 max-w-[80%] md:max-w-[70%] ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
             {!isCurrentUser && sender && (
-                 <p className="font-bold text-sm text-purple-400 mb-1">{sender.name}</p>
+                 <p className="font-bold text-sm text-gray-300 mb-1">{sender.name}</p>
             )}
             <p className="text-white whitespace-pre-wrap text-sm">{message.text}</p>
             <div className="flex justify-end items-center gap-2 mt-1.5">
@@ -170,13 +170,13 @@ export const EventChatPage: React.FC<EventChatPageProps> = ({ chatId, currentUse
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Type a message..."
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                             aria-label="Chat input"
                         />
                         <button
                             type="submit"
                             disabled={!inputValue.trim()}
-                            className="w-12 h-12 flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+                            className="w-12 h-12 flex-shrink-0 bg-white text-black hover:bg-gray-200 rounded-full flex items-center justify-center text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
                             aria-label="Send message"
                         >
                             <SendIcon className="w-6 h-6" />

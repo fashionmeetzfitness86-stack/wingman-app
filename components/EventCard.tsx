@@ -113,16 +113,16 @@ export const EventCard: React.FC<EventCardProps> = ({
                     className={`flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 ${
                         isRsvped
                             ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-purple-600 text-white hover:bg-[#d8428a]'
+                            : 'bg-white text-black hover:bg-gray-200 text-white hover:bg-[#E5E5E5]'
                     }`}
                 >
                     {isRsvped ? (
                         <>
                             <CheckIcon className="w-4 h-4" />
-                            Booked
+                            Joined
                         </>
                     ) : (
-                        'Book Now'
+                        'Join'
                     )}
                 </button>
               );
@@ -156,10 +156,10 @@ export const EventCard: React.FC<EventCardProps> = ({
                             onViewDetails(event);
                         }
                     }}
-                    className="flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 bg-purple-600 text-white hover:bg-purple-500"
+                    className="flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 bg-white text-black hover:bg-gray-200 text-white hover:bg-gray-200 text-black hover:bg-white"
                 >
                     <LockClosedIcon className="w-4 h-4" />
-                    Request Invite
+                    Request Access
                 </button>
               );
           }
@@ -172,11 +172,11 @@ export const EventCard: React.FC<EventCardProps> = ({
                     e.stopPropagation();
                     onBook(event);
                 }}
-                className="flex-grow bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 hover:bg-[#d8428a]"
+                className="flex-grow bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 hover:bg-[#E5E5E5]"
                 aria-label={`Book tickets for ${event.title}`}
             >
                 <KeyIcon className="w-4 h-4" />
-                Book Tickets
+                Join
             </button>
           );
       }
@@ -187,17 +187,17 @@ export const EventCard: React.FC<EventCardProps> = ({
             className={`flex-grow font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 ${
                 isRsvped
                     ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    : 'bg-purple-600 text-white hover:bg-[#d8428a]'
+                    : 'bg-white text-black hover:bg-gray-200 text-white hover:bg-[#E5E5E5]'
             }`}
-            aria-label={isRsvped ? `Cancel RSVP for ${event.title}` : `RSVP for ${event.title}`}
+            aria-label={isRsvped ? `Cancel access to ${event.title}` : `Join ${event.title}`}
         >
             {isRsvped ? (
                 <>
                     <CheckIcon className="w-4 h-4" />
-                    RSVPed
+                    Joined
                 </>
             ) : (
-                'RSVP'
+                'Join'
             )}
         </button>
       ) : null;
@@ -208,13 +208,13 @@ export const EventCard: React.FC<EventCardProps> = ({
     <>
     <div 
       onClick={() => onViewDetails(event)}
-      className="w-full bg-gray-900 border border-gray-800 rounded-lg p-4 flex gap-4 items-center text-left hover:bg-gray-800 transition-colors duration-200 cursor-pointer relative group"
+      className="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4 flex gap-3 sm:gap-4 items-center text-left hover:bg-gray-800 transition-colors duration-200 cursor-pointer relative group"
       role="button"
       tabIndex={0}
       onKeyPress={(e) => e.key === 'Enter' && onViewDetails(event)}
       aria-label={`View details for ${event.title}`}
     >
-      <img src={event.image} alt={event.title} className="w-24 h-24 sm:w-32 sm:h-32 rounded-md object-cover flex-shrink-0" />
+      <img src={event.image} alt={event.title} className="w-20 h-20 sm:w-32 sm:h-32 rounded-md object-cover flex-shrink-0" />
       <div className="flex-grow flex flex-col justify-between self-stretch">
         <div>
           <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <span className="text-xs font-semibold text-white">{attendancePercentage}% Full</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-1.5">
-                <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: `${attendancePercentage}%` }}></div>
+                <div className="bg-white text-black hover:bg-gray-200 h-1.5 rounded-full" style={{ width: `${attendancePercentage}%` }}></div>
               </div>
             </div>
           )}
@@ -267,7 +267,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                           e.stopPropagation();
                           onToggleLike(event.id);
                       }}
-                      className={`flex-shrink-0 p-2.5 rounded-lg transition-all hover:bg-gray-600 active:scale-95 ${isLiked ? 'bg-pink-500/10 text-purple-400 border border-[#EC4899]/30' : 'bg-gray-700 text-gray-300 border border-transparent'}`}
+                      className={`flex-shrink-0 p-2.5 rounded-lg transition-all hover:bg-gray-600 active:scale-95 ${isLiked ? 'bg-white/10 text-gray-300 border border-[#FFFFFF]/30' : 'bg-gray-700 text-gray-300 border border-transparent'}`}
                       aria-label={isLiked ? `Unlike ${event.title}` : `Like ${event.title}`}
                   >
                       <HeartIcon className="w-5 h-5" isFilled={isLiked} />
@@ -302,8 +302,8 @@ export const EventCard: React.FC<EventCardProps> = ({
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
         onConfirm={handleConfirmCancel}
-        title="Cancel RSVP"
-        message="Are you sure you want to cancel your RSVP for this event?"
+        title="Cancel Access"
+        message="Are you sure you want to cancel your access to this event?"
         confirmText="Yes, cancel"
         confirmVariant="danger"
     />

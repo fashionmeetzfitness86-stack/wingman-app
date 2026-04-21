@@ -126,7 +126,7 @@ const EventCard: React.FC<{
       aria-label={`View ${instance.title}`}
     >
       {/* Cover image */}
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-36 sm:h-40 overflow-hidden">
         <img
           src={instance.coverImage}
           alt={instance.title}
@@ -172,19 +172,19 @@ const EventCard: React.FC<{
       </div>
 
       {/* Body */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <h3 className="font-bold text-white text-base leading-tight mb-0.5 truncate">{instance.title}</h3>
-        <p className="text-xs text-gray-500 mb-3 truncate">{instance.venue}</p>
+        <p className="text-xs text-gray-500 mb-2 truncate">{instance.venue}</p>
 
         {/* Date + time row */}
-        <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+        <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
           <span>{formatEventDate(instance.date)}</span>
           <span className="w-1 h-1 rounded-full bg-gray-700" />
-          <span>{instance.time}</span>
+          <span>{instance.arrivalTime || instance.time}</span>
         </div>
 
         {/* Capacity bar + urgency label */}
-        <div className="mb-3">
+        <div className="mb-2">
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs flex items-center gap-1" style={{
               color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
@@ -269,10 +269,6 @@ const BookingModal: React.FC<{
 
   const handleAddToCart = () => {
     const rules = instance.bookingRules;
-    if (rules.minMenPerBooking && partySize < rules.minMenPerBooking) {
-      setRuleError(`Minimum ${rules.minMenPerBooking} men required per booking for this event.`);
-      return;
-    }
     if (rules.maxPerBooking && partySize > rules.maxPerBooking) {
       setRuleError(`Maximum ${rules.maxPerBooking} people per booking for this event.`);
       return;
@@ -305,147 +301,139 @@ const BookingModal: React.FC<{
         onClick={e => e.stopPropagation()}
       >
         {/* Cover */}
-        <div className="relative h-52">
+        <div className="relative h-32 sm:h-40">
           <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full text-white"
+            className="absolute top-3 right-3 p-1.5 rounded-full text-white"
             style={{ background: 'rgba(0,0,0,0.5)' }}
           >
-            <IconClose className="w-5 h-5" />
+            <IconClose className="w-4 h-4" />
           </button>
           {/* Full Details link */}
           {onViewDetail && (
             <button
               onClick={() => { onClose(); onViewDetail(); }}
-              className="absolute top-4 left-4 text-xs font-bold text-white/70 hover:text-white flex items-center gap-1 transition-colors"
-              style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '999px', padding: '6px 10px' }}
+              className="absolute top-3 left-3 text-[10px] font-bold text-white/70 hover:text-white flex items-center gap-1 transition-colors"
+              style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '999px', padding: '4px 8px' }}
             >
-              Full Details →
+              Details →
             </button>
           )}
-          <div className="absolute bottom-4 left-4">
+          <div className="absolute bottom-3 left-4">
             <div
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold mb-2"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold mb-1"
               style={{ background: tc.bg, color: tc.color }}
             >
               {tc.icon} {tc.label}
             </div>
-            <h2 className="text-xl font-black text-white leading-tight">{instance.title}</h2>
+            <h2 className="text-lg font-black text-white leading-tight">{instance.title}</h2>
           </div>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-4 space-y-3">
           {/* Meta row */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-400">
-            <span className="flex items-center gap-1.5">📅 {formatEventDate(instance.date)}</span>
-            <span className="flex items-center gap-1.5">🕐 {instance.time}</span>
-            <span className="flex items-center gap-1.5">📍 {instance.venue}</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
+            <span className="flex items-center gap-1">📅 {formatEventDate(instance.date)}</span>
+            <span className="flex items-center gap-1">🕐 {instance.arrivalTime || instance.time}</span>
+            <span className="flex items-center gap-1">📍 {instance.venue}</span>
           </div>
 
           {/* Status + spots */}
           <div
-            className="flex items-center justify-between rounded-xl px-4 py-3"
+            className="flex items-center justify-between rounded-xl px-3 py-2"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
-            <div className="flex items-center gap-2 text-sm">
-              <span className="w-2 h-2 rounded-full" style={{ background: sc.dot }} />
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
               <span className="font-semibold text-white">{sc.label}</span>
             </div>
-            <span className="text-sm text-gray-400">
-              {spotsLeft} of {instance.totalCapacity} spots left
+            <span className="text-[11px] text-gray-400">
+              {spotsLeft} left
             </span>
           </div>
 
           {/* Booking Rules */}
-          {(instance.bookingRules.minMenPerBooking || instance.bookingRules.maxPerBooking) && (
-            <div className="rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1"
+          {(instance.bookingRules.maxPerBooking) && (
+            <div className="rounded-xl px-3 py-2 text-[10px] text-gray-400"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="font-semibold text-gray-300 mb-1">Booking Rules</p>
-              {instance.bookingRules.minMenPerBooking && (
-                <p>• Minimum {instance.bookingRules.minMenPerBooking} men per booking</p>
-              )}
-              {instance.bookingRules.maxPerBooking && (
-                <p>• Maximum {instance.bookingRules.maxPerBooking} people per booking</p>
-              )}
+              <p className="font-semibold text-gray-300">Max {instance.bookingRules.maxPerBooking} per booking</p>
             </div>
           )}
 
           {/* ── Already booked ── */}
           {isBooked && (
-            <div className="flex flex-col items-center py-4 gap-4 text-center">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center"
+            <div className="flex flex-col items-center py-2 gap-3 text-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(224,64,251,0.12)' }}>
                 <div style={{ color: '#E040FB' }}>
-                  <IconCheck className="w-7 h-7" />
+                  <IconCheck className="w-6 h-6" />
                 </div>
               </div>
               <div>
-                <p className="font-bold text-white text-lg mb-1">You're In! 🎉</p>
-                <p className="text-sm text-gray-400 leading-relaxed">
+                <p className="font-bold text-white text-sm mb-0.5">You're In! 🎉</p>
+                <p className="text-[11px] text-gray-400">
                   {existingBooking
-                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — paid`
-                    : 'Your spot is reserved and in your cart.'}
+                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()}`
+                    : 'Your spot is reserved.'}
                 </p>
               </div>
               {onNavigateToPlans && (
                 <button
                   onClick={() => { onClose(); onNavigateToPlans(); }}
-                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
+                  className="w-full font-bold py-3 rounded-xl text-white text-xs transition-all active:scale-[0.98]"
                   style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
                 >
-                  View in My Plans →
+                  View My Plans →
                 </button>
               )}
-              <button onClick={onClose} className="text-sm font-semibold text-gray-500 hover:text-gray-300 transition-colors">Close</button>
             </div>
           )}
 
           {/* ── Booking form ── */}
           {!isBooked && canBook && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-3">Party Size</label>
-                <div className="flex items-center gap-4">
+                <label className="block text-[11px] font-medium text-gray-400 mb-2">Party Size</label>
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => setPartySize(p => Math.max(1, p - 1))}
-                    className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    className="w-8 h-8 rounded-full bg-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
                   >−</button>
-                  <span className="text-2xl font-black text-white w-8 text-center">{partySize}</span>
+                  <span className="text-xl font-black text-white w-6 text-center">{partySize}</span>
                   <button
                     onClick={() => setPartySize(p => Math.min(maxParty, p + 1))}
-                    className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    className="w-8 h-8 rounded-full bg-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
                   >+</button>
-                  <span className="text-sm text-gray-500 ml-2">person{partySize !== 1 ? 's' : ''}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-3 border-t border-gray-800">
-                <span className="text-gray-400 text-sm">Total</span>
-                <span className="text-2xl font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
+              <div className="flex items-center justify-between py-2 border-t border-gray-800">
+                <span className="text-gray-400 text-[11px]">Total</span>
+                <span className="text-lg font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
               </div>
 
               {ruleError && (
-                <div className="bg-red-900/30 border border-red-700/50 rounded-xl px-4 py-3 text-sm text-red-300">
+                <div className="bg-red-900/30 border border-red-700/50 rounded-lg px-3 py-2 text-[11px] text-red-300">
                   {ruleError}
                 </div>
               )}
 
               <button
                 onClick={handleAddToCart}
-                className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all hover:opacity-90 active:scale-[0.98]"
+                className="w-full font-bold py-3 rounded-xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
               >
-                Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
+                Reserve — ${(partySize * instance.pricePerPerson).toLocaleString()}
               </button>
             </div>
           )}
 
           {/* ── Not bookable ── */}
           {!isBooked && !canBook && (
-            <div className="text-center py-4">
-              <p className="text-gray-500 text-sm">
+            <div className="text-center py-2">
+              <p className="text-gray-500 text-[11px]">
                 {instance.status === 'sold-out'
                   ? 'This event is fully booked.'
                   : instance.status === 'cancelled'
@@ -457,22 +445,22 @@ const BookingModal: React.FC<{
 
           {/* Admin controls */}
           {isAdmin && (
-            <div className="pt-3 border-t border-gray-800 flex items-center gap-2">
-              <span className="text-xs text-gray-600 flex-1">Admin</span>
+            <div className="pt-2 border-t border-gray-800 flex items-center gap-2">
+              <span className="text-[9px] text-gray-600 flex-1">Admin</span>
               {instance.status !== 'sold-out' && onAdminForceSoldOut && (
-                  <button onClick={() => { onAdminForceSoldOut(); onClose(); }} className="text-[10px] text-pink-400 border border-pink-900/50 rounded-lg px-2 py-1.5 hover:bg-pink-900/20 transition-colors">
-                    Mark Sold Out
+                  <button onClick={() => { onAdminForceSoldOut(); onClose(); }} className="text-[9px] text-pink-400 border border-pink-900/50 rounded px-1.5 py-1 hover:bg-pink-900/20 transition-colors">
+                    Sold Out
                   </button>
               )}
               {instance.status !== 'cancelled' ? (
                 <button onClick={() => { if(onAdminCancel) onAdminCancel(); onClose(); }}
-                  className="text-[10px] text-red-400 border border-red-900/50 rounded-lg px-2 py-1.5 hover:bg-red-900/20 transition-colors">
-                  Cancel Event
+                  className="text-[9px] text-red-400 border border-red-900/50 rounded px-1.5 py-1 hover:bg-red-900/20 transition-colors">
+                  Cancel
                 </button>
               ) : (
                 <button onClick={() => { if(onAdminRestore) onAdminRestore(); onClose(); }}
-                  className="text-[10px] text-green-400 border border-green-900/50 rounded-lg px-2 py-1.5 hover:bg-green-900/20 transition-colors">
-                  Restore Event
+                  className="text-[9px] text-green-400 border border-green-900/50 rounded px-1.5 py-1 hover:bg-green-900/20 transition-colors">
+                  Restore
                 </button>
               )}
             </div>
@@ -576,27 +564,26 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
     <div className="min-h-screen animate-fade-in" style={{ background: 'transparent' }}>
 
       {/* ── Header ── */}
-      <div className="sticky top-0 z-30 px-4 pt-5 pb-3"
+      <div className="sticky top-0 z-30 px-4 pt-4 pb-2"
         style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-2xl font-black text-white leading-tight">
+            <h1 className="text-xl font-black text-white leading-tight">
               Experiences
             </h1>
-            <p className="text-xs text-gray-500">
-              {filtered.length} upcoming · scroll to discover
+            <p className="text-[10px] text-gray-500">
+              {filtered.length} upcoming
             </p>
           </div>
           <button
             onClick={() => setShowFilters(f => !f)}
-            className="flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-2 transition-colors"
+            className="flex items-center gap-1 text-[10px] font-semibold rounded-full px-3 py-1.5 transition-colors"
             style={showFilters
               ? { background: '#EC4899', color: '#fff' }
               : { background: 'rgba(255,255,255,0.06)', color: '#9CA3AF', border: '1px solid rgba(255,255,255,0.1)' }}
           >
-            <IconFilter className="w-3.5 h-3.5" />
+            <IconFilter className="w-3 h-3" />
             Filter
-            <IconChevron className={`w-3.5 h-3.5 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
@@ -609,7 +596,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className="flex-shrink-0 text-xs font-bold rounded-full px-3 py-1.5 transition-all"
+                className="flex-shrink-0 text-[10px] font-bold rounded-full px-3 py-1 transition-all"
                 style={active
                   ? { background: cfg?.color ?? '#EC4899', color: '#fff' }
                   : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -625,7 +612,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           <div className="flex gap-2 mt-2 overflow-x-auto pb-1 scrollbar-none animate-fade-in">
             <button
               onClick={() => setDayFilter(null)}
-              className="flex-shrink-0 text-xs font-bold rounded-full px-3 py-1.5 transition-all"
+              className="flex-shrink-0 text-[10px] font-bold rounded-full px-3 py-1 transition-all"
               style={dayFilter === null
                 ? { background: '#EC4899', color: '#fff' }
                 : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -636,7 +623,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
               <button
                 key={d}
                 onClick={() => setDayFilter(dayFilter === i ? null : i)}
-                className="flex-shrink-0 text-xs font-bold rounded-full px-3 py-1.5 transition-all"
+                className="flex-shrink-0 text-[10px] font-bold rounded-full px-3 py-1 transition-all"
                 style={dayFilter === i
                   ? { background: '#EC4899', color: '#fff' }
                   : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -648,22 +635,22 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
         )}
       </div>
 
-      <div className="px-4 pt-5 pb-24 space-y-10">
+      <div className="px-4 pt-4 pb-20 space-y-8">
 
         {/* ── Access notice ── */}
         {!canBook && !isAdmin && (
-          <div className="rounded-2xl px-4 py-3 text-sm flex items-center gap-3"
+          <div className="rounded-xl px-3 py-2 text-[11px] flex items-center gap-2"
             style={{ background: 'rgba(236,72,153,0.07)', border: '1px solid rgba(236,72,153,0.2)' }}>
-            <span className="text-xl">🔒</span>
+            <span>🔒</span>
             <p className="text-gray-300">
-              <span className="font-bold text-purple-400">Approved members only.</span> You can browse all events — booking requires an approved account and active membership.
+              <span className="font-bold text-purple-400">Approved members only.</span>
             </p>
           </div>
         )}
 
         {/* ── Event grid ── */}
         {visible.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {visible.map(instance => (
               <EventCard
                 key={instance.instanceId}
@@ -676,42 +663,37 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 text-gray-600">
-            <p className="text-4xl mb-3">🗓</p>
-            <p className="font-semibold">No events match your filters.</p>
-            <button onClick={() => { setTypeFilter('All'); setDayFilter(null); }}
-              className="mt-4 text-sm text-purple-400 hover:text-pink-300 transition-colors">
-              Clear filters
-            </button>
+          <div className="text-center py-12 text-gray-600">
+            <p className="text-3xl mb-2">🗓</p>
+            <p className="text-xs font-semibold">No events match your filters.</p>
           </div>
         )}
 
         {/* ── Infinite scroll loader ── */}
-        <div ref={loaderRef} className="flex justify-center py-4">
+        <div ref={loaderRef} className="flex justify-center py-2">
           {hasMore ? (
-            <div className="flex items-center gap-2 text-xs text-gray-600">
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex items-center gap-1.5 text-[10px] text-gray-600">
+              <div className="w-1 h-1 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-1 h-1 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-1 h-1 rounded-full bg-gray-700 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           ) : visible.length > 0 ? (
-            <p className="text-xs text-gray-700">You've seen all upcoming events</p>
+            <p className="text-[10px] text-gray-700">You've seen all events</p>
           ) : null}
         </div>
 
         {/* ── Weekly Schedule View ── */}
         <div>
-          <div className="flex items-center gap-3 mb-5">
-            <h2 className="text-lg font-black text-white">Weekly Schedule</h2>
-            <span className="text-xs text-gray-600">Recurring every week</span>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-sm font-black text-white">Weekly Schedule</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {scheduleByDay.map(({ day, dayIndex, entries }) => {
               if (entries.length === 0) return null;
               const isToday = new Date().getDay() === dayIndex;
               return (
                 <div key={day}
-                  className="rounded-2xl overflow-hidden"
+                  className="rounded-xl overflow-hidden"
                   style={{
                     background: isToday ? 'rgba(236,72,153,0.05)' : 'rgba(255,255,255,0.02)',
                     border: isToday ? '1px solid rgba(236,72,153,0.2)' : '1px solid rgba(255,255,255,0.05)',
@@ -730,7 +712,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
                           <p className="text-xs text-gray-500 truncate">{entry.venue}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-xs font-bold text-white">{entry.time}</p>
+                          <p className="text-xs font-bold text-white">{entry.arrivalTime || entry.time}</p>
                           <p className="text-xs text-gray-600">${entry.pricePerPerson}</p>
                         </div>
                       </div>

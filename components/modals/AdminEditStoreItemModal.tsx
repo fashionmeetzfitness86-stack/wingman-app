@@ -90,9 +90,9 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                                 </button>
                             </div>
                         ) : (
-                            <label htmlFor="image-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#EC4899]">
+                            <label htmlFor="image-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#FFFFFF]">
                                 <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-purple-400 font-semibold">Click to upload image</span>
+                                <span className="text-gray-300 font-semibold">Click to upload image</span>
                                 <span className="text-xs text-gray-500 mt-1">PNG or JPG</span>
                                 <input id="image-upload" type="file" className="sr-only" onChange={handleImageFileChange} accept="image/png, image/jpeg" />
                             </label>
@@ -113,9 +113,9 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                                 </button>
                             </div>
                         ) : (
-                            <label htmlFor="video-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#EC4899]">
+                            <label htmlFor="video-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-[#FFFFFF]">
                                 <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-purple-400 font-semibold">Click to upload video</span>
+                                <span className="text-gray-300 font-semibold">Click to upload video</span>
                                 <span className="text-xs text-gray-500 mt-1">MP4, MOV, etc.</span>
                                 <input id="video-upload" type="file" className="sr-only" onChange={handleVideoFileChange} accept="video/*" />
                             </label>
@@ -129,7 +129,7 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
                 </div>
                 <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
                     <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                    <button onClick={handleSave} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">Save Item</button>
+                    <button onClick={handleSave} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg">Save Item</button>
                 </div>
             </div>
         </div>
@@ -140,21 +140,21 @@ export const AdminEditStoreItemModal: React.FC<AdminEditStoreItemModalProps> = (
 const InputField: React.FC<{ label: string; value: string; onChange: (e: any) => void; type?: string; required?: boolean; placeholder?: string; }> = ({ label, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">{label} {props.required && <span className="text-red-500">*</span>}</label>
-        <input className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]" {...props} />
+        <input className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]" {...props} />
     </div>
 );
 
 const TextAreaField: React.FC<{ label: string; value: string; onChange: (e: any) => void; }> = ({ label, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
-        <textarea rows={3} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899] resize-none" {...props} />
+        <textarea rows={3} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] resize-none" {...props} />
     </div>
 );
 
 const SelectField: React.FC<{ label: string; value: string; onChange: (e: any) => void; options: string[]; required?: boolean; }> = ({ label, value, onChange, options, required }) => (
     <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">{label} {required && <span className="text-red-500">*</span>}</label>
-        <select value={value} onChange={onChange} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]">
+        <select value={value} onChange={onChange} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]">
             {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
     </div>

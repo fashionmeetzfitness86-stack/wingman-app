@@ -72,9 +72,9 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                     <div className="flex items-center gap-3">
                         <div
                             className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ background: 'rgba(236,72,153,0.12)' }}
+                            style={{ background: 'rgba(156,163,175,0.12)' }}
                         >
-                            <ShieldCheckIcon className="w-5 h-5 text-purple-400" />
+                            <ShieldCheckIcon className="w-5 h-5 text-gray-300" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white">Request Platform Access</h2>
@@ -97,9 +97,9 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                         <div className="flex flex-col items-center py-8 text-center gap-4">
                             <div
                                 className="w-16 h-16 rounded-full flex items-center justify-center"
-                                style={{ background: 'rgba(236,72,153,0.12)' }}
+                                style={{ background: 'rgba(156,163,175,0.12)' }}
                             >
-                                <ShieldCheckIcon className="w-8 h-8 text-purple-400" />
+                                <ShieldCheckIcon className="w-8 h-8 text-gray-300" />
                             </div>
                             <div>
                                 <p className="font-bold text-white text-lg mb-1">Request Submitted</p>
@@ -143,8 +143,8 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                                         onChange={e => setInstagram(e.target.value.replace(/^@/, ''))}
                                         placeholder="yourhandle"
                                         className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl pl-7 pr-4 py-3 text-sm focus:outline-none transition-colors"
-                                        style={{ '--tw-ring-color': '#EC4899' } as React.CSSProperties}
-                                        onFocus={e => (e.currentTarget.style.borderColor = '#EC4899')}
+                                        style={{ '--tw-ring-color': '#FFFFFF' } as React.CSSProperties}
+                                        onFocus={e => (e.currentTarget.style.borderColor = '#FFFFFF')}
                                         onBlur={e => (e.currentTarget.style.borderColor = '')}
                                     />
                                 </div>
@@ -161,7 +161,7 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                                     placeholder="Tell us a bit about yourself and why you'd like to join the Wingman platform..."
                                     rows={4}
                                     className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition-colors"
-                                    onFocus={e => (e.currentTarget.style.borderColor = '#EC4899')}
+                                    onFocus={e => (e.currentTarget.style.borderColor = '#FFFFFF')}
                                     onBlur={e => (e.currentTarget.style.borderColor = '')}
                                 />
                                 <div className="flex justify-between items-center mt-1">
@@ -198,9 +198,9 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
                         <button
                             onClick={handleSubmit}
                             className="flex-1 font-bold py-3 rounded-xl text-white text-sm transition-all active:scale-[0.98]"
-                            style={{ background: '#EC4899' }}
+                            style={{ background: '#FFFFFF' }}
                             onMouseEnter={e => (e.currentTarget.style.background = '#db2777')}
-                            onMouseLeave={e => (e.currentTarget.style.background = '#EC4899')}
+                            onMouseLeave={e => (e.currentTarget.style.background = '#FFFFFF')}
                         >
                             Submit Request
                         </button>

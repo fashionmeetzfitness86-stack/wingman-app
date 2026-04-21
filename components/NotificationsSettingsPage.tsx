@@ -72,7 +72,7 @@ const SETTINGS_GROUPS: { label: string; items: SettingItem[] }[] = [
       {
         key: 'eventAnnouncements',
         icon: <CalIcon className="w-5 h-5" />,
-        iconColor: '#E040FB',
+        iconColor: '#FFFFFF',
         title: 'Event Announcements',
         description: 'New events, exclusive drops & last-minute spots.',
       },
@@ -91,7 +91,7 @@ const SETTINGS_GROUPS: { label: string; items: SettingItem[] }[] = [
       {
         key: 'recommendations',
         icon: <SparkleIcon className="w-5 h-5" />,
-        iconColor: '#7B61FF',
+        iconColor: '#9CA3AF',
         title: 'AI Recommendations',
         description: 'Curated picks from your AI concierge, Gaby.',
       },
@@ -105,14 +105,14 @@ const SETTINGS_GROUPS: { label: string; items: SettingItem[] }[] = [
       {
         key: 'friendActivity',
         icon: <HeartIcon className="w-5 h-5" />,
-        iconColor: '#EC4899',
+        iconColor: '#FFFFFF',
         title: 'Friend Activity',
         description: 'When friends book an event or join the platform.',
       },
       {
         key: 'communityActivity',
         icon: <UsersIcon className="w-5 h-5" />,
-        iconColor: '#00D4FF',
+        iconColor: '#374151',
         title: 'Community Activity',
         description: 'Comments, reactions, and community highlights.',
       },
@@ -171,9 +171,9 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
           </div>
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #E040FB22, #7B61FF22)', border: '1px solid rgba(224,64,251,0.2)' }}
+            style={{ background: 'linear-gradient(135deg, #FFFFFF22, #9CA3AF22)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
-          <div style={{ color: '#E040FB' }}>
+          <div style={{ color: '#FFFFFF' }}>
             <BellIcon className="w-5 h-5" />
           </div>
           </div>
@@ -186,7 +186,7 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
         {!pushEnabled && (
           <div
             className="rounded-2xl p-4 flex items-start gap-3"
-            style={{ background: 'rgba(224,64,251,0.07)', border: '1px solid rgba(224,64,251,0.2)' }}
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
             <span className="text-xl mt-0.5">🔔</span>
             <div className="flex-1">
@@ -199,7 +199,7 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
               <button
                 onClick={onEnablePush}
                 className="text-xs font-bold rounded-xl px-3 py-2 flex-shrink-0 transition-all"
-                style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff', whiteSpace: 'nowrap' }}
+                style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', color: '#fff', whiteSpace: 'nowrap' }}
               >
                 Enable
               </button>
@@ -270,7 +270,7 @@ export const NotificationsSettingsPage: React.FC<NotificationsSettingsPageProps>
               onSettingsChange(all);
             }}
             className="py-3 rounded-2xl text-sm font-bold transition-all active:scale-[0.98]"
-            style={{ background: 'rgba(224,64,251,0.1)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.2)' }}
+            style={{ background: 'rgba(255,255,255,0.1)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.2)' }}
           >
             Enable All
           </button>

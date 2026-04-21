@@ -87,7 +87,7 @@ export const ExperienceDetailModal: React.FC<ExperienceDetailModalProps> = ({
                     className="w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg bg-amber-400 text-black hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 >
                     <KeyIcon className="w-5 h-5"/>
-                    Book Now
+                    Join
                 </button>
               );
           }
@@ -103,10 +103,10 @@ export const ExperienceDetailModal: React.FC<ExperienceDetailModalProps> = ({
             <button
                 onClick={() => onRequestAccess && onRequestAccess(experience.id)}
                 disabled={invitationStatus === 'rejected'}
-                className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg ${invitationStatus === 'rejected' ? 'bg-red-900 text-red-300 cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-500'}`}
+                className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg ${invitationStatus === 'rejected' ? 'bg-red-900 text-red-300 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200 text-white hover:bg-gray-200 text-black hover:bg-white'}`}
             >
                 <LockClosedIcon className="w-5 h-5"/>
-                {invitationStatus === 'rejected' ? 'Request Rejected' : 'Request Invite'}
+                {invitationStatus === 'rejected' ? 'Request Rejected' : 'Request Access'}
             </button>
           );
       }
@@ -118,7 +118,7 @@ export const ExperienceDetailModal: React.FC<ExperienceDetailModalProps> = ({
             aria-label={`Book experience: ${experience.title}`}
         >
             <KeyIcon className="w-5 h-5"/>
-            Book Now
+            Join
         </button>
       );
   }
@@ -147,7 +147,7 @@ export const ExperienceDetailModal: React.FC<ExperienceDetailModalProps> = ({
                             e.stopPropagation();
                             onToggleLike();
                         }}
-                        className={`p-2 rounded-full transition-all active:scale-95 backdrop-blur-sm ${isLiked ? 'bg-pink-500/80 text-white' : 'bg-black/50 text-white hover:bg-white/20'}`}
+                        className={`p-2 rounded-full transition-all active:scale-95 backdrop-blur-sm ${isLiked ? 'bg-white/80 text-black text-white' : 'bg-black/50 text-white hover:bg-white/20'}`}
                         aria-label={isLiked ? `Unlike ${experience.title}` : `Like ${experience.title}`}
                     >
                         <HeartIcon className="w-5 h-5" isFilled={isLiked} />

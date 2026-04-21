@@ -312,11 +312,11 @@ export interface WeeklyScheduleEntry {
   venue: string;
   address: string;
   time: string;                      // e.g. '10:00 PM'
+  arrivalTime?: string;              // Time of arrival or cutoff e.g. '10:00 PM - 11:30 PM'
   pricePerPerson: number;
   totalCapacity: number;
   bookingRules: {
     maxPerBooking?: number;          // Dinner: 2
-    minMenPerBooking?: number;       // Nightclub: 2
   };
   coverImage: string;
   isActive: boolean;
@@ -333,6 +333,7 @@ export interface EventInstance {
   experienceType: ExperienceType;
   date: string;                      // 'YYYY-MM-DD'
   time: string;
+  arrivalTime?: string;
   pricePerPerson: number;
   totalCapacity: number;
   spotsBooked: number;               // live counter
@@ -397,6 +398,7 @@ export interface AccessGroup {
   creationDate: string; // e.g., '2024-07-01'
   creatorId: number;
   status: 'approved' | 'pending';
+  likeCount?: number;
 }
 
 export interface GroupPost {
@@ -650,4 +652,5 @@ export type Page =
   | 'paymentMethods'
   | 'friendsZone'
   | 'friendZoneChat' // Added friendZoneChat
+  | 'referFriend'
   | 'eventDetail';

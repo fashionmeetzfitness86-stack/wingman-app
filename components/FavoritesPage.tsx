@@ -84,31 +84,31 @@ export const FavoritesPage: React.FC<FavoritesPageProps> = ({
       <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
           <button 
             onClick={() => setActiveTab('events')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'events' ? 'text-white border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'events' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
             Events ({favoriteEvents.length})
           </button>
           <button 
             onClick={() => setActiveTab('experiences')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'experiences' ? 'text-white border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'experiences' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
             Experiences ({favoriteExperiences.length})
           </button>
           <button 
             onClick={() => setActiveTab('bookmarks')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'bookmarks' ? 'text-white border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'bookmarks' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
             Saved ({bookmarkedEvents.length})
           </button>
           <button 
             onClick={() => setActiveTab('promoters')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'promoters' ? 'text-white border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'promoters' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
             Promoters ({favoritePromoters.length})
           </button>
           <button 
             onClick={() => setActiveTab('venues')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'venues' ? 'text-white border-b-2 border-[#EC4899]' : 'text-gray-400'}`}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'venues' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
             Venues ({favoriteVenues.length})
           </button>

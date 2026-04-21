@@ -92,7 +92,7 @@ export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({ itin
                     onClone && (
                         <button 
                             onClick={() => onClone(itinerary)}
-                            className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-[#d8428a] transition-colors"
+                            className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-[#E5E5E5] transition-colors"
                         >
                             <DocumentDuplicateIcon className="w-4 h-4" />
                             Copy to My Itineraries

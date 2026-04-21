@@ -10,9 +10,9 @@ interface StoreItemCardProps {
 }
 
 const CATEGORY_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  Merchandise: { color: '#A855F7', bg: 'rgba(168,85,247,0.12)', label: 'Merch'       },
-  NFT:         { color: '#00D4FF', bg: 'rgba(0,212,255,0.12)',   label: 'NFT'         },
-  Perk:        { color: '#E040FB', bg: 'rgba(224,64,251,0.12)',  label: 'Perk'        },
+  Merchandise: { color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)', label: 'Merch'       },
+  NFT:         { color: '#374151', bg: 'rgba(55,65,81,0.12)',   label: 'NFT'         },
+  Perk:        { color: '#FFFFFF', bg: 'rgba(255,255,255,0.12)',  label: 'Perk'        },
   VIP:         { color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',  label: 'VIP'         },
 };
 
@@ -63,7 +63,7 @@ export const StoreItemCard: React.FC<StoreItemCardProps> = ({ item, onPurchase, 
 
         {/* Price row */}
         <div className="flex items-center gap-2 mb-4">
-          <TokenIcon className="w-4 h-4" style={{ color: '#E040FB' } as React.CSSProperties} />
+          <TokenIcon className="w-4 h-4" style={{ color: '#FFFFFF' } as React.CSSProperties} />
           <span className="text-white font-black text-lg">{item.price.toLocaleString()}</span>
           <span className="text-gray-600 text-xs ml-auto">${item.priceUSD.toFixed(0)} USD</span>
         </div>
@@ -86,8 +86,8 @@ export const StoreItemCard: React.FC<StoreItemCardProps> = ({ item, onPurchase, 
             onClick={() => onPurchase(item)}
             className="flex-1 font-bold py-2.5 rounded-xl text-sm text-white transition-all active:scale-[0.97]"
             style={{
-              background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
-              boxShadow: '0 4px 14px rgba(224,64,251,0.25)',
+              background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)',
+              boxShadow: '0 4px 14px rgba(255,255,255,0.25)',
             }}
             aria-label={`Buy ${item.title} now`}
           >

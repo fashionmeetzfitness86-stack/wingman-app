@@ -48,7 +48,7 @@ export const SelectPromoterModal: React.FC<SelectPromoterModalProps> = ({ isOpen
                 <button 
                   key={promoter.id}
                   onClick={() => onSelectPromoter(promoter)}
-                  className="w-full flex items-center gap-4 p-3 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 text-left cursor-pointer focus:ring-2 focus:ring-[#EC4899] focus:outline-none"
+                  className="w-full flex items-center gap-4 p-3 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 text-left cursor-pointer focus:ring-2 focus:ring-[#FFFFFF] focus:outline-none"
                   aria-label={`Select promoter ${promoter.name}`}
                 >
                   <img src={promoter.profilePhoto} alt={promoter.name} className="w-14 h-14 rounded-full object-cover" />
@@ -75,7 +75,7 @@ export const SelectPromoterModal: React.FC<SelectPromoterModalProps> = ({ isOpen
                         }
                     }}
                     disabled={promoters.length === 0}
-                    className="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#d8428a] transition-colors shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E5E5E5] transition-colors shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Book with General Concierge
                 </button>

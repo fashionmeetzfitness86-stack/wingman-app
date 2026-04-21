@@ -37,6 +37,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     venue: 'Nobu Miami Beach',
     address: '4525 Collins Ave, Miami Beach',
     time: '8:00 PM',
+    arrivalTime: '8:00 PM - 8:30 PM',
     pricePerPerson: 400,
     totalCapacity: 10,
     bookingRules: { maxPerBooking: 2 },
@@ -55,7 +56,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     time: '11:00 PM',
     pricePerPerson: 500,
     totalCapacity: 5,
-    bookingRules: { minMenPerBooking: 2 },
+    bookingRules: {},
     coverImage: IMG.nightclub1,
     isActive: true,
   },
@@ -69,6 +70,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     venue: 'Sexy Fish Miami',
     address: '1701 Collins Ave, Miami Beach',
     time: '9:00 PM',
+    arrivalTime: '9:00 PM - 9:30 PM',
     pricePerPerson: 400,
     totalCapacity: 10,
     bookingRules: { maxPerBooking: 2 },
@@ -87,7 +89,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     time: '11:00 PM',
     pricePerPerson: 500,
     totalCapacity: 5,
-    bookingRules: { minMenPerBooking: 2 },
+    bookingRules: {},
     coverImage: IMG.nightclub2,
     isActive: true,
   },
@@ -103,7 +105,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     time: '10:00 PM',
     pricePerPerson: 500,
     totalCapacity: 5,
-    bookingRules: { minMenPerBooking: 2 },
+    bookingRules: {},
     coverImage: IMG.nightclub3,
     isActive: true,
   },
@@ -133,7 +135,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     time: '11:00 PM',
     pricePerPerson: 500,
     totalCapacity: 5,
-    bookingRules: { minMenPerBooking: 2 },
+    bookingRules: {},
     coverImage: IMG.nightclub1,
     isActive: true,
   },
@@ -161,6 +163,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     venue: 'Komodo Miami',
     address: '801 Brickell Ave, Miami',
     time: '8:00 PM',
+    arrivalTime: '8:00 PM - 8:30 PM',
     pricePerPerson: 400,
     totalCapacity: 10,
     bookingRules: { maxPerBooking: 2 },
@@ -263,6 +266,7 @@ export function generateEventFeed(
         experienceType: entry.experienceType,
         date: dateStr,
         time: entry.time,
+        arrivalTime: entry.arrivalTime,
         pricePerPerson: entry.pricePerPerson,
         totalCapacity: entry.totalCapacity,
         spotsBooked,
@@ -277,10 +281,27 @@ export function generateEventFeed(
   // Sort: soonest first, then by time
   instances.sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
-    return a.time.localeCompare(b.time);
+    
+    // Sort by arrivalTime or time
+    const timeA = parseTime(a.arrivalTime || a.time);
+    const timeB = parseTime(b.arrivalTime || b.time);
+    return timeA - timeB;
   });
 
   return instances;
+}
+
+/** Helper to convert "11:00 PM" into integer like 2300 for sorting */
+function parseTime(timeStr: string): number {
+  if (!timeStr) return 0;
+  const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const isPM = match[3].toUpperCase() === 'PM';
+  if (isPM && hours < 12) hours += 12;
+  if (!isPM && hours === 12) hours = 0;
+  return hours * 100 + minutes;
 }
 
 /** Format date for display: "Tue, Apr 22" */

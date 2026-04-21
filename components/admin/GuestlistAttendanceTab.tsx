@@ -147,7 +147,7 @@ export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
                     <label htmlFor="venue-filter" className="block text-sm font-medium text-gray-300 mb-2">Filter by Venue</label>
-                    <select id="venue-filter" value={selectedVenueId} onChange={e => { setSelectedVenueId(e.target.value); setSelectedDate(''); }} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#EC4899] focus:border-[#EC4899] pr-8">
+                    <select id="venue-filter" value={selectedVenueId} onChange={e => { setSelectedVenueId(e.target.value); setSelectedDate(''); }} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8">
                         <option value="all">All Venues</option>
                         {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                     </select>
@@ -155,7 +155,7 @@ export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ 
                 </div>
                  <div className="relative">
                     <label htmlFor="date-filter" className="block text-sm font-medium text-gray-300 mb-2">Filter by Date</label>
-                    <select id="date-filter" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={selectedVenueId === 'all'} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#EC4899] focus:border-[#EC4899] pr-8 disabled:opacity-50">
+                    <select id="date-filter" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} disabled={selectedVenueId === 'all'} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8 disabled:opacity-50">
                         <option value="">All Dates for Venue</option>
                         {availableDates.map(date => <option key={date} value={date}>{date}</option>)}
                     </select>

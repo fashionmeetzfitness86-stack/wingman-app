@@ -38,9 +38,9 @@ const WingmanLogo: React.FC = () => (
     <svg width="28" height="28" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
         <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#E040FB" />
-          <stop offset="50%" stopColor="#7B61FF" />
-          <stop offset="100%" stopColor="#00D4FF" />
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="50%" stopColor="#9CA3AF" />
+          <stop offset="100%" stopColor="#374151" />
         </linearGradient>
       </defs>
       {/* Pin shape */}
@@ -58,7 +58,7 @@ const WingmanLogo: React.FC = () => (
       style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.05em' }}
     >
       <span style={{
-        background: 'linear-gradient(90deg, #E040FB, #7B61FF, #00D4FF)',
+        background: 'linear-gradient(90deg, #FFFFFF, #9CA3AF, #374151)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full mr-1 ${balanceJustUpdated ? 'animate-flash-blue' : ''}`}
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
-            <TokenIcon className="w-4 h-4" style={{ color: '#E040FB' } as React.CSSProperties} />
+            <TokenIcon className="w-4 h-4" style={{ color: '#FFFFFF' } as React.CSSProperties} />
             <span className="text-white font-bold text-xs">{tokenBalance.toLocaleString()}</span>
           </div>
         )}
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
           {cartItemCount > 0 && (
             <span
               className="absolute top-0.5 right-0.5 w-4 h-4 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-black"
-              style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }}
+              style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)' }}
             >
               {cartItemCount > 9 ? '9+' : cartItemCount}
             </span>
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
           {hasNotifications && (
             <span
               className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2 border-black"
-              style={{ background: '#E040FB' }}
+              style={{ background: '#FFFFFF' }}
             />
           )}
         </button>

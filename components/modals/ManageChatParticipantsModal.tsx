@@ -84,7 +84,7 @@ export const ManageChatParticipantsModal: React.FC<ManageChatParticipantsModalPr
                                     <img src={user.profilePhoto} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
                                     <span className="text-white font-medium">{user.name}</span>
                                 </div>
-                                <div className="bg-purple-600 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="bg-white text-black hover:bg-gray-200 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
                                     <PlusIcon className="w-4 h-4" />
                                 </div>
                             </button>
