@@ -109,7 +109,7 @@ export const PromoterListItem: React.FC<PromoterListItemProps> = ({ promoter, on
               className="bg-gray-800 border border-gray-700 text-gray-300 p-2 rounded-lg hover:bg-gray-700 hover:text-white transition-colors"
               aria-label={isFavorite ? `Remove ${promoter.name} from favorites` : `Add ${promoter.name} to favorites`}
             >
-              <HeartIcon className={`w-5 h-5 ${isFavorite ? 'text-purple-400 fill-[#EC4899]' : ''}`} isFilled={isFavorite} />
+              <HeartIcon className={`w-5 h-5 ${isFavorite ? 'text-gray-300 fill-[#FFFFFF]' : ''}`} isFilled={isFavorite} />
             </button>
           </div>
         </div>

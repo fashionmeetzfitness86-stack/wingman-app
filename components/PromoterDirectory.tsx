@@ -62,7 +62,7 @@ export const PromoterDirectory: React.FC<PromoterDirectoryProps> = ({ promoters,
     <div className="p-4 md:p-8 animate-fade-in">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
-          Find Your <span className="text-purple-400">Wingman</span>
+          Find Your <span className="text-gray-300">Wingman</span>
         </h1>
         <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto">
           Connect with Miami's elite promoters to unlock exclusive access to the city's most sought-after nightlife experiences.
@@ -83,7 +83,7 @@ export const PromoterDirectory: React.FC<PromoterDirectoryProps> = ({ promoters,
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by promoter..."
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
             />
             </div>
             <div className="flex w-full md:w-auto gap-4">
@@ -93,7 +93,7 @@ export const PromoterDirectory: React.FC<PromoterDirectoryProps> = ({ promoters,
                 id="filter-city"
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#EC4899] focus:border-[#EC4899] pr-8"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8"
                 >
                 <option value="all">All Cities</option>
                 {cities.map(city => (

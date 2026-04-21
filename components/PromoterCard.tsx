@@ -70,7 +70,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
     <>
       <div 
           onClick={() => onViewProfile(promoter)} 
-          className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#EC4899] hover:shadow-2xl hover:shadow-[#EC4899]/10 group cursor-pointer relative"
+          className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#FFFFFF] hover:shadow-2xl hover:shadow-[#FFFFFF]/10 group cursor-pointer relative"
           role="button"
           tabIndex={0}
           onKeyPress={(e) => e.key === 'Enter' && onViewProfile(promoter)}
@@ -101,7 +101,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
                 aria-label={isFavorite ? `Remove ${promoter.name} from favorites` : `Add ${promoter.name} to favorites`}
                 title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
               >
-                <HeartIcon className={`w-5 h-5 transition-transform duration-300 ${isFavorite ? 'scale-110 text-purple-400 fill-[#EC4899]' : 'text-white'}`} isFilled={isFavorite} />
+                <HeartIcon className={`w-5 h-5 transition-transform duration-300 ${isFavorite ? 'scale-110 text-gray-300 fill-[#FFFFFF]' : 'text-white'}`} isFilled={isFavorite} />
               </button>
           </div>
 
@@ -112,7 +112,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
                   <p className="text-sm text-gray-300 font-medium">{promoter.handle}</p>
                 </div>
                 <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full backdrop-blur-md border border-white/10">
-                    <StarIcon className="w-3.5 h-3.5 text-purple-400" />
+                    <StarIcon className="w-3.5 h-3.5 text-gray-300" />
                     <span className="text-white font-bold text-sm">{promoter.rating.toFixed(1)}</span>
                 </div>
             </div>
@@ -130,7 +130,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
           <div className="flex flex-col gap-2 pt-2 border-t border-gray-800">
               <button
                 onClick={(e) => { e.stopPropagation(); onBook(promoter); }}
-                className="w-full text-center bg-purple-600 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-all duration-300 hover:bg-[#d8428a] hover:shadow-lg hover:shadow-[#EC4899]/20"
+                className="w-full text-center bg-white text-black hover:bg-gray-200 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-all duration-300 hover:bg-[#E5E5E5] hover:shadow-lg hover:shadow-[#FFFFFF]/20"
                 aria-label={`Book a table with ${promoter.name}`}
               >
                 Book Table

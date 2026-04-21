@@ -65,7 +65,7 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({ onNavigate }) 
         </div>
       </div>
       <div className="mt-10 max-w-2xl">
-        <Button className="w-full bg-purple-600 text-white hover:bg-[#d8428a] font-bold shadow-lg shadow-pink-900/20">
+        <Button className="w-full bg-white text-black hover:bg-gray-200 text-white hover:bg-[#E5E5E5] font-bold shadow-lg shadow-pink-900/20">
             Submit Report
         </Button>
       </div>

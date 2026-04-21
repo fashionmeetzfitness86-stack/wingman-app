@@ -426,7 +426,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
 
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
             <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-pink-500 rounded-full"></span>
+                <span className="w-1 h-6 bg-white text-black hover:bg-gray-200 rounded-full"></span>
                 Appearance
             </h2>
             <div className="space-y-5">
@@ -444,7 +444,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
              <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                    <span className="w-1 h-6 bg-gray-200 text-black hover:bg-white rounded-full"></span>
                     My Gallery
                 </h2>
                 <span className="text-sm text-gray-400">{galleryImages.length}/10 (Min 3)</span>

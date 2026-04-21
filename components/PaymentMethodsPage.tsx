@@ -113,7 +113,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                     <h2 className="text-lg font-semibold text-white/80 mb-4 uppercase tracking-wider text-xs">Credit & Debit Cards</h2>
                     <div className="space-y-3">
                         {cards.map((card) => (
-                            <div key={card.id} className={`p-4 rounded-xl flex items-center gap-4 border transition-all duration-300 ${getCardBrandColor(card.type)} ${card.isDefault ? 'ring-2 ring-[#EC4899] ring-offset-2 ring-offset-[#121212]' : ''}`}>
+                            <div key={card.id} className={`p-4 rounded-xl flex items-center gap-4 border transition-all duration-300 ${getCardBrandColor(card.type)} ${card.isDefault ? 'ring-2 ring-[#FFFFFF] ring-offset-2 ring-offset-[#121212]' : ''}`}>
                                 <div className="bg-white/10 p-3 rounded-lg backdrop-blur-md">
                                     <CreditCardIcon className="w-6 h-6 text-white" />
                                 </div>
@@ -121,7 +121,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                                     <div className="flex items-center gap-3 mb-1">
                                         <p className="font-bold text-white text-lg tracking-wide">{card.type}</p>
                                         <p className="text-white/60 font-mono">•••• {card.last4}</p>
-                                        {card.isDefault && <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide shadow-sm">Default</span>}
+                                        {card.isDefault && <span className="text-[10px] bg-white text-black hover:bg-gray-200 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide shadow-sm">Default</span>}
                                     </div>
                                     <div className="flex gap-4 text-sm text-white/50">
                                         <p>Exp: {card.expiry}</p>
@@ -168,7 +168,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                     <h2 className="text-lg font-semibold text-white/80 mb-4 uppercase tracking-wider text-xs">Other Methods</h2>
                     <div className="space-y-3">
                             {otherMethods.map((method) => (
-                            <div key={method.id} className={`bg-gray-900 p-4 rounded-xl flex items-center gap-4 border border-gray-800 ${method.isDefault ? 'ring-2 ring-[#EC4899] ring-offset-2 ring-offset-[#121212]' : ''}`}>
+                            <div key={method.id} className={`bg-gray-900 p-4 rounded-xl flex items-center gap-4 border border-gray-800 ${method.isDefault ? 'ring-2 ring-[#FFFFFF] ring-offset-2 ring-offset-[#121212]' : ''}`}>
                                 <div className="bg-gray-800 w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden border border-gray-700 text-white">
                                     {method.type === 'Crypto Wallet' ? 
                                         <TokenIcon className="w-6 h-6 text-amber-400" /> :
@@ -178,7 +178,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                                 <div className="flex-grow">
                                     <div className="flex items-center gap-2">
                                         <p className="font-bold text-white">{method.type}</p>
-                                        {method.isDefault && <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
+                                        {method.isDefault && <span className="text-[10px] bg-white text-black hover:bg-gray-200 text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
                                     </div>
                                     {method.detail && (
                                         <p className="text-sm text-gray-400 truncate max-w-[200px]">{method.detail}</p>
@@ -223,7 +223,7 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                 <div className="container mx-auto max-w-5xl">
                     <button 
                         onClick={handleOpenAdd}
-                        className="w-full bg-purple-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
+                        className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
                     >
                         <PlusIcon className="w-5 h-5"/>
                         Add Payment Method

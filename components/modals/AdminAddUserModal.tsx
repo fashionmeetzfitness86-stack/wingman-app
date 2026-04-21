@@ -39,12 +39,12 @@ const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
             {steps.map((step, index) => (
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${currentStep >= index + 1 ? 'bg-purple-600 border-[#EC4899] text-white' : 'border-gray-600 text-gray-400'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${currentStep >= index + 1 ? 'bg-white text-black hover:bg-gray-200 border-[#FFFFFF] text-white' : 'border-gray-600 text-gray-400'}`}>
                             <span className="font-bold">{index + 1}</span>
                         </div>
                         <p className={`text-xs mt-1 transition-colors ${currentStep >= index + 1 ? 'text-white' : 'text-gray-500'}`}>{step}</p>
                     </div>
-                    {index < steps.length - 1 && <div className={`flex-1 h-0.5 mx-2 transition-colors ${currentStep > index + 1 ? 'bg-purple-600' : 'bg-gray-700'}`}></div>}
+                    {index < steps.length - 1 && <div className={`flex-1 h-0.5 mx-2 transition-colors ${currentStep > index + 1 ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-700'}`}></div>}
                 </React.Fragment>
             ))}
         </div>
@@ -192,7 +192,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
                             <label className="block text-sm font-medium text-gray-400 mb-2">Profile Photo</label>
                             {newUser.profilePhoto ? (
                                 <div className="relative w-24 h-24 mx-auto">
-                                    <img src={newUser.profilePhoto} alt="Profile preview" className="w-full h-full object-cover rounded-full border-2 border-[#EC4899]" />
+                                    <img src={newUser.profilePhoto} alt="Profile preview" className="w-full h-full object-cover rounded-full border-2 border-[#FFFFFF]" />
                                     <button
                                         type="button"
                                         onClick={() => handleChange('profilePhoto', '')}
@@ -205,10 +205,10 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
                             ) : (
                                 <div 
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center text-center hover:border-[#EC4899] transition-colors"
+                                    className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center text-center hover:border-[#FFFFFF] transition-colors"
                                 >
                                     <CloudArrowUpIcon className="w-8 h-8 text-gray-400 mb-2" />
-                                    <span className="text-purple-400 font-semibold text-sm">Upload Photo</span>
+                                    <span className="text-gray-300 font-semibold text-sm">Upload Photo</span>
                                     <input ref={fileInputRef} type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" />
                                 </div>
                             )}
@@ -217,12 +217,12 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <label className="block text-sm font-medium text-gray-400">About Me / Bio</label>
-                                <button type="button" onClick={handleImproveBio} disabled={isImprovingBio} className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-pink-300 disabled:text-gray-500">
+                                <button type="button" onClick={handleImproveBio} disabled={isImprovingBio} className="flex items-center gap-1 text-xs font-semibold text-gray-300 hover:text-pink-300 disabled:text-gray-500">
                                     {isImprovingBio ? <Spinner className="w-4 h-4" /> : <SparkleIcon className="w-4 h-4" />}
                                     Improve with AI
                                 </button>
                             </div>
-                            <textarea value={newUser.bio} onChange={e => handleChange('bio', e.target.value)} rows={3} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899] resize-none" />
+                            <textarea value={newUser.bio} onChange={e => handleChange('bio', e.target.value)} rows={3} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] resize-none" />
                         </div>
                         <InputField label="City" value={newUser.city} onChange={e => handleChange('city', e.target.value)} />
                         <InputField label="Phone Number (Optional)" value={newUser.phoneNumber} onChange={e => handleChange('phoneNumber', e.target.value)} type="tel" />
@@ -248,7 +248,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({ isOpen, on
             <div className="p-4 border-t border-gray-800 flex justify-between gap-3">
                 <button onClick={handleBack} disabled={isSaving || step === 1} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">Back</button>
                 {step < 3 ? (
-                    <button onClick={handleNext} disabled={isSaving} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg">Next</button>
+                    <button onClick={handleNext} disabled={isSaving} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg">Next</button>
                 ) : (
                     <button onClick={handleSave} disabled={isSaving} className="bg-green-500 text-white font-bold py-2 px-4 rounded-lg w-32 flex items-center justify-center disabled:bg-green-500/50">
                         {isSaving ? <Spinner className="w-5 h-5" /> : 'Create User'}
@@ -266,7 +266,7 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
         <label className="block text-sm font-medium text-gray-400 mb-2">{label} {props.required && <span className="text-red-500">*</span>}</label>
         <div className="relative">
             {prefix && <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">{prefix}</span>}
-            <input {...props} className={`w-full bg-gray-800 border ${error ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899] ${prefix ? 'pl-7' : ''}`} />
+            <input {...props} className={`w-full bg-gray-800 border ${error ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] ${prefix ? 'pl-7' : ''}`} />
         </div>
         {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
     </div>
@@ -275,7 +275,7 @@ const InputField: React.FC<{ label: string; value: string; onChange: (e: React.C
 const SelectField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; children: React.ReactNode; disabled?: boolean; }> = ({ label, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-gray-400 mb-2">{label}</label>
-        <select {...props} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899] disabled:bg-gray-700/50 disabled:cursor-not-allowed" />
+        <select {...props} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] disabled:bg-gray-700/50 disabled:cursor-not-allowed" />
     </div>
 );
 

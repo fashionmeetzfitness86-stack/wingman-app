@@ -32,7 +32,7 @@ export const AddedToPlansModal: React.FC<AddedToPlansModalProps> = ({ isOpen, on
         <div className="flex flex-col gap-3">
              <button 
                 onClick={onCheckout}
-                className="w-full bg-purple-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#d8428a] transition-transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-pink-900/20"
+                className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#E5E5E5] transition-transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-pink-900/20"
             >
                 <CartIcon className="w-5 h-5" />
                 Go to My Plans

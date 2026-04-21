@@ -27,15 +27,15 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
         <div
           className="absolute inset-0 rounded-full animate-pulse"
           style={{
-            background: 'radial-gradient(circle, rgba(224,64,251,0.15) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)',
             transform: 'scale(2.2)',
           }}
         />
         <div
           className="w-24 h-24 rounded-full flex items-center justify-center relative"
           style={{
-            background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
-            boxShadow: '0 0 40px rgba(224,64,251,0.35)',
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+            boxShadow: '0 0 40px rgba(255,255,255,0.35)',
           }}
         >
           {/* Map pin SVG */}
@@ -53,7 +53,7 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
       >
         Wingman will make you<br />
         <span style={{
-          background: 'linear-gradient(135deg, #E040FB 0%, #7B61FF 50%, #00D4FF 100%)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -93,12 +93,12 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
       <div className="flex items-center gap-2.5 text-xs text-gray-600">
         <span
           className="w-1.5 h-1.5 rounded-full animate-pulse"
-          style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)' }}
+          style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)' }}
         />
         <span>Coming soon</span>
         <span
           className="w-1.5 h-1.5 rounded-full animate-pulse"
-          style={{ background: 'linear-gradient(135deg, #E040FB, #00D4FF)', animationDelay: '0.5s' }}
+          style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)', animationDelay: '0.5s' }}
         />
       </div>
     </div>

@@ -117,14 +117,14 @@ export const PromoterNetworkTab: React.FC<PromoterNetworkTabProps> = ({ promoter
                         placeholder="Search by name or email..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-4 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-4 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                     />
                 </div>
                 <div className="relative w-full md:w-48">
                     <select 
                         value={activeFilter} 
                         onChange={(e) => setActiveFilter(e.target.value as any)} 
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#EC4899] focus:border-[#EC4899] pr-8"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8"
                     >
                         <option value="all">All Network</option>
                         <option value="referrals">Referrals</option>

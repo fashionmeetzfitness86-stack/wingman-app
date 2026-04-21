@@ -205,7 +205,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({ isOpen, on
                         <div className="flex flex-wrap gap-3">
                             {items.map((item, idx) => (
                                 <div key={`${day}-${idx}`} className="flex items-center gap-2 bg-gray-800 pl-2 pr-2 py-1.5 rounded-lg border border-gray-700 group hover:border-gray-600 transition-colors">
-                                    {item.type === 'venue' ? <LocationMarkerIcon className="w-3 h-3 text-amber-400"/> : <SparkleIcon className="w-3 h-3 text-purple-400"/>}
+                                    {item.type === 'venue' ? <LocationMarkerIcon className="w-3 h-3 text-amber-400"/> : <SparkleIcon className="w-3 h-3 text-gray-300"/>}
                                     <span className="text-sm font-medium text-white">{item.name}</span>
                                     <button 
                                         onClick={() => handleRemoveItem(day, idx)}

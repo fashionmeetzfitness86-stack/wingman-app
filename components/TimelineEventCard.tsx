@@ -112,16 +112,16 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     className={`font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-24 ${
                         isRsvped
                             ? 'bg-gray-700 text-gray-300'
-                            : 'bg-purple-600 text-white'
+                            : 'bg-white text-black hover:bg-gray-200 text-white'
                     }`}
                 >
                     {isRsvped ? (
                         <>
                             <CheckIcon className="w-4 h-4" />
-                            <span>Booked</span>
+                            <span>Joined</span>
                         </>
                     ) : (
-                        'Book Now'
+                        'Join'
                     )}
                 </button>
               );
@@ -151,10 +151,10 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                         e.stopPropagation();
                         onRequestInvite?.();
                     }}
-                    className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-purple-600 text-white hover:bg-purple-500"
+                    className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-white text-black hover:bg-gray-200 text-white hover:bg-gray-200 text-black hover:bg-white"
                 >
                     <LockClosedIcon className="w-4 h-4" />
-                    <span>Request Invite</span>
+                    <span>Request Access</span>
                 </button>
               );
           }
@@ -167,11 +167,11 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     e.stopPropagation();
                     onBook(event);
                 }}
-                className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-purple-600 text-white hover:bg-[#d8428a]"
+                className="font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-32 bg-white text-black hover:bg-gray-200 text-white hover:bg-[#E5E5E5]"
                 aria-label={`Book tickets for ${event.title}`}
             >
                 <KeyIcon className="w-4 h-4" />
-                <span>Book Tickets</span>
+                <span>Join</span>
             </button>
           );
       }
@@ -182,17 +182,17 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             className={`font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-1.5 w-24 ${
                 isRsvped
                     ? 'bg-gray-700 text-gray-300'
-                    : 'bg-purple-600 text-white'
+                    : 'bg-white text-black hover:bg-gray-200 text-white'
             }`}
-            aria-label={isRsvped ? `Cancel RSVP for ${event.title}` : `RSVP for ${event.title}`}
+            aria-label={isRsvped ? `Cancel access for ${event.title}` : `Join ${event.title}`}
         >
             {isRsvped ? (
                 <>
                     <CheckIcon className="w-4 h-4" />
-                    <span>Going</span>
+                    <span>Joined</span>
                 </>
             ) : (
-                'RSVP'
+                'Join'
             )}
         </button>
       );
@@ -205,16 +205,16 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
       onKeyPress={(e) => e.key === 'Enter' && onViewDetails(event)}
       tabIndex={0}
       role="button"
-      className="w-full flex gap-4 items-center bg-[#1C1C1E] p-4 rounded-xl border border-transparent hover:border-[#EC4899]/50 transition-colors duration-300 text-left cursor-pointer"
+      className="w-full flex gap-3 sm:gap-4 items-center bg-[#1C1C1E] p-3 sm:p-4 rounded-xl border border-transparent hover:border-[#FFFFFF]/50 transition-colors duration-300 text-left cursor-pointer"
       aria-label={`View details for ${event.title}`}
     >
-      <div className="flex flex-col items-center justify-center w-16 h-16 bg-black rounded-lg flex-shrink-0">
-        <span className="text-sm font-semibold text-gray-400">{month}</span>
-        <span className="text-2xl font-bold text-white">{day}</span>
+      <div className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-black rounded-lg flex-shrink-0">
+        <span className="text-xs sm:text-sm font-semibold text-gray-400">{month}</span>
+        <span className="text-xl sm:text-2xl font-bold text-white">{day}</span>
       </div>
       <div className="flex-grow min-w-0">
         <div className="flex items-center gap-2">
-            <p className={`text-xs font-bold uppercase tracking-wider ${event.type === 'EXCLUSIVE' ? 'text-green-400' : 'text-purple-400'}`}>{event.type}</p>
+            <p className={`text-xs font-bold uppercase tracking-wider ${event.type === 'EXCLUSIVE' ? 'text-green-400' : 'text-gray-300'}`}>{event.type}</p>
             {event.recurrence && <RepeatIcon className="w-4 h-4 text-gray-400" title="Recurring Event" />}
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -239,22 +239,22 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             {venueMusicType && <span className="text-xs font-semibold bg-gray-700 text-gray-300 px-2 py-1 rounded-md">{venueMusicType}</span>}
         </div>
       </div>
-       <div className="flex flex-col items-center gap-2 self-center flex-shrink-0">
+       <div className="flex flex-col items-center gap-1.5 self-center flex-shrink-0">
             {renderActionButton()}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleLike(event.id); }}
-                    className={`p-2 rounded-full transition-all active:scale-95 ${isLiked ? 'text-purple-400 bg-purple-600/10' : 'text-gray-400 hover:bg-gray-800'}`}
+                    className={`p-1.5 sm:p-2 rounded-full transition-all active:scale-95 ${isLiked ? 'text-gray-300 bg-white text-black hover:bg-gray-200/10' : 'text-gray-400 hover:bg-gray-800'}`}
                     aria-label={isLiked ? `Unlike ${event.title}` : `Like ${event.title}`}
                 >
-                    <HeartIcon className="w-5 h-5" isFilled={isLiked} />
+                    <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5" isFilled={isLiked} />
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleBookmark(event.id); }}
-                    className={`p-2 rounded-full transition-all active:scale-95 ${isBookmarked ? 'text-amber-400 bg-amber-400/10' : 'text-gray-400 hover:bg-gray-800'}`}
+                    className={`p-1.5 sm:p-2 rounded-full transition-all active:scale-95 ${isBookmarked ? 'text-amber-400 bg-amber-400/10' : 'text-gray-400 hover:bg-gray-800'}`}
                     aria-label={isBookmarked ? `Remove ${event.title} from bookmarks` : `Bookmark ${event.title}`}
                 >
-                    <BookmarkIcon className="w-5 h-5" isFilled={isBookmarked} />
+                    <BookmarkIcon className="w-4 h-4 sm:w-5 sm:h-5" isFilled={isBookmarked} />
                 </button>
                  <button
                     onClick={handleShareClick}
@@ -270,8 +270,8 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
         onConfirm={handleConfirmCancel}
-        title="Cancel RSVP"
-        message="Are you sure you want to cancel your RSVP for this event?"
+        title="Cancel Access"
+        message="Are you sure you want to cancel your access to this event?"
         confirmText="Yes, cancel"
         confirmVariant="danger"
     />

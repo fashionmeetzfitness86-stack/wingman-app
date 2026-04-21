@@ -82,8 +82,8 @@ const IcoAnchor = () => (
 const TYPE_CFG = {
   Nightclub: {
     icon: <IcoMoon />,
-    color: '#A855F7',
-    bg: 'rgba(168,85,247,0.15)',
+    color: '#9CA3AF',
+    bg: 'rgba(156,163,175,0.15)',
     label: 'Nightclub',
     tagline: 'Curated nightlife access',
     expect: [
@@ -120,7 +120,7 @@ const TYPE_CFG = {
 
 const STATUS_CFG = {
   available: { label: 'Available', color: '#22C55E', dot: '#22C55E', pulse: false },
-  limited:   { label: 'Limited',   color: '#E040FB', dot: '#E040FB', pulse: true  },
+  limited:   { label: 'Limited',   color: '#FFFFFF', dot: '#FFFFFF', pulse: true  },
   'sold-out':{ label: 'Sold Out',  color: '#EF4444', dot: '#EF4444', pulse: false },
   cancelled: { label: 'Cancelled', color: '#6B7280', dot: '#6B7280', pulse: false },
 };
@@ -185,10 +185,6 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
 
   const handleReserve = useCallback(() => {
     const rules = instance.bookingRules;
-    if (rules.minMenPerBooking && partySize < rules.minMenPerBooking) {
-      setRuleError(`Minimum ${rules.minMenPerBooking} men required per booking.`);
-      return;
-    }
     if (rules.maxPerBooking && partySize > rules.maxPerBooking) {
       setRuleError(`Max ${rules.maxPerBooking} people per booking.`);
       return;
@@ -291,11 +287,11 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
           <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex justify-center mb-1 text-gray-400"><IcoClock /></div>
             <p className="text-xs text-gray-500 mb-0.5">Time</p>
-            <p className="text-xs font-black text-white">{instance.time}</p>
+            <p className="text-xs font-black text-white">{instance.arrivalTime || instance.time}</p>
           </div>
           {/* Price */}
           <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div className="flex justify-center mb-1" style={{ color: '#E040FB' }}>
+            <div className="flex justify-center mb-1" style={{ color: '#FFFFFF' }}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -318,7 +314,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
         <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div style={{ color: '#E040FB' }}><IcoUsers /></div>
+              <div style={{ color: '#FFFFFF' }}><IcoUsers /></div>
               <span className="text-sm font-bold text-white">Capacity</span>
             </div>
             <span className="text-xs font-semibold" style={{ color: sc.color }}>{urgencyLabel}</span>
@@ -329,7 +325,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${pct}%`,
-                background: pct >= 70 ? 'linear-gradient(90deg, #E040FB, #EF4444)' : 'linear-gradient(90deg, #E040FB, #7B61FF)',
+                background: pct >= 70 ? 'linear-gradient(90deg, #FFFFFF, #EF4444)' : 'linear-gradient(90deg, #FFFFFF, #9CA3AF)',
               }}
             />
           </div>
@@ -354,7 +350,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
               ))}
               {confirmedCount > 5 && (
                 <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold text-white"
-                  style={{ borderColor: '#0a0a0a', marginLeft: -10, background: 'rgba(224,64,251,0.3)' }}>
+                  style={{ borderColor: '#0a0a0a', marginLeft: -10, background: 'rgba(255,255,255,0.3)' }}>
                   +{confirmedCount - 5}
                 </div>
               )}
@@ -391,22 +387,16 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
         </div>
 
         {/* BOOKING RULES */}
-        {(instance.bookingRules.minMenPerBooking || instance.bookingRules.maxPerBooking) && (
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(224,64,251,0.05)', border: '1px solid rgba(224,64,251,0.15)' }}>
+        {(instance.bookingRules.maxPerBooking) && (
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}>
             <div className="flex items-center gap-2 mb-2">
-              <div style={{ color: '#E040FB' }}><IcoShield /></div>
+              <div style={{ color: '#FFFFFF' }}><IcoShield /></div>
               <p className="text-sm font-bold text-white">Booking Rules</p>
             </div>
             <div className="space-y-1">
-              {instance.bookingRules.minMenPerBooking && (
-                <p className="text-xs text-gray-400 flex items-center gap-2">
-                  <span style={{ color: '#E040FB' }}>•</span>
-                  Minimum {instance.bookingRules.minMenPerBooking} men required per booking
-                </p>
-              )}
               {instance.bookingRules.maxPerBooking && (
                 <p className="text-xs text-gray-400 flex items-center gap-2">
-                  <span style={{ color: '#E040FB' }}>•</span>
+                  <span style={{ color: '#FFFFFF' }}>•</span>
                   Maximum {instance.bookingRules.maxPerBooking} {instance.bookingRules.maxPerBooking === 1 ? 'person' : 'people'} per booking
                 </p>
               )}
@@ -462,7 +452,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
               <button
                 onClick={() => { onNavigateToPlans(); }}
                 className="w-full py-4 rounded-2xl font-black text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 32px rgba(224,64,251,0.3)' }}
+                style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 32px rgba(255,255,255,0.3)' }}
               >
                 View in My Plans →
               </button>
@@ -484,7 +474,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
                   <button
                     onClick={() => setPartySize(p => Math.min(maxParty, p + 1))}
                     className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-lg transition-colors active:scale-95"
-                    style={{ background: 'rgba(224,64,251,0.3)', color: '#E040FB' }}
+                    style={{ background: 'rgba(255,255,255,0.3)', color: '#FFFFFF' }}
                   >+</button>
                 </div>
 
@@ -492,7 +482,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
                 <button
                   onClick={handleReserve}
                   className="flex-1 py-3.5 rounded-2xl font-black text-white text-base transition-all active:scale-[0.97] hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 32px rgba(224,64,251,0.3)' }}
+                  style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 32px rgba(255,255,255,0.3)' }}
                 >
                   Join Experience · ${(partySize * instance.pricePerPerson).toLocaleString()}
                 </button>
@@ -501,7 +491,7 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
               {/* Spots reminder */}
               <p className="text-center text-xs text-gray-600">
                 {spotsLeft <= 3
-                  ? <span style={{ color: '#E040FB' }} className="font-bold">⚠️ {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left — books instantly</span>
+                  ? <span style={{ color: '#FFFFFF' }} className="font-bold">⚠️ {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left — books instantly</span>
                   : `${spotsLeft} spots remaining · Payment at checkout`}
               </p>
 

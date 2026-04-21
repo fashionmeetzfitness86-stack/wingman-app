@@ -117,13 +117,13 @@ const ReferralSection: React.FC<{ referralCode?: string, referralsCount?: number
     };
 
     return (
-        <div className="bg-gradient-to-br from-purple-900/50 to-gray-900 p-6 rounded-xl border border-purple-500/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-purple-500/20 w-24 h-24 rounded-full blur-xl pointer-events-none"></div>
+        <div className="bg-gradient-to-br from-purple-900/50 to-gray-900 p-6 rounded-xl border border-gray-500 relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gray-200 text-black hover:bg-white/20 w-24 h-24 rounded-full blur-xl pointer-events-none"></div>
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
-                        <GiftIcon className="w-6 h-6 text-purple-400" />
+                        <GiftIcon className="w-6 h-6 text-gray-300" />
                         <h3 className="text-xl font-bold text-white">Referral Program</h3>
                     </div>
                     <p className="text-gray-300 text-sm max-w-md">
@@ -139,7 +139,7 @@ const ReferralSection: React.FC<{ referralCode?: string, referralsCount?: number
                         </div>
                         <button 
                             onClick={handleCopy}
-                            className="p-3 bg-purple-600 hover:bg-purple-500 text-white rounded-md transition-colors"
+                            className="p-3 bg-white text-black hover:bg-gray-200 hover:bg-gray-200 text-black hover:bg-white text-white rounded-md transition-colors"
                             title="Copy Code"
                         >
                             {copied ? <CheckIcon className="w-6 h-6" /> : <DocumentDuplicateIcon className="w-6 h-6" />}
@@ -176,6 +176,7 @@ interface PromoterDashboardProps {
   bookedItems: CartItem[];
   eventInvitations: EventInvitation[];
   onSendDirectInvites: (eventId: number, userIds: number[]) => void;
+  promoters: Promoter[];
 }
 
 export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {

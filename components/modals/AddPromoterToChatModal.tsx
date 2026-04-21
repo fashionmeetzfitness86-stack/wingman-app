@@ -30,7 +30,7 @@ export const AddPromoterToChatModal: React.FC<AddPromoterToChatModalProps> = ({ 
                 placeholder="Search promoters by name or city..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899]"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
                 autoFocus
             />
             
@@ -41,7 +41,7 @@ export const AddPromoterToChatModal: React.FC<AddPromoterToChatModalProps> = ({ 
                         onClick={() => onAdd(promoter.id)}
                         className="w-full flex items-center gap-3 p-3 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors text-left group"
                     >
-                        <img src={promoter.profilePhoto} alt={promoter.name} className="w-12 h-12 rounded-full object-cover border border-gray-700 group-hover:border-[#EC4899]" />
+                        <img src={promoter.profilePhoto} alt={promoter.name} className="w-12 h-12 rounded-full object-cover border border-gray-700 group-hover:border-[#FFFFFF]" />
                         <div className="flex-grow">
                             <p className="font-bold text-white">{promoter.name}</p>
                             <p className="text-xs text-gray-400">{promoter.handle}</p>

@@ -55,7 +55,7 @@ const SortableHeader: React.FC<{
         <th scope="col" className={`px-4 py-4 ${className || ''}`}>
             <button onClick={() => requestSort(sortKey)} className="flex items-center gap-1.5 group text-xs font-bold text-gray-400 uppercase tracking-wider hover:text-white transition-colors">
                 {label}
-                {isSorted ? <Icon className="w-3.5 h-3.5 text-purple-400" /> : <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />}
+                {isSorted ? <Icon className="w-3.5 h-3.5 text-gray-300" /> : <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />}
             </button>
         </th>
     );
@@ -167,7 +167,7 @@ export const PromoterStatsPage: React.FC<PromoterStatsPageProps> = ({ currentUse
                             onClick={() => setTimeFilter(period)}
                             className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
                                 timeFilter === period 
-                                ? 'bg-purple-600 text-white shadow-lg shadow-[#EC4899]/20' 
+                                ? 'bg-white text-black hover:bg-gray-200 text-white shadow-lg shadow-[#FFFFFF]/20' 
                                 : 'text-gray-400 hover:text-white hover:bg-gray-800'
                             }`}
                         >
@@ -201,9 +201,9 @@ export const PromoterStatsPage: React.FC<PromoterStatsPageProps> = ({ currentUse
                 </div>
 
                  <div className="bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl border border-gray-800 shadow-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors duration-500"></div>
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gray-200 text-black hover:bg-white/10 rounded-full blur-2xl group-hover:bg-gray-200 text-black hover:bg-white/20 transition-colors duration-500"></div>
                     <div className="flex items-center gap-3 mb-4 relative z-10">
-                         <div className="p-2 bg-gray-800 rounded-lg text-purple-400">
+                         <div className="p-2 bg-gray-800 rounded-lg text-gray-300">
                              <UsersIcon className="w-6 h-6" />
                          </div>
                          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wide">Guests Booked</h3>

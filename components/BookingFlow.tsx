@@ -180,7 +180,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                                 key={venue.id} 
                                 onClick={() => handleVenueSelect(venue)} 
                                 ref={index === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
-                                className="w-full flex items-center gap-4 p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-left group focus:ring-2 focus:ring-[#EC4899] focus:outline-none" 
+                                className="w-full flex items-center gap-4 p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-left group focus:ring-2 focus:ring-[#FFFFFF] focus:outline-none" 
                                 aria-label={`Select ${venue.name}`}
                             >
                                 <img src={venue.coverImage} alt={venue.name} className="w-20 h-14 object-cover rounded-md group-hover:opacity-80 transition-opacity" />
@@ -208,7 +208,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                                 value={selectedDate} 
                                 onChange={e => { setSelectedDate(e.target.value); setErrors({...errors, date: undefined}); }} 
                                 min={minDate} 
-                                className={`w-full bg-gray-800 border ${errors.date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-600 focus:border-[#EC4899] focus:ring-[#EC4899]'} text-white rounded-lg p-3 transition-colors`} 
+                                className={`w-full bg-gray-800 border ${errors.date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-600 focus:border-[#FFFFFF] focus:ring-[#FFFFFF]'} text-white rounded-lg p-3 transition-colors`} 
                                 aria-invalid={!!errors.date}
                                 aria-describedby={errors.date ? "date-error" : undefined}
                             />
@@ -235,7 +235,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                                         value={numberOfMaleGuests} 
                                         onChange={e => { setNumberOfMaleGuests(e.target.value === '' ? '' : parseInt(e.target.value, 10)); setErrors({...errors, guests: undefined}); }} 
                                         placeholder="Males" 
-                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#EC4899]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
+                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#FFFFFF]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
                                         min="0" 
                                         max={LARGE_GROUP_MAX_GUESTS} 
                                         aria-label="Number of male guests"
@@ -249,7 +249,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                                         value={numberOfFemaleGuests} 
                                         onChange={e => { setNumberOfFemaleGuests(e.target.value === '' ? '' : parseInt(e.target.value, 10)); setErrors({...errors, guests: undefined}); }} 
                                         placeholder="Females" 
-                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#EC4899]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
+                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#FFFFFF]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
                                         min="0" 
                                         max={LARGE_GROUP_MAX_GUESTS} 
                                         aria-label="Number of female guests"
@@ -267,7 +267,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                     </div>
                     <button 
                         onClick={validateAndProceed} 
-                        className="mt-10 w-full bg-purple-600 text-white font-bold py-3.5 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#d8428a] active:scale-95 shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none"
+                        className="mt-10 w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#E5E5E5] active:scale-95 shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none"
                     >
                         Next
                     </button>
@@ -300,7 +300,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                                     onClick={() => handleTableSelect(table)} 
                                     ref={index === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
                                     disabled={!isAvailable} 
-                                    className="w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-800/50 disabled:cursor-not-allowed flex flex-col border border-transparent hover:border-gray-600 focus:ring-2 focus:ring-[#EC4899] focus:outline-none"
+                                    className="w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-800/50 disabled:cursor-not-allowed flex flex-col border border-transparent hover:border-gray-600 focus:ring-2 focus:ring-[#FFFFFF] focus:outline-none"
                                     aria-disabled={!isAvailable}
                                 >
                                     <div className="w-full text-left">
@@ -368,15 +368,15 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                     <div className="mt-6">
                         <h3 className="text-lg font-semibold text-white mb-4">Who are you booking for?</h3>
                         <div className="flex gap-4 mb-4">
-                            <button onClick={() => setBookingFor('self')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'self' ? 'bg-pink-500/10 border-pink-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>Myself</button>
-                            <button onClick={() => setBookingFor('guest')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'guest' ? 'bg-pink-500/10 border-pink-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>A Guest</button>
+                            <button onClick={() => setBookingFor('self')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'self' ? 'bg-white/10 border-gray-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>Myself</button>
+                            <button onClick={() => setBookingFor('guest')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'guest' ? 'bg-white/10 border-gray-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>A Guest</button>
                         </div>
 
                         {bookingFor === 'guest' && (
                             <div className="space-y-3 animate-fade-in">
-                                 <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} placeholder="Guest Full Name" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" required aria-label="Guest Full Name" />
-                                 <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} placeholder="Guest Email" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" required aria-label="Guest Email" />
-                                 <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} placeholder="Guest Phone (Optional)" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-pink-500" aria-label="Guest Phone" />
+                                 <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} placeholder="Guest Full Name" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" required aria-label="Guest Full Name" />
+                                 <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} placeholder="Guest Email" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" required aria-label="Guest Email" />
+                                 <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} placeholder="Guest Phone (Optional)" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" aria-label="Guest Phone" />
                             </div>
                         )}
                     </div>
@@ -388,7 +388,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                             value={specialRequests}
                             onChange={(e) => setSpecialRequests(e.target.value)}
                             placeholder="e.g., Booth location preference, birthday celebration, bottle requests..."
-                            className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#EC4899] focus:border-[#EC4899] resize-none h-24 placeholder-gray-500"
+                            className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] resize-none h-24 placeholder-gray-500"
                         />
                     </div>
 

@@ -180,13 +180,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                                  </div>
                              )}
                              {user.instagramHandle && (
-                                <a href={`https://instagram.com/${user.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-pink-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-pink-500/30">
+                                <a href={`https://instagram.com/${user.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-gray-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-gray-500">
                                     <FaInstagram className="w-4 h-4" />
                                     <span>@{user.instagramHandle}</span>
                                 </a>
                              )}
                              {user.tiktokHandle && (
-                                <a href={`https://tiktok.com/@${user.tiktokHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-pink-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-pink-500/30">
+                                <a href={`https://tiktok.com/@${user.tiktokHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-gray-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-gray-500">
                                     <FaTiktok className="w-4 h-4" />
                                     <span>@{user.tiktokHandle}</span>
                                 </a>
@@ -321,7 +321,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                             </button>
                              {currentUser.role === UserRole.PROMOTER && (
                                 <button onClick={() => onNavigate('promoterDashboard')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                    <div className="p-2 bg-gray-800 rounded-full text-purple-400"><ChartPieIcon className="w-4 h-4" /></div>
+                                    <div className="p-2 bg-gray-800 rounded-full text-gray-300"><ChartPieIcon className="w-4 h-4" /></div>
                                     <span className="text-white text-sm font-bold flex-grow text-left">Promoter Dashboard</span>
                                     <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                                 </button>
@@ -337,13 +337,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                                 <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                             </button>
                             <button onClick={() => onNavigate('myItineraries')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-purple-400"><RouteIcon className="w-4 h-4" /></div>
+                                <div className="p-2 bg-gray-800 rounded-full text-gray-300"><RouteIcon className="w-4 h-4" /></div>
                                 <span className="text-white text-sm font-bold flex-grow text-left">Itineraries</span>
                                 <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                             </button>
                             {user.role === UserRole.PROMOTER && (
                                  <button onClick={() => onNavigate('promoterStats')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                    <div className="p-2 bg-gray-800 rounded-full text-pink-400"><ChartBarIcon className="w-4 h-4" /></div>
+                                    <div className="p-2 bg-gray-800 rounded-full text-gray-400"><ChartBarIcon className="w-4 h-4" /></div>
                                     <span className="text-white text-sm font-bold flex-grow text-left">Promoter Stats</span>
                                     <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                                 </button>

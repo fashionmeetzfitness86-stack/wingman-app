@@ -24,7 +24,7 @@ export const SuggestedEventCard: React.FC<SuggestedEventCardProps> = ({ event, o
     return (
         <button 
             onClick={() => onViewDetails(event)}
-            className="flex-shrink-0 w-64 bg-[#1C1C1E] rounded-2xl overflow-hidden group text-left border border-gray-800 hover:border-[#EC4899] transition-colors duration-300" 
+            className="flex-shrink-0 w-64 bg-[#1C1C1E] rounded-2xl overflow-hidden group text-left border border-gray-800 hover:border-[#FFFFFF] transition-colors duration-300" 
             aria-label={`View details for suggested event: ${event.title}`}
         >
             <div className="relative h-40 bg-gray-700 flex items-center justify-center">
@@ -47,7 +47,7 @@ export const SuggestedEventCard: React.FC<SuggestedEventCardProps> = ({ event, o
                     {venueCategory && <span className="text-xs font-semibold bg-gray-700 text-gray-300 px-2 py-1 rounded-md">{venueCategory}</span>}
                     {venueMusicType && <span className="text-xs font-semibold bg-gray-700 text-gray-300 px-2 py-1 rounded-md">{venueMusicType}</span>}
                 </div>
-                <div className="mt-3 w-full bg-purple-600 text-white font-bold py-2.5 rounded-lg group-hover:bg-[#d8428a] transition-colors text-center">
+                <div className="mt-3 w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-2.5 rounded-lg group-hover:bg-[#E5E5E5] transition-colors text-center">
                     View Details
                 </div>
             </div>

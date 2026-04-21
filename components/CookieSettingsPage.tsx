@@ -15,7 +15,7 @@ interface CookieSettingsPageProps {
 const CookieCategory: React.FC<{ icon: React.ReactNode; title: string; description: string; isEnabled: boolean; onToggle?: () => void; isRequired?: boolean; }> = ({ icon, title, description, isEnabled, onToggle, isRequired }) => (
     <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/[0.02] transition-colors"
       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="flex-shrink-0 pt-0.5" style={{ color: '#E040FB' }}>
+        <div className="flex-shrink-0 pt-0.5" style={{ color: '#FFFFFF' }}>
             {icon}
         </div>
         <div className="flex-grow">
@@ -83,7 +83,7 @@ export const CookieSettingsPage: React.FC<CookieSettingsPageProps> = ({ onNaviga
             <div className="mt-8">
                 <button onClick={handleSave}
                   className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}>
+                  style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', boxShadow: '0 8px 24px rgba(255,255,255,0.2)' }}>
                     Save Cookie Preferences
                 </button>
             </div>

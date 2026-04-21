@@ -36,7 +36,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onCh
 
   return (
     <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 text-left flex items-center justify-between focus:ring-[#EC4899] focus:border-[#EC4899]">
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 text-left flex items-center justify-between focus:ring-[#FFFFFF] focus:border-[#FFFFFF]">
         <div className="flex items-center gap-3 truncate">
             {selectedOption?.imageUrl && <img src={selectedOption.imageUrl} alt={selectedOption.label} className="w-6 h-6 rounded-md object-cover flex-shrink-0" />}
             <span className="truncate">{selectedOption?.label || placeholder}</span>

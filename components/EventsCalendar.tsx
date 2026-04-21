@@ -247,7 +247,7 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
                     <div className="absolute bottom-1.5 flex items-center justify-center gap-0.5">
                         {hasExclusiveEvent && <div className="w-1.5 h-1.5 bg-green-400 rounded-full" title="Exclusive Event"></div>}
                         {hasInviteOnlyEvent && <div className="w-1.5 h-1.5 bg-purple-400 rounded-full" title="Invite Only Event"></div>}
-                        {hasOpenVenue && <div className="w-1.5 h-1.5 bg-pink-500 rounded-full" title="Venue open"></div>}
+                        {hasOpenVenue && <div className="w-1.5 h-1.5 bg-white text-black hover:bg-gray-200 rounded-full" title="Venue open"></div>}
                     </div>
                 </button>
             );

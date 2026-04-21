@@ -55,7 +55,7 @@ const RevenueChart: React.FC<{ data: { month: string; revenue: number }[] }> = (
           <div key={month} className="flex-1 flex flex-col items-center gap-2 h-full">
             <div className="relative flex-1 w-full flex items-end justify-center">
               <div
-                className="w-3/4 bg-gradient-to-t from-[#EC4899] to-[#f472b6] rounded-t-md group transition-all duration-300 hover:opacity-80"
+                className="w-3/4 bg-gradient-to-t from-[#FFFFFF] to-[#f472b6] rounded-t-md group transition-all duration-300 hover:opacity-80"
                 style={{ height: `${(revenue / maxRevenue) * 100}%` }}
               >
                 <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
