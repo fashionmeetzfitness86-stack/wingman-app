@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { hasActivePasscodeSession } from './utils/accessControl';
+import { hasActivePasscodeSession, grantPasscodeAccess } from './utils/accessControl';
 import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
 import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
@@ -317,12 +317,12 @@ export const App: React.FC = () => {
     // ── Gated Access System ─────────────────────────────────────────────────
     // Determines whether we show the WelcomePage gate.
     // Logged-in admin/user accounts bypass the gate entirely.
-    const isLoggedInUser = currentUser.role === UserRole.ADMIN ||
-        currentUser.role === UserRole.WINGMAN ||
-        currentUser.role === UserRole.PROMOTER;
+    // A user is considered "logged in" if they have a saved ID in localStorage
+    // (meaning they previously authenticated via login or were pre-seeded).
+    const isLoggedInUser = !!localStorage.getItem('wingman_currentUserId');
 
     const [passcodeAccessActive, setPasscodeAccessActive] = useState<boolean>(() => {
-        // Admins & logged-in accounts bypass gate
+        // Any user with a saved session (login or passcode) bypasses gate
         if (isLoggedInUser) return true;
         return hasActivePasscodeSession();
     });
@@ -910,11 +910,11 @@ export const App: React.FC = () => {
     const handleLogout = () => {
         localStorage.removeItem('wingman_currentUserId');
         localStorage.removeItem('wingman_realAdminUserId');
+        localStorage.removeItem('wm_access'); // Clear passcode session so gate shows on next visit
         setRealAdminUser(null);
         
         // Revoke passcode gate access on logout
         setPasscodeAccessActive(false);
-        // Default to first user in list as a fresh start simulation
         setCurrentUser(appUsers[0]); 
         setIsMenuOpen(false);
         showToast('Logged out', 'success');
@@ -1867,6 +1867,9 @@ export const App: React.FC = () => {
             const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (found) {
                 setCurrentUser(found);
+                // Persist session to localStorage so refresh doesn't kick them back to the gate
+                grantPasscodeAccess(found.email);
+                localStorage.setItem('wingman_currentUserId', found.id.toString());
                 setPasscodeAccessActive(true);
                 setCurrentPage('home');
                 return true;
