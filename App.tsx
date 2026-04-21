@@ -67,7 +67,6 @@ import { BookingFlow } from './components/BookingFlow';
 import { ExperienceBookingFlow } from './components/ExperienceBookingFlow';
 import { EventBookingFlow } from './components/EventBookingFlow';
 import { GuestlistModal } from './components/modals/GuestlistModal';
-import { OnboardingModal } from './components/modals/OnboardingModal';
 import { NotificationsModal } from './components/modals/NotificationsModal';
 import { GuestlistJoinSuccessModal } from './components/modals/GuestlistJoinSuccessModal';
 import { PromoterBottomNavBar } from './components/PromoterBottomNavBar';
@@ -200,7 +199,6 @@ export const App: React.FC = () => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [activeModal, setActiveModal] = useState<ModalState>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-    const [onboardingReward, setOnboardingReward] = useState<number | null>(null);
     const [showNotificationsPrompt, setShowNotificationsPrompt] = useState(false);
     
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -315,8 +313,6 @@ export const App: React.FC = () => {
 
     // Flags
     // TODO: Re-enable auth flow when email-approval login system is ready.
-    // Set to false to restore the OnboardingModal / login screen.
-    const [hasOnboarded, setHasOnboarded] = useState(true);
 
     // ── Gated Access System ─────────────────────────────────────────────────
     // Determines whether we show the WelcomePage gate.
@@ -368,14 +364,14 @@ export const App: React.FC = () => {
 
     // Notification Prompt Effect
     useEffect(() => {
-        if (currentUser && !currentUser.notificationsEnabled && hasOnboarded) {
+        if (currentUser && !currentUser.notificationsEnabled) {
              const hasSeenPrompt = sessionStorage.getItem('notifications_prompt_seen');
              if (!hasSeenPrompt) {
                  const timer = setTimeout(() => setShowNotificationsPrompt(true), 3000);
                  return () => clearTimeout(timer);
              }
         }
-    }, [currentUser, hasOnboarded]);
+    }, [currentUser]);
 
     // URL Parsing Effect for Shared Links
     useEffect(() => {
@@ -682,21 +678,6 @@ export const App: React.FC = () => {
         showToast('Invitation request sent', 'success');
     };
 
-    const handlePromoterSelection = (promoterId: number | null) => {
-        if (promoterId) {
-            // Logic to save preference could go here
-        }
-    };
-
-    const handleOnboardingFinish = (completed: boolean) => {
-        setHasOnboarded(true);
-        if (completed) {
-            const reward = 100;
-            setUserTokenBalance(prev => prev + reward);
-            setOnboardingReward(reward);
-        }
-    };
-
     const handleToggleLikeEvent = (eventId: number | string) => {
         const id = typeof eventId === 'string' ? parseInt(eventId.split('-')[0], 10) : eventId;
         setLikedEventIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -916,7 +897,6 @@ export const App: React.FC = () => {
         }
 
         setCurrentUser(targetUser);
-        setHasOnboarded(true); // Ensure we don't hit onboarding
         handleNavigate('home');
         
         // Optional: Show a different toast message
@@ -932,8 +912,8 @@ export const App: React.FC = () => {
         localStorage.removeItem('wingman_realAdminUserId');
         setRealAdminUser(null);
         
-        // Reset to a default state or trigger onboarding
-        setHasOnboarded(false);
+        // Revoke passcode gate access on logout
+        setPasscodeAccessActive(false);
         // Default to first user in list as a fresh start simulation
         setCurrentUser(appUsers[0]); 
         setIsMenuOpen(false);
@@ -1892,19 +1872,7 @@ export const App: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-black text-white font-sans">
-            {!hasOnboarded ? (
-                <OnboardingModal 
-                    user={currentUser} 
-                    onFinish={handleOnboardingFinish} 
-                    onNavigate={handleNavigate} 
-                    promoters={appPromoters} 
-                    onSelectPromoter={handlePromoterSelection} 
-                    onUpdateUser={handleUpdateUserWithRewardCheck}
-                    allUsers={appUsers}
-                    onSwitchUser={handleSwitchUser}
-                />
-            ) : (
-                <>
+            <>
                     {currentPage !== 'home' && (
                         <Header 
                             title={currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} 
@@ -1978,26 +1946,6 @@ export const App: React.FC = () => {
 
                     {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-                    {onboardingReward !== null && (
-                        <Modal isOpen={true} onClose={() => setOnboardingReward(null)} className="max-w-sm">
-                            <div className="text-center p-6">
-                                <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(224,64,251,0.1)' }}>
-                                    <TokenIcon className="w-10 h-10" style={{ color: '#FFFFFF' }} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Welcome to Wingman</h3>
-                                <p className="text-gray-300 mb-6">
-                                    You've earned <span className="font-bold text-lg" style={{ color: '#FFFFFF' }}>{onboardingReward} Tokens</span> to use towards your first booking.
-                                </p>
-                                <button
-                                    onClick={() => setOnboardingReward(null)}
-                                    className="w-full text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all font-inter"
-                                    style={{ background: 'linear-gradient(135deg, #FFFFFF, #7B61FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.2)' }}
-                                >
-                                    Start Exploring
-                                </button>
-                            </div>
-                        </Modal>
-                    )}
 
                     {/* Global Modals */}
                     {activeModal?.type === 'booking' && (
@@ -2178,8 +2126,6 @@ export const App: React.FC = () => {
                         user={previewUser}
                     />
                 </>
-            )}
-
         </div>
     );
 };
