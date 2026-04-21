@@ -20,38 +20,39 @@
 
       /* ── WINGMAN BRAND TOKENS ──────────────────────────────── */
       :root {
-        /* Gradient: steel → white → subtle teal */
+        /* Gradient: steel → white → muted cyan */
         --brand-start:  #FFFFFF;
-        --brand-mid:    #9CA3AF;
-        --brand-end:    #2dd4bf;
-        --brand-gradient: linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%);
-        --brand-gradient-text: linear-gradient(90deg, #FFFFFF, #9CA3AF, #374151);
+        --brand-mid:    #738596;
+        --brand-end:    #4A6B7E;
+        --brand-gradient: linear-gradient(135deg, #FFFFFF 0%, #738596 50%, #1A252C 100%);
+        --brand-gradient-text: linear-gradient(90deg, #FFFFFF, #738596, #1A252C);
 
         /* Surfaces */
-        --color-background: #000000;
-        --color-surface-1:  #0D0D0D;
-        --color-surface-2:  #141414;
-        --color-surface-3:  #1C1C1E;
-        --color-border:     rgba(255,255,255,0.08);
-        --color-border-strong: rgba(255,255,255,0.15);
+        --color-background: #08080A;
+        --color-surface-1:  #0F1014;
+        --color-surface-2:  #15161A;
+        --color-surface-3:  #1C1D22;
+        --color-border:     rgba(255,255,255,0.06);
+        --color-border-strong: rgba(255,255,255,0.12);
 
         /* Text */
         --color-text:       #FFFFFF;
-        --color-text-muted: #6B6B6B;
-        --color-text-sub:   #A0A0A0;
+        --color-text-muted: #8A8E99;
+        --color-text-sub:   #5D616B;
 
-        /* Legacy compat (keep #FFFFFF references working) */
+        /* Legacy compat */
         --color-primary:    #FFFFFF;
-        --color-primary-foreground: #FFFFFF;
-        --color-accent:     #2dd4bf;
-        --color-ring:       #9CA3AF;
-        --color-card:       #141414;
+        --color-primary-foreground: #000000;
+        --color-accent:     #4A6B7E;
+        --color-ring:       #738596;
+        --color-card:       #0F1014;
         --color-card-foreground: #FFFFFF;
-        --color-secondary:  #1C1C1E;
+        --color-secondary:  #15161A;
         --color-secondary-foreground: #FFFFFF;
-        --color-danger:     #991b1b;
+        --color-danger:     #6E1B1B; /* dark red, not bright */
         --color-danger-foreground: #FFFFFF;
-        --color-overlay:    rgba(0,0,0,0.85);
+        --color-success:    #1B4A3A; /* muted dark green */
+        --color-overlay:    rgba(0,0,0,0.9);
       }
 
 
@@ -127,55 +128,54 @@
       
       /* ── ANIMATIONS ───────────────────────────────────────── */
       @keyframes checkmark-pop-in {
-        0%   { transform: scale(0.6); opacity: 0; }
-        60%  { transform: scale(1.2); opacity: 1; }
-        100% { transform: scale(1); }
+        0%   { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
       }
-      .animate-checkmark-pop { animation: checkmark-pop-in 0.4s ease-out forwards; }
+      .animate-checkmark-pop { animation: checkmark-pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes flash-blue {
         0%, 100% { box-shadow: none; }
-        50% { box-shadow: 0 0 12px 4px rgba(0, 212, 255, 0.5); }
+        50% { box-shadow: 0 0 12px 2px rgba(74, 107, 126, 0.3); }
       }
-      .animate-flash-blue { animation: flash-blue 1.5s ease-out; }
+      .animate-flash-blue { animation: flash-blue 1s ease-out; }
 
       @keyframes claim-success {
         0%   { transform: scale(1); }
-        50%  { transform: scale(1.05) rotate(-1deg); box-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        50%  { transform: scale(1.02); box-shadow: 0 0 16px rgba(255,255,255,0.15); }
         100% { transform: scale(1); }
       }
-      .animate-claim-success { animation: claim-success 0.4s ease-out forwards; }
+      .animate-claim-success { animation: claim-success 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes page-enter {
-        from { opacity: 0; transform: translateY(12px); }
+        from { opacity: 0; transform: translateY(8px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      .animate-page-enter { animation: page-enter 0.35s ease-out forwards; }
+      .animate-page-enter { animation: page-enter 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes slide-in-right {
         from { transform: translateX(100%); }
         to   { transform: translateX(0); }
       }
-      .animate-slide-in-right { animation: slide-in-right 0.3s ease-out forwards; }
+      .animate-slide-in-right { animation: slide-in-right 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes animate-fade-in {
-        from { opacity: 0; transform: translateY(8px); }
+        from { opacity: 0; transform: translateY(4px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      .animate-fade-in { animation: animate-fade-in 0.4s ease-out forwards; }
+      .animate-fade-in { animation: animate-fade-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,0.1); }
-        50%       { box-shadow: 0 0 24px rgba(156,163,175,0.2); }
+        0%, 100% { box-shadow: 0 0 4px rgba(255,255,255,0.05); }
+        50%       { box-shadow: 0 0 16px rgba(115, 133, 150, 0.15); }
       }
-      .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+      .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
       /* Fade-in-up used by various modals */
       @keyframes fade-in-up {
-        from { opacity: 0; transform: translateY(16px); }
+        from { opacity: 0; transform: translateY(8px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
+      .animate-fade-in-up { animation: fade-in-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
     </style>
 <script type="importmap">

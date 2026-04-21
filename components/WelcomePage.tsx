@@ -76,8 +76,8 @@ const WingmanWordmark: React.FC = () => (
       <defs>
         <linearGradient id="wg2" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="50%" stopColor="#9CA3AF" />
-          <stop offset="100%" stopColor="#374151" />
+          <stop offset="50%" stopColor="#738596" />
+          <stop offset="100%" stopColor="#1A252C" />
         </linearGradient>
       </defs>
       <path d="M24 2C15.163 2 8 9.163 8 18c0 12.444 16 34 16 34s16-21.556 16-34C40 9.163 32.837 2 24 2z"
@@ -92,7 +92,7 @@ const WingmanWordmark: React.FC = () => (
         style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.15em' }}
       >
         <span style={{
-          background: 'linear-gradient(90deg, #FFFFFF, #9CA3AF, #374151)',
+          background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -675,7 +675,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         >
           This is not for<br />
           <span style={{
-            background: 'linear-gradient(90deg, #FFFFFF 0%, #9CA3AF 60%, #374151 100%)',
+            background: 'linear-gradient(90deg, #FFFFFF 0%, #738596 60%, #1A252C 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',

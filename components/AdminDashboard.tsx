@@ -82,7 +82,7 @@ const FilterDropdown: React.FC<{ label: string; value: string; onChange: (value:
             id={`filter-${label}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8"
+            className="w-full bg-[#0F1014] border border-[#1C1D22] text-sm text-white rounded-md p-3 appearance-none focus:ring-white focus:border-white pr-8 transition-colors"
         >
             <option value="all">All {label}s</option>
             {options.map(opt => (
@@ -91,7 +91,7 @@ const FilterDropdown: React.FC<{ label: string; value: string; onChange: (value:
                     : <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
         </select>
-        <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
+        <ChevronDownIcon className="w-5 h-5 text-[#5D616B] absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
     </div>
 );
 
@@ -265,44 +265,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white">
-            <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
-                <button onClick={() => setActiveTab('analytics')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'analytics' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+            <div className="flex border-b border-[#1C1D22] mb-8 overflow-x-auto no-scrollbar gap-2">
+                <button onClick={() => setActiveTab('analytics')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'analytics' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Analytics
                 </button>
-                 <button onClick={() => setActiveTab('promoterStats')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoterStats' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                 <button onClick={() => setActiveTab('promoterStats')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'promoterStats' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Promoter Stats
                 </button>
-                <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'promoters' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'promoters' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Promoters
                 </button>
-                <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'users' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'users' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Users
                     {pendingApprovalsCount > 0 && (
-                        <span className="absolute top-1 right-0 w-5 h-5 bg-white text-black hover:bg-gray-200 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute top-1.5 right-1 w-5 h-5 bg-[#1A1A1A] text-white border border-[#333333] text-[10px] font-bold rounded flex items-center justify-center shadow">
                             {pendingApprovalsCount}
                         </span>
                     )}
                 </button>
-                <button onClick={() => setActiveTab('events')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'events' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('events')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'events' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Events
                 </button>
-                <button onClick={() => setActiveTab('venues')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'venues' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('venues')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'venues' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Venues
                 </button>
-                <button onClick={() => setActiveTab('store')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'store' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('store')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'store' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Store
                 </button>
-                 <button onClick={() => setActiveTab('management')} className={`relative flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'management' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                 <button onClick={() => setActiveTab('management')} className={`relative flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'management' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Approvals
                     {pendingRequestsCount > 0 && (
-                        <span className="absolute top-1 right-0 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">{pendingRequestsCount}</span>
+                        <span className="absolute top-1.5 right-1 w-5 h-5 bg-[#1A0505] border border-[#3A1010] text-[#D45050] text-[10px] font-bold rounded flex items-center justify-center shadow">
+                            {pendingRequestsCount}
+                        </span>
                     )}
                 </button>
-                <button onClick={() => setActiveTab('pushNotifications')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'pushNotifications' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
+                <button onClick={() => setActiveTab('pushNotifications')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'pushNotifications' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Push Notifications
                 </button>
-                <button onClick={() => setActiveTab('accessControl')} className={`flex-shrink-0 px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'accessControl' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}>
-                    🔐 Access Control
+                <button onClick={() => setActiveTab('accessControl')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'accessControl' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
+                    Access Control
                 </button>
             </div>
             
@@ -314,10 +316,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder={`Search ${activeTab}...`}
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
+                            className="w-full bg-[#0F1014] border border-[#1C1D22] text-sm text-white rounded-md p-3 pl-10 focus:ring-white focus:border-white transition-colors"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                            <svg className="w-4 h-4 text-[#5D616B]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                         </div>
                     </div>
                 )}
@@ -348,7 +350,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 {activeTab === 'promoters' && (
                     <div className="space-y-3">
                         <div className="flex justify-end mb-4">
-                            <button onClick={() => props.onNavigate('promoterApplication')} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Promoter</button>
+                            <button onClick={() => props.onNavigate('promoterApplication')} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Promoter</button>
                         </div>
                         {filteredPromoters.length > 0 ? filteredPromoters.map(promoter => {
                             const user = props.users.find(u => u.id === promoter.id);
@@ -377,7 +379,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             </div>
                         )}
                         <div className="flex justify-end mb-4">
-                            <button onClick={props.onAddUser} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">Create User</button>
+                            <button onClick={props.onAddUser} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Create User</button>
                         </div>
                         {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={(u) => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
                     </div>
@@ -400,7 +402,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             ) : (
                                 <button onClick={handleSelectAllEvents} className="text-sm text-gray-400 hover:text-white font-semibold">Select All Visible</button>
                             )}
-                            <button onClick={props.onAddEvent} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Event</button>
+                            <button onClick={props.onAddEvent} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Event</button>
                         </div>
                         {filteredEvents.length > 0 ? filteredEvents.map(event => <AdminEventListItem key={event.id} event={event} venueName={getVenueName(event.venueId)} onEdit={props.onEditEvent} onDelete={props.onDeleteEvent} onPreview={props.onPreviewEvent} isSelected={selectedEventIds.includes(event.id)} onToggleSelect={handleToggleEventSelection} />) : <p className="text-center text-gray-500 py-8">No events found.</p>}
                     </div>
@@ -408,7 +410,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                  {activeTab === 'venues' && (
                     <div className="space-y-3">
                          <div className="flex justify-end mb-4">
-                            <button onClick={props.onAddVenue} className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">Add Venue</button>
+                            <button onClick={props.onAddVenue} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Venue</button>
                         </div>
                         {filteredVenues.length > 0 ? filteredVenues.map(venue => <AdminVenueListItem key={venue.id} venue={venue} onEdit={props.onEditVenue} onDelete={props.onDeleteVenue} onPreview={props.onPreviewVenue} />) : <p className="text-center text-gray-500 py-8">No venues found.</p>}
                     </div>

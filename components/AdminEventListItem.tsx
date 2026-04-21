@@ -17,14 +17,14 @@ interface AdminEventListItemProps {
 
 export const AdminEventListItem: React.FC<AdminEventListItemProps> = ({ event, venueName, onEdit, onDelete, onPreview, isSelected, onToggleSelect }) => {
     return (
-        <div className={`bg-gray-900 border ${isSelected ? 'border-[#FFFFFF] bg-gray-800/50' : 'border-gray-800'} rounded-lg p-4 flex items-center gap-4 transition-colors`}>
+        <div className={`border ${isSelected ? 'border-white bg-[#15161A]' : 'border-[#1C1D22] bg-[#0F1014]'} rounded-md p-4 flex items-center gap-4 transition-colors`}>
             {onToggleSelect && (
                 <div className="flex-shrink-0">
                     <input 
                         type="checkbox" 
                         checked={isSelected} 
                         onChange={() => onToggleSelect(event.id)}
-                        className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-gray-300 focus:ring-[#FFFFFF] cursor-pointer"
+                        className="w-5 h-5 rounded border-[#5D616B] bg-[#1C1D22] text-white focus:ring-white cursor-pointer"
                     />
                 </div>
             )}
@@ -35,7 +35,7 @@ export const AdminEventListItem: React.FC<AdminEventListItemProps> = ({ event, v
                     <p className="text-sm text-gray-400">{event.date}</p>
                 </div>
                 <div>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${event.type === 'EXCLUSIVE' ? 'bg-green-900/50 text-green-300' : 'bg-purple-900/50 text-purple-300'}`}>
+                    <span className={`px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded ${event.type === 'EXCLUSIVE' ? 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]' : 'bg-[#0F141A] text-[#738596] border border-[#1C2229]'}`}>
                         {event.type}
                     </span>
                 </div>
@@ -49,13 +49,13 @@ export const AdminEventListItem: React.FC<AdminEventListItemProps> = ({ event, v
                 </div>
             </div>
             <div className="flex items-center gap-1">
-                <button onClick={(e) => { e.stopPropagation(); onPreview(event); }} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors" aria-label={`Preview event ${event.title}`}>
+                <button onClick={(e) => { e.stopPropagation(); onPreview(event); }} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" aria-label={`Preview event ${event.title}`}>
                     <EyeIcon className="w-5 h-5" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors" aria-label={`Edit event ${event.title}`}>
+                <button onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" aria-label={`Edit event ${event.title}`}>
                     <PencilSquareIcon className="w-5 h-5" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); onDelete(event); }} className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-md transition-colors" aria-label={`Delete event ${event.title}`}>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(event); }} className="p-2 text-gray-400 hover:text-red-500 hover:bg-white/5 rounded-md transition-colors" aria-label={`Delete event ${event.title}`}>
                     <TrashIcon className="w-5 h-5" />
                 </button>
             </div>

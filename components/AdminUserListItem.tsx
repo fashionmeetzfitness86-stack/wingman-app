@@ -20,24 +20,24 @@ interface AdminUserListItemProps {
 export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEdit, onBlock, onViewProfile, onViewAnalytics, onApprove, onReject }) => {
     const getApprovalBadge = (status?: string) => {
         switch (status) {
-            case 'approved': return 'bg-green-900/50 text-green-300 border border-green-700/50';
-            case 'rejected': return 'bg-red-900/50 text-red-400 border border-red-700/50';
-            case 'pending':  return 'bg-white text-black hover:bg-gray-200/15 text-pink-300 border border-[#FFFFFF]/40';
-            default:         return 'bg-gray-800 text-gray-500 border border-gray-700';
+            case 'approved': return 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]';
+            case 'rejected': return 'bg-[#1A0505] text-[#D45050] border border-[#3A1010]';
+            case 'pending':  return 'bg-[#1A1810] text-[#B89B4D] border border-[#333020]';
+            default:         return 'bg-[#0F1014] text-[#5D616B] border border-[#1C1D22]';
         }
     };
     const getAccessLevelColor = (level: string) => {
         switch (level) {
-            case 'Access Male': return 'bg-blue-900/50 text-blue-300';
-            case 'Approved Girl': return 'bg-pink-900/50 text-pink-300';
-            default: return 'bg-gray-700 text-gray-300';
+            case 'Access Male': return 'bg-[#111317] text-[#738596] border border-[#1C2229]';
+            case 'Approved Girl': return 'bg-[#171113] text-[#967385] border border-[#291C22]';
+            default: return 'bg-[#0F1014] text-[#5D616B] border border-[#1C1D22]';
         }
     };
     
     return (
-         <div className={`relative rounded-lg overflow-hidden bg-gray-900 ${user.status === 'blocked' ? 'opacity-50' : ''}`}>
+         <div className={`relative rounded-lg overflow-hidden bg-transparent ${user.status === 'blocked' ? 'opacity-50' : ''}`}>
             <div
-                className="relative z-10 w-full border border-gray-800 rounded-lg p-4 flex items-center gap-4"
+                className="relative z-10 w-full bg-[#0F1014] border border-[#1C1D22] rounded-lg p-4 flex items-center gap-4"
             >
                 <div onClick={() => onViewProfile(user)} className="flex-grow flex items-center gap-4 text-left cursor-pointer">
                     <img className="w-14 h-14 rounded-full object-cover flex-shrink-0" src={user.profilePhoto} alt={user.name} />
@@ -55,7 +55,7 @@ export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEd
                             <p className="text-sm text-gray-300">{user.role}</p>
                         </div>
                         <div>
-                            <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${user.status === 'blocked' ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
+                            <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded ${user.status === 'blocked' ? 'bg-[#1A0505] text-[#D45050] border border-[#3A1010]' : 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]'}`}>
                                 {user.status === 'blocked' ? 'Blocked' : 'Active'}
                             </span>
                         </div>
@@ -75,7 +75,7 @@ export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEd
                         && user.role !== UserRole.ADMIN
                         && user.role !== UserRole.WINGMAN
                         && onApprove && (
-                        <button onClick={() => onApprove(user.id)} className="px-2 py-1 text-xs font-bold bg-green-700 hover:bg-green-600 text-white rounded transition-colors" title="Approve user">
+                        <button onClick={() => onApprove(user.id)} className="px-2 py-1 text-xs font-semibold bg-[#051A10] border border-[#0A3A20] text-[#4DB87C] hover:bg-[#082A1A] rounded transition-colors" title="Approve user">
                             Approve
                         </button>
                     )}
@@ -83,7 +83,7 @@ export const AdminUserListItem: React.FC<AdminUserListItemProps> = ({ user, onEd
                         && user.role !== UserRole.ADMIN
                         && user.role !== UserRole.WINGMAN
                         && onReject && (
-                        <button onClick={() => onReject(user.id)} className="px-2 py-1 text-xs font-bold bg-red-800 hover:bg-red-700 text-white rounded transition-colors" title="Reject user">
+                        <button onClick={() => onReject(user.id)} className="px-2 py-1 text-xs font-semibold bg-[#1A0505] border border-[#3A1010] text-[#D45050] hover:bg-[#2A0808] rounded transition-colors" title="Reject user">
                             Reject
                         </button>
                     )}

@@ -10,8 +10,8 @@ export const WingmanLogo: React.FC<{ className?: string; style?: React.CSSProper
   >
     <defs>
       <linearGradient id="wingman-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
-        <stop offset="0%" stopColor="#0c224e" />
-        <stop offset="100%" stopColor="#192f60" />
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="100%" stopColor="#8A8E99" />
       </linearGradient>
     </defs>
     <path

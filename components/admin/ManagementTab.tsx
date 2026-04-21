@@ -31,7 +31,7 @@ const MemberAccessCard: React.FC<{
     onApprove: () => void;
     onReject: () => void;
 }> = ({ request, onApprove, onReject }) => (
-    <div className="bg-gray-800 rounded-xl p-4 space-y-3">
+    <div className="bg-[#0F1014] rounded-md border border-[#1C1D22] p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
                 <img
@@ -41,32 +41,32 @@ const MemberAccessCard: React.FC<{
                 />
                 <div className="min-w-0">
                     <p className="font-bold text-white truncate">{request.userName}</p>
-                    <p className="text-xs text-gray-500 truncate">{request.userEmail}</p>
+                    <p className="text-xs text-[#8A8E99] truncate">{request.userEmail}</p>
                     {request.instagramHandle && (
-                        <p className="text-xs text-gray-400 mt-0.5">@{request.instagramHandle}</p>
+                        <p className="text-xs text-[#5D616B] mt-0.5">@{request.instagramHandle}</p>
                     )}
                 </div>
             </div>
-            <span className={`flex-shrink-0 px-2 py-1 text-xs font-semibold rounded-full ${
-                request.status === 'pending'  ? 'bg-white text-black hover:bg-gray-200/15 text-pink-300' :
-                request.status === 'approved' ? 'bg-green-900/50 text-green-300' :
-                'bg-red-900/50 text-red-300'
+            <span className={`flex-shrink-0 px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
+                request.status === 'pending'  ? 'bg-[#1A1810] border border-[#333020] text-[#B89B4D]' :
+                request.status === 'approved' ? 'bg-[#051A10] border border-[#0A3A20] text-[#4DB87C]' :
+                'bg-[#1A0505] border border-[#3A1010] text-[#D45050]'
             }`}>
                 {request.status}
             </span>
         </div>
-        <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-[#FFFFFF]/30 pl-3 italic">
+        <p className="text-sm text-[#8A8E99] leading-relaxed border-l-2 border-[#1C1D22] pl-3 italic">
             "{request.message}"
         </p>
-        <p className="text-xs text-gray-600">
+        <p className="text-[10px] text-[#5D616B] font-semibold uppercase tracking-wider">
             Submitted {new Date(request.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </p>
         {request.status === 'pending' && (
-            <div className="flex gap-3 pt-1">
-                <button onClick={onReject} className="w-full flex items-center justify-center gap-2 bg-red-600/20 text-red-400 font-bold py-2 rounded-lg text-sm hover:bg-red-600/40 transition-colors">
+            <div className="flex gap-3 pt-2">
+                <button onClick={onReject} className="w-full flex items-center justify-center gap-2 bg-[#1A0505] border border-[#3A1010] text-[#D45050] font-semibold py-2 rounded-md text-sm hover:bg-[#2A0808] transition-colors">
                     <CloseIcon className="w-4 h-4" /> Reject
                 </button>
-                <button onClick={onApprove} className="w-full flex items-center justify-center gap-2 bg-green-500/20 text-green-400 font-bold py-2 rounded-lg text-sm hover:bg-green-500/40 transition-colors">
+                <button onClick={onApprove} className="w-full flex items-center justify-center gap-2 bg-[#051A10] border border-[#0A3A20] text-[#4DB87C] font-semibold py-2 rounded-md text-sm hover:bg-[#082A1A] transition-colors">
                     <CheckIcon className="w-4 h-4" /> Approve Access
                 </button>
             </div>
@@ -79,30 +79,30 @@ const ApplicationCard: React.FC<{
     onApprove: () => void;
     onReject: () => void;
 }> = ({ app, onApprove, onReject }) => (
-    <div className="bg-gray-800 p-4 rounded-lg">
+    <div className="bg-[#0F1014] rounded-md border border-[#1C1D22] p-4">
         <div className="flex justify-between items-start">
             <div>
                 <p className="font-bold text-white text-lg">{app.stageName || app.fullName}</p>
-                <p className="text-sm text-gray-400">Applied on: {new Date(app.submissionDate).toLocaleDateString()}</p>
+                <p className="text-[10px] text-[#5D616B] font-semibold uppercase tracking-wider mt-0.5">Applied on: {new Date(app.submissionDate).toLocaleDateString()}</p>
             </div>
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                app.status === 'pending' ? 'bg-yellow-900/50 text-yellow-300' :
-                app.status === 'approved' ? 'bg-green-900/50 text-green-300' :
-                'bg-red-900/50 text-red-300'
+            <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
+                app.status === 'pending' ? 'bg-[#1A1810] border border-[#333020] text-[#B89B4D]' :
+                app.status === 'approved' ? 'bg-[#051A10] border border-[#0A3A20] text-[#4DB87C]' :
+                'bg-[#1A0505] border border-[#3A1010] text-[#D45050]'
             }`}>{app.status}</span>
         </div>
-        <div className="mt-4 text-sm text-gray-300 space-y-1">
-            <p><strong>Experience:</strong> {app.experienceYears}</p>
-            <p><strong>Instagram:</strong> @{app.instagram} ({app.instagramFollowers} followers)</p>
-            <p><strong>Weekly Guests:</strong> {app.avgWeeklyGuests}</p>
+        <div className="mt-4 text-sm text-[#8A8E99] space-y-1">
+            <p><strong className="text-white font-medium">Experience:</strong> {app.experienceYears}</p>
+            <p><strong className="text-white font-medium">Instagram:</strong> @{app.instagram} ({app.instagramFollowers} followers)</p>
+            <p><strong className="text-white font-medium">Weekly Guests:</strong> {app.avgWeeklyGuests}</p>
         </div>
         {app.status === 'pending' && (
-            <div className="mt-4 flex gap-3">
-                <button onClick={onReject} className="w-full flex items-center justify-center gap-2 bg-red-600/20 text-red-400 font-bold py-2 rounded-lg text-sm hover:bg-red-600/40">
-                    <CloseIcon className="w-5 h-5"/> Reject
+            <div className="mt-4 flex gap-3 pt-2">
+                <button onClick={onReject} className="w-full flex items-center justify-center gap-2 bg-[#1A0505] border border-[#3A1010] text-[#D45050] font-semibold py-2 rounded-md text-sm hover:bg-[#2A0808] transition-colors">
+                    <CloseIcon className="w-4 h-4"/> Reject
                 </button>
-                <button onClick={onApprove} className="w-full flex items-center justify-center gap-2 bg-green-500/20 text-green-400 font-bold py-2 rounded-lg text-sm hover:bg-green-500/40">
-                    <CheckIcon className="w-5 h-5"/> Approve
+                <button onClick={onApprove} className="w-full flex items-center justify-center gap-2 bg-[#051A10] border border-[#0A3A20] text-[#4DB87C] font-semibold py-2 rounded-md text-sm hover:bg-[#082A1A] transition-colors">
+                    <CheckIcon className="w-4 h-4"/> Approve
                 </button>
             </div>
         )}
@@ -199,55 +199,55 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                 )}
             </div>
             
-            <div className="border-t border-gray-800 pt-8">
+            <div className="border-t border-[#1C1D22] pt-8">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold">Group Management</h3>
-                    <button onClick={() => onNavigate('createGroup')} className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">
-                        <PlusIcon className="w-5 h-5"/>
+                    <button onClick={() => onNavigate('createGroup')} className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">
+                        <PlusIcon className="w-4 h-4"/>
                         Create Group
                     </button>
                 </div>
-                <h4 className="text-lg font-semibold text-gray-300 mb-4">Pending Group Approvals ({pendingGroups.length})</h4>
+                <h4 className="text-[10px] font-semibold text-[#5D616B] uppercase tracking-wider mb-4">Pending Group Approvals ({pendingGroups.length})</h4>
                 {pendingGroups.length > 0 ? pendingGroups.map(group => (
-                    <div key={group.id} className="bg-gray-800 rounded-lg p-4 flex items-center gap-4">
-                        <img className="w-16 h-16 rounded-lg object-cover" src={group.coverImage} alt={group.name} />
+                    <div key={group.id} className="bg-[#0F1014] border border-[#1C1D22] rounded-md p-4 flex items-center gap-4">
+                        <img className="w-16 h-16 rounded object-cover" src={group.coverImage} alt={group.name} />
                         <div className="flex-grow">
                             <p className="font-bold text-white">{group.name}</p>
-                            <p className="text-sm text-gray-400 line-clamp-2">{group.description}</p>
+                            <p className="text-sm text-[#8A8E99] line-clamp-2">{group.description}</p>
                         </div>
-                        <button onClick={() => onApproveGroup(group.id)} className="flex items-center gap-2 bg-green-500/20 text-green-400 font-bold py-2 px-4 rounded-lg text-sm hover:bg-green-500/40">
-                            <CheckIcon className="w-5 h-5"/> Approve
+                        <button onClick={() => onApproveGroup(group.id)} className="flex items-center gap-2 bg-[#051A10] border border-[#0A3A20] text-[#4DB87C] font-semibold py-2 px-4 rounded-md text-sm hover:bg-[#082A1A] transition-colors">
+                            <CheckIcon className="w-4 h-4"/> Approve
                         </button>
                     </div>
-                )) : <div className="bg-gray-800 p-8 rounded-lg text-center text-gray-400">No groups are pending approval.</div>}
+                )) : <div className="bg-[#0F1014] border border-[#1C1D22] p-8 rounded-md text-center text-[#5D616B] font-semibold text-sm">No groups are pending approval.</div>}
             </div>
 
-            <div className="border-t border-gray-800 pt-8">
+            <div className="border-t border-[#1C1D22] pt-8">
                 <h3 className="text-xl font-bold mb-4">Send Invitations</h3>
                 <SendInvitations {...props} />
             </div>
 
-            <div className="border-t border-gray-800 pt-8">
-                <h3 className="text-xl font-bold mb-4">Event Invitation Queue ({pendingInviteRequests.length})</h3>
+            <div className="border-t border-[#1C1D22] pt-8">
+                <h3 className="text-[10px] font-semibold text-[#5D616B] uppercase tracking-wider mb-4">Event Invitation Queue ({pendingInviteRequests.length})</h3>
                 <div className="space-y-3">
                     {pendingInviteRequests.length > 0 ? pendingInviteRequests.map(req => {
                         const user = users.find(u => u.id === req.userId);
                         const event = events.find(e => e.id === req.eventId);
                         if (!user || !event) return null;
                         return (
-                            <div key={req.id} className="bg-gray-800 rounded-lg p-4 flex items-center gap-4">
-                                <img className="w-14 h-14 rounded-full object-cover" src={user.profilePhoto} alt={user.name} />
+                            <div key={req.id} className="bg-[#0F1014] border border-[#1C1D22] rounded-md p-4 flex items-center gap-4">
+                                <img className="w-10 h-10 rounded-full object-cover" src={user.profilePhoto} alt={user.name} />
                                 <div className="flex-grow">
-                                    <p><span className="font-bold text-white">{user.name}</span> requested an invite to</p>
-                                    <p className="font-semibold text-gray-300">{event.title}</p>
+                                    <p className="text-sm"><span className="font-bold text-white">{user.name}</span> requested an invite to</p>
+                                    <p className="font-semibold text-white">{event.title}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => onApproveRequest(req.id)} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Approve</button>
-                                    <button onClick={() => onRejectRequest(req.id)} className="bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Reject</button>
+                                    <button onClick={() => onApproveRequest(req.id)} className="bg-[#051A10] border border-[#0A3A20] text-[#4DB87C] font-semibold py-2 px-4 rounded-md text-sm hover:bg-[#082A1A] transition-colors">Approve</button>
+                                    <button onClick={() => onRejectRequest(req.id)} className="bg-[#1A0505] border border-[#3A1010] text-[#D45050] font-semibold py-2 px-4 rounded-md text-sm hover:bg-[#2A0808] transition-colors">Reject</button>
                                 </div>
                             </div>
                         );
-                    }) : <div className="bg-gray-800 p-8 rounded-lg text-center text-gray-400">No pending invitation requests.</div>}
+                    }) : <div className="bg-[#0F1014] border border-[#1C1D22] p-8 rounded-md text-center text-[#5D616B] font-semibold text-sm">No pending invitation requests.</div>}
                 </div>
             </div>
         </div>

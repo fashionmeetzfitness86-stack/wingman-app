@@ -39,8 +39,8 @@ const WingmanLogo: React.FC = () => (
       <defs>
         <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="50%" stopColor="#9CA3AF" />
-          <stop offset="100%" stopColor="#374151" />
+          <stop offset="50%" stopColor="#738596" />
+          <stop offset="100%" stopColor="#1A252C" />
         </linearGradient>
       </defs>
       {/* Pin shape */}
@@ -58,7 +58,7 @@ const WingmanLogo: React.FC = () => (
       style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.05em' }}
     >
       <span style={{
-        background: 'linear-gradient(90deg, #FFFFFF, #9CA3AF, #374151)',
+        background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
         {showBackButton ? (
           <button
             onClick={onBack}
-            className="p-2 -ml-1 rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 -ml-1 rounded-full hover:bg-white/5 transition-colors"
             aria-label="Go back"
           >
             <ChevronLeftIcon className="w-5 h-5 text-white" />
@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
           (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER) ? (
             <button
               onClick={onOpenGroupChat}
-              className="p-2 -ml-1 rounded-full hover:bg-white/10 transition-colors"
+              className="p-2 -ml-1 rounded-full hover:bg-white/5 transition-colors"
               aria-label="Group Chat"
             >
               <UsersIcon className="w-5 h-5 text-white" />
@@ -160,14 +160,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenCart}
-          className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
+          className="p-2 rounded-full hover:bg-white/5 transition-colors relative"
           aria-label="Open cart"
         >
           <CartIcon className="w-5 h-5 text-white" />
           {cartItemCount > 0 && (
             <span
-              className="absolute top-0.5 right-0.5 w-4 h-4 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-black"
-              style={{ background: 'linear-gradient(135deg, #FFFFFF, #374151)' }}
+              className="absolute top-0.5 right-0.5 w-4 h-4 text-[#8A8E99] text-[9px] font-black flex items-center justify-center rounded-full border-2 border-[#0F1014]"
+              style={{ background: '#1C1D22' }}
             >
               {cartItemCount > 9 ? '9+' : cartItemCount}
             </span>
@@ -176,7 +176,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenNotifications}
-          className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
+          className="p-2 rounded-full hover:bg-white/5 transition-colors relative"
           aria-label="Notifications"
         >
           <BellIcon className="w-5 h-5 text-white" />
@@ -191,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
         {showMenu && (
           <button
             onClick={onOpenMenu}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 rounded-full hover:bg-white/5 transition-colors"
             aria-label="Open menu"
           >
             <MenuIcon className="w-5 h-5 text-white" />

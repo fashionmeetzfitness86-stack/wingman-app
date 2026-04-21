@@ -23,8 +23,8 @@ export const AdminPromoterListItem: React.FC<AdminPromoterListItemProps> = ({ pr
     const status = user.status;
 
     return (
-        <div className={`relative rounded-lg overflow-hidden bg-gray-900 ${status !== 'active' ? 'opacity-60' : ''}`}>
-            <div className="relative z-10 w-full border border-gray-800 rounded-lg p-4 flex items-center gap-4">
+        <div className={`relative rounded-lg overflow-hidden bg-transparent ${status !== 'active' ? 'opacity-60' : ''}`}>
+            <div className="relative z-10 w-full bg-[#0F1014] border border-[#1C1D22] rounded-md p-4 flex items-center gap-4">
                 <div onClick={() => onPreview(promoter)} className="flex-grow flex items-center gap-4 text-left cursor-pointer">
                     <img className="w-14 h-14 rounded-full object-cover flex-shrink-0" src={promoter.profilePhoto} alt={promoter.name} />
                     <div className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
@@ -33,10 +33,10 @@ export const AdminPromoterListItem: React.FC<AdminPromoterListItemProps> = ({ pr
                             <p className="text-sm text-gray-400">{promoter.handle}</p>
                         </div>
                         <div>
-                             <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full capitalize ${
-                                status === 'active' ? 'bg-green-900/50 text-green-300' :
-                                status === 'suspended' ? 'bg-yellow-900/50 text-yellow-300' :
-                                'bg-red-900/50 text-red-300'
+                             <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${
+                                status === 'active' ? 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]' :
+                                status === 'suspended' ? 'bg-[#1A1810] text-[#B89B4D] border border-[#333020]' :
+                                'bg-[#1A0505] text-[#D45050] border border-[#3A1010]'
                             }`}>
                                 {status}
                             </span>
@@ -52,20 +52,20 @@ export const AdminPromoterListItem: React.FC<AdminPromoterListItemProps> = ({ pr
                 </div>
                 <div className="flex items-center gap-1">
                     {onViewStats && (
-                        <button onClick={() => onViewStats(promoter)} className="p-2 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded-md transition-colors" aria-label={`View stats for ${promoter.name}`} title="View Stats">
+                        <button onClick={() => onViewStats(promoter)} className="p-2 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-md transition-colors" aria-label={`View stats for ${promoter.name}`} title="View Stats">
                             <ChartBarIcon className="w-5 h-5" />
                         </button>
                     )}
-                    <button onClick={() => onPreview(promoter)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors" aria-label={`Preview promoter ${promoter.name}`} title="Preview Profile">
+                    <button onClick={() => onPreview(promoter)} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" aria-label={`Preview promoter ${promoter.name}`} title="Preview Profile">
                         <EyeIcon className="w-5 h-5" />
                     </button>
-                    <button onClick={() => onSuspend(user)} className="p-2 text-gray-400 hover:bg-gray-800 rounded-md transition-colors" aria-label={status === 'suspended' ? `Unsuspend promoter ${promoter.name}` : `Suspend promoter ${promoter.name}`} title={status === 'suspended' ? 'Unsuspend' : 'Suspend'}>
+                    <button onClick={() => onSuspend(user)} className="p-2 text-gray-400 hover:bg-white/5 rounded-md transition-colors" aria-label={status === 'suspended' ? `Unsuspend promoter ${promoter.name}` : `Suspend promoter ${promoter.name}`} title={status === 'suspended' ? 'Unsuspend' : 'Suspend'}>
                         {status === 'suspended' ? <UserPlusIcon className="w-5 h-5 text-green-400" /> : <UserMinusIcon className="w-5 h-5 text-yellow-400" />}
                     </button>
-                    <button onClick={() => onEdit(promoter, user)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors" aria-label={`Edit promoter ${promoter.name}`} title="Edit">
+                    <button onClick={() => onEdit(promoter, user)} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" aria-label={`Edit promoter ${promoter.name}`} title="Edit">
                         <PencilSquareIcon className="w-5 h-5" />
                     </button>
-                    <button onClick={() => onDelete(promoter)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-md transition-colors" aria-label={`Delete promoter ${promoter.name}`} title="Delete">
+                    <button onClick={() => onDelete(promoter)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-white/5 rounded-md transition-colors" aria-label={`Delete promoter ${promoter.name}`} title="Delete">
                         <TrashIcon className="w-5 h-5" />
                     </button>
                 </div>
