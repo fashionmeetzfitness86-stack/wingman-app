@@ -50,6 +50,18 @@ const IcoClock = () => (
   </svg>
 );
 
+const IcoMenu = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+  </svg>
+);
+
+const IcoClose = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 const IcoShield = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -385,6 +397,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(ACCESS_DURATION_MS);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Helper: navigate to login, remembering which screen to return to
   const goToLogin = (from: 'browse' | 'enter') => { setPrevMode(from); setMode('login'); };
@@ -636,14 +649,41 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
       
       {/* Top bar */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
+      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 relative z-50">
         <WingmanWordmark />
         <button
-          onClick={() => goToLogin('browse')}
-          className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="text-gray-400 hover:text-white transition-colors p-1 -mr-1"
         >
-          Login
+          {isMenuOpen ? <IcoClose /> : <IcoMenu />}
         </button>
+        
+        {/* Dropdown Menu */}
+        {isMenuOpen && (
+          <div 
+            className="absolute top-16 right-5 w-56 rounded-2xl overflow-hidden shadow-2xl"
+            style={{ 
+              background: 'rgba(20,20,20,0.95)', 
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.08)' 
+            }}
+          >
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <p className="text-xs font-semibold text-gray-400 leading-tight">
+                Previewing events — access required to see prices, spots & book.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                goToLogin('browse');
+              }}
+              className="w-full px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+            >
+              Login
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Hero section */}
@@ -694,19 +734,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
       </div>
 
-      {/* Access required notice */}
-      <div
-        className="mx-5 rounded-xl px-4 py-3 mb-4 flex items-center gap-3 flex-shrink-0"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <div className="w-4 h-4 text-gray-400"><IcoLock /></div>
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold text-gray-400">Previewing events — access required to see prices, spots & book.</p>
-        </div>
-      </div>
+
 
       {/* Event preview grid */}
       <div className="px-5 pb-4 flex-shrink-0">
