@@ -1878,6 +1878,18 @@ export const App: React.FC = () => {
 
     if (!currentUser) return null; // Render guard
 
+    // ── Gated Access Gate ────────────────────────────────────────
+    // This MUST be the first thing unauthenticated users see.
+    // It prevents OnboardingModal (z-100) from overlaying the gate.
+    if (!isLoggedInUser && !passcodeAccessActive) {
+        return (
+            <WelcomePage
+                onAccessGranted={handleAccessGranted}
+                onLoginInstead={handleLoginInstead}
+            />
+        );
+    }
+
     return (
         <div className="min-h-screen bg-black text-white font-sans">
             {!hasOnboarded ? (
@@ -2168,13 +2180,6 @@ export const App: React.FC = () => {
                 </>
             )}
 
-            {/* ── Gated Access Gate ──────────────────────────────────────── */}
-            {!isLoggedInUser && !passcodeAccessActive && (
-                <WelcomePage
-                    onAccessGranted={handleAccessGranted}
-                    onLoginInstead={handleLoginInstead}
-                />
-            )}
         </div>
     );
 };
