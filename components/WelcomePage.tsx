@@ -378,12 +378,16 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
 export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin }) => {
   const [mode, setMode] = useState<'browse' | 'enter' | 'login' | 'forgotPassword' | 'success'>('browse');
+  const [prevMode, setPrevMode] = useState<'browse' | 'enter'>('browse');
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(ACCESS_DURATION_MS);
+
+  // Helper: navigate to login, remembering which screen to return to
+  const goToLogin = (from: 'browse' | 'enter') => { setPrevMode(from); setMode('login'); };
 
   // Pre-generate sample events for the preview
   const previewInstances = useMemo(() => {
@@ -440,7 +444,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
   if (mode === 'login') {
     return (
       <LoginScreen
-        onBack={() => setMode('browse')}
+        onBack={() => setMode(prevMode)}
         onLogin={onLogin ?? (() => false)}
         onForgotPassword={() => setMode('forgotPassword')}
       />
@@ -497,7 +501,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
             ← Browse
           </button>
           <button
-            onClick={onLoginInstead}
+            onClick={() => goToLogin('enter')}
             className="text-xs font-semibold text-gray-400 hover:text-white transition-colors"
           >
             Already have an account →
@@ -635,7 +639,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
       <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
         <WingmanWordmark />
         <button
-          onClick={() => setMode('login')}
+          onClick={() => goToLogin('browse')}
           className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
         >
           Login
