@@ -493,7 +493,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
   // ── Filters ──
-  const [typeFilter, setTypeFilter] = useState<ExperienceType | 'All'>('All');
+  const [typeFilter, setTypeFilter] = useState<ExperienceType | 'All' | 'Schedule'>('All');
   const [dayFilter, setDayFilter] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -589,16 +589,17 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
         {/* Type filter pills */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {(['All', 'Nightclub', 'Dinner', 'Yacht'] as const).map(t => {
+          {(['All', 'Nightclub', 'Dinner', 'Yacht', 'Schedule'] as const).map(t => {
             const active = typeFilter === t;
-            const cfg = t !== 'All' ? TYPE_CONFIG[t] : null;
+            const cfg = t !== 'All' && t !== 'Schedule' ? TYPE_CONFIG[t as ExperienceType] : null;
+            const scheduleColor = '#0EA5E9'; // sky blue for schedule
             return (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
                 className="flex-shrink-0 text-[10px] font-bold rounded-full px-3 py-1 transition-all"
                 style={active
-                  ? { background: cfg?.color ?? '#EC4899', color: '#fff' }
+                  ? { background: t === 'Schedule' ? scheduleColor : (cfg?.color ?? '#EC4899'), color: '#fff' }
                   : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 {t}
@@ -648,8 +649,8 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           </div>
         )}
 
-        {/* ── Event grid ── */}
-        {visible.length > 0 ? (
+        {/* ── Event grid (hidden when Schedule tab is active) ── */}
+        {typeFilter !== 'Schedule' && (visible.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {visible.map(instance => (
               <EventCard
@@ -667,7 +668,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
             <p className="text-3xl mb-2">🗓</p>
             <p className="text-xs font-semibold">No events match your filters.</p>
           </div>
-        )}
+        ))}
 
         {/* ── Infinite scroll loader ── */}
         <div ref={loaderRef} className="flex justify-center py-2">
@@ -682,47 +683,46 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           ) : null}
         </div>
 
-        {/* ── Weekly Schedule View ── */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-black text-white">Weekly Schedule</h2>
-          </div>
-          <div className="space-y-2">
-            {scheduleByDay.map(({ day, dayIndex, entries }) => {
-              if (entries.length === 0) return null;
-              const isToday = new Date().getDay() === dayIndex;
-              return (
-                <div key={day}
-                  className="rounded-xl overflow-hidden"
-                  style={{
-                    background: isToday ? 'rgba(236,72,153,0.05)' : 'rgba(255,255,255,0.02)',
-                    border: isToday ? '1px solid rgba(236,72,153,0.2)' : '1px solid rgba(255,255,255,0.05)',
-                  }}>
-                  <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest w-8">{day}</span>
-                    {isToday && <span className="text-xs font-bold text-purple-400">Today</span>}
+        {/* ── Weekly Schedule View (shown when Schedule tab is active) ── */}
+        {typeFilter === 'Schedule' && (
+          <div>
+            <div className="space-y-2">
+              {scheduleByDay.map(({ day, dayIndex, entries }) => {
+                if (entries.length === 0) return null;
+                const isToday = new Date().getDay() === dayIndex;
+                return (
+                  <div key={day}
+                    className="rounded-xl overflow-hidden"
+                    style={{
+                      background: isToday ? 'rgba(14,165,233,0.05)' : 'rgba(255,255,255,0.02)',
+                      border: isToday ? '1px solid rgba(14,165,233,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                    }}>
+                    <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span className="text-xs font-black text-gray-400 uppercase tracking-widest w-8">{day}</span>
+                      {isToday && <span className="text-xs font-bold" style={{ color: '#0EA5E9' }}>Today</span>}
+                    </div>
+                    {entries.map(entry => {
+                      const tc2 = TYPE_CONFIG[entry.experienceType];
+                      return (
+                        <div key={entry.id} className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: tc2.color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{entry.title}</p>
+                            <p className="text-xs text-gray-500 truncate">{entry.venue}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs font-bold text-white">{entry.arrivalTime || entry.time}</p>
+                            <p className="text-xs text-gray-600">${entry.pricePerPerson}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  {entries.map(entry => {
-                    const tc2 = TYPE_CONFIG[entry.experienceType];
-                    return (
-                      <div key={entry.id} className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: tc2.color }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{entry.title}</p>
-                          <p className="text-xs text-gray-500 truncate">{entry.venue}</p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-xs font-bold text-white">{entry.arrivalTime || entry.time}</p>
-                          <p className="text-xs text-gray-600">${entry.pricePerPerson}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
 
