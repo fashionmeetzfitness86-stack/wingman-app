@@ -2,7 +2,7 @@
 
 
 import React, { useState, useMemo } from 'react';
-import { User, Itinerary, FriendZoneChat, Promoter } from '../types';
+import { User, Itinerary, FriendZoneChat, Wingman } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { PlusIcon } from './icons/PlusIcon';
@@ -89,15 +89,15 @@ const SharedItineraryCard: React.FC<{ itinerary: Itinerary, creator: User }> = (
 );
 
 const FriendZoneChatCard: React.FC<{ chat: FriendZoneChat, onOpen: () => void, onDelete: () => void, currentUser: User }> = ({ chat, onOpen, onDelete, currentUser }) => {
-    const activePromoterCount = chat.promoterIds?.length || 0;
+    const activeWingmanCount = chat.wingmanIds?.length || 0;
     
     return (
     <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 flex items-center justify-between group transition-colors hover:border-[#FFFFFF]/30">
         <button onClick={onOpen} className="flex items-center gap-4 text-left flex-grow">
             <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-amber-400 relative">
                 <ChatIcon className="w-6 h-6" />
-                {activePromoterCount > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-white text-black hover:bg-gray-200 p-1 rounded-full border-2 border-gray-900" title="Promoter in Chat">
+                {activeWingmanCount > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-white text-black hover:bg-gray-200 p-1 rounded-full border-2 border-gray-900" title="Wingman in Chat">
                         <StarIcon className="w-3 h-3 text-white fill-current" />
                     </div>
                 )}
@@ -106,9 +106,9 @@ const FriendZoneChatCard: React.FC<{ chat: FriendZoneChat, onOpen: () => void, o
                 <p className="font-bold text-white text-lg">{chat.name}</p>
                 <div className="flex items-center gap-2">
                     <p className="text-xs text-gray-400">{chat.memberIds.length} participants</p>
-                    {activePromoterCount > 0 && (
+                    {activeWingmanCount > 0 && (
                         <span className="text-[10px] bg-white text-black hover:bg-gray-200/20 text-gray-300 px-1.5 py-0.5 rounded font-bold uppercase">
-                            {activePromoterCount > 1 ? `${activePromoterCount} Promoters` : 'Promoter Active'}
+                            {activeWingmanCount > 1 ? `${activeWingmanCount} Wingmen` : 'Wingman Active'}
                         </span>
                     )}
                 </div>

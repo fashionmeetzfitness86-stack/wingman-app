@@ -1,17 +1,17 @@
 
 import React, { useMemo } from 'react';
-import { Page, User, GuestlistChat, Venue, Promoter, UserAccessLevel } from '../types';
+import { Page, User, GuestlistChat, Venue, Wingman, UserAccessLevel } from '../types';
 import { users, bookingHistory } from '../data/mockData';
 
 interface GuestlistChatsPageProps {
   currentUser: User;
   guestlistChats: GuestlistChat[];
   venues: Venue[];
-  promoters: Promoter[];
+  wingmen: Wingman[];
   onViewChat: (chatId: number) => void;
 }
 
-export const GuestlistChatsPage: React.FC<GuestlistChatsPageProps> = ({ currentUser, guestlistChats, venues, promoters, onViewChat }) => {
+export const GuestlistChatsPage: React.FC<GuestlistChatsPageProps> = ({ currentUser, guestlistChats, venues, wingmen, onViewChat }) => {
 
   const myChats = useMemo(() => {
     return guestlistChats.filter(chat => chat.memberIds.includes(currentUser.id));
@@ -22,10 +22,10 @@ export const GuestlistChatsPage: React.FC<GuestlistChatsPageProps> = ({ currentU
       <div className="space-y-4">
         {myChats.length > 0 ? myChats.map(chat => {
           const venue = venues.find(v => v.id === chat.venueId);
-          const promoter = promoters.find(p => p.id === chat.promoterId);
-          if (!venue || !promoter) return null;
+          const wingman = wingmen.find(p => p.id === chat.wingmanId);
+          if (!venue || !wingman) return null;
 
-          const otherMembers = chat.memberIds.filter(id => id !== currentUser.id && id !== promoter.id)
+          const otherMembers = chat.memberIds.filter(id => id !== currentUser.id && id !== wingman.id)
             .map(id => users.find(u => u.id === id))
             .filter(Boolean);
 
@@ -41,10 +41,10 @@ export const GuestlistChatsPage: React.FC<GuestlistChatsPageProps> = ({ currentU
                 <p className="text-sm text-gray-400">
                   {new Date(chat.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Managed by {promoter.name}</p>
+                <p className="text-xs text-gray-500 mt-1">Managed by {wingman.name}</p>
               </div>
               <div className="flex -space-x-2">
-                <img src={promoter.profilePhoto} alt={promoter.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
+                <img src={wingman.profilePhoto} alt={wingman.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
                 {otherMembers.slice(0, 3).map(member => member && (
                     <img key={member.id} src={member.profilePhoto} alt={member.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
                 ))}

@@ -1,29 +1,29 @@
 
 import React, { useState } from 'react';
-import { Promoter, Page, User, GuestlistJoinRequest, Venue, Event, CartItem, EventInvitation } from '../types';
+import { Wingman, Page, User, GuestlistJoinRequest, Venue, Event, CartItem, EventInvitation } from '../types';
 import { StatCard } from './StatCard';
 import { BookingsIcon } from './icons/BookingsIcon';
 import { CurrencyDollarIcon } from './icons/CurrencyDollarIcon';
 import { StarIcon } from './icons/StarIcon';
 import { ToggleSwitch } from './ui/ToggleSwitch';
-import { PromoterCard } from './PromoterCard';
+import { WingmanCard } from './WingmanCard';
 import { GiftIcon } from './icons/GiftIcon';
 import { DocumentDuplicateIcon } from './icons/DocumentDuplicateIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { GuestlistAttendanceTab } from './admin/GuestlistAttendanceTab';
 import { SendInvitations } from './admin/SendInvitations';
-import { PromoterNetworkTab } from './admin/PromoterNetworkTab';
+import { WingmanNetworkTab } from './admin/WingmanNetworkTab';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { PromoterDataExportModal } from './modals/PromoterDataExportModal';
+import { WingmanDataExportModal } from './modals/WingmanDataExportModal';
 
 interface SubscriptionStatusProps {
-    promoterUser: User;
+    wingmanUser: User;
     onToggleAutoPay: (isEnabled: boolean) => void;
     onManagePayment: () => void;
 }
 
-const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ promoterUser, onToggleAutoPay, onManagePayment }) => {
-    const { subscriptionStatus, subscriptionDueDate, waiveSubscriptionUntil, autoPayEnabled } = promoterUser;
+const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ wingmanUser, onToggleAutoPay, onManagePayment }) => {
+    const { subscriptionStatus, subscriptionDueDate, waiveSubscriptionUntil, autoPayEnabled } = wingmanUser;
 
     const getStatusInfo = () => {
         switch (subscriptionStatus) {
@@ -127,7 +127,7 @@ const ReferralSection: React.FC<{ referralCode?: string, referralsCount?: number
                         <h3 className="text-xl font-bold text-white">Referral Program</h3>
                     </div>
                     <p className="text-gray-300 text-sm max-w-md">
-                        Invite new users or promoters to WINGMAN. Earn 500 points for every new user and $100 for every approved promoter who signs up with your code.
+                        Invite new users or wingmen to WINGMAN. Earn 500 points for every new user and $100 for every approved wingman who signs up with your code.
                     </p>
                 </div>
 
@@ -161,10 +161,10 @@ const ReferralSection: React.FC<{ referralCode?: string, referralsCount?: number
     );
 };
 
-interface PromoterDashboardProps {
-  promoter: Promoter;
+interface WingmanDashboardProps {
+  wingman: Wingman;
   onNavigate: (page: Page, params?: any) => void;
-  promoterUser: User;
+  wingmanUser: User;
   onUpdateUser: (user: User) => void;
   guestlistRequests: GuestlistJoinRequest[];
   users: User[];
@@ -176,28 +176,28 @@ interface PromoterDashboardProps {
   bookedItems: CartItem[];
   eventInvitations: EventInvitation[];
   onSendDirectInvites: (eventId: number, userIds: number[]) => void;
-  promoters: Promoter[];
+  wingmen: Wingman[];
 }
 
-export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
+export const WingmanDashboard: React.FC<WingmanDashboardProps> = (props) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'network' | 'guestlists' | 'invitations'>('overview');
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const { promoter, onNavigate, promoterUser, onUpdateUser, guestlistRequests, users, venues, promoters: allPromoters, onUpdateRequestStatus, onReviewGuestlistRequest, onViewUser, bookedItems } = props;
+    const { wingman, onNavigate, wingmanUser, onUpdateUser, guestlistRequests, users, venues, wingmen: allWingmen, onUpdateRequestStatus, onReviewGuestlistRequest, onViewUser, bookedItems } = props;
     
     const handleToggleAutoPay = (isEnabled: boolean) => {
-        onUpdateUser({ ...promoterUser, autoPayEnabled: isEnabled });
+        onUpdateUser({ ...wingmanUser, autoPayEnabled: isEnabled });
     };
 
-    // Filter guestlist requests for this promoter's venues or directly assigned to them
+    // Filter guestlist requests for this wingman's venues or directly assigned to them
     const myGuestlistRequests = guestlistRequests.filter(req => 
-        req.promoterId === promoter.id || promoter.assignedVenueIds.includes(req.venueId)
+        req.wingmanId === wingman.id || wingman.assignedVenueIds.includes(req.venueId)
     );
 
     const pendingRequestsCount = myGuestlistRequests.filter(r => r.status === 'pending').length;
 
-    const myVenues = venues.filter(v => promoter.assignedVenueIds.includes(v.id));
+    const myVenues = venues.filter(v => wingman.assignedVenueIds.includes(v.id));
     
-    const myReferrals = users.filter(u => u.referredByPromoterId === promoter.id);
+    const myReferrals = users.filter(u => u.referredByWingmanId === wingman.id);
 
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white space-y-8">
@@ -243,31 +243,31 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                         </button>
                     </div>
 
-                    {promoterUser && (
+                    {wingmanUser && (
                         <SubscriptionStatus 
-                            promoterUser={promoterUser} 
+                            wingmanUser={wingmanUser} 
                             onToggleAutoPay={handleToggleAutoPay}
                             onManagePayment={() => onNavigate('paymentMethods')}
                         />
                     )}
                     
                     <ReferralSection 
-                        referralCode={promoterUser.referralCode} 
-                        referralsCount={promoterUser.referralsCount} 
-                        earnings={promoterUser.referralEarnings}
+                        referralCode={wingmanUser.referralCode} 
+                        referralsCount={wingmanUser.referralsCount} 
+                        earnings={wingmanUser.referralEarnings}
                     />
 
                     <div>
                         <h2 className="text-xl font-bold text-gray-400 uppercase tracking-wider mb-4">My Public Card Preview</h2>
                         <div className="max-w-sm">
-                            <PromoterCard
-                                promoter={promoter}
-                                onViewProfile={() => onNavigate('promoterProfile', { promoterId: promoter.id })}
+                            <WingmanCard
+                                wingman={wingman}
+                                onViewProfile={() => onNavigate('wingmanProfile', { wingmanId: wingman.id })}
                                 onBook={() => onNavigate('featuredVenues')}
                                 isFavorite={false}
                                 onToggleFavorite={() => {}}
                                 onJoinGuestlist={() => {}}
-                                currentUser={promoterUser}
+                                currentUser={wingmanUser}
                                 showEarnings={true}
                             />
                         </div>
@@ -279,10 +279,10 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                             <StatCard 
                                 icon={<CurrencyDollarIcon className="w-7 h-7" />}
                                 label="Total Earnings"
-                                value={`$${promoter.earnings?.toLocaleString() || 'N/A'}`}
+                                value={`$${wingman.earnings?.toLocaleString() || 'N/A'}`}
                                 change="+5.2%"
                                 changeType="positive"
-                                onClick={() => onNavigate('promoterStats')}
+                                onClick={() => onNavigate('wingmanStats')}
                             />
                             <StatCard 
                                 icon={<BookingsIcon className="w-7 h-7" />}
@@ -290,15 +290,15 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                                 value="128"
                                 change="+10"
                                 changeType="positive"
-                                onClick={() => onNavigate('promoterStats')}
+                                onClick={() => onNavigate('wingmanStats')}
                             />
                             <StatCard 
                                 icon={<StarIcon className="w-7 h-7" />}
                                 label="Rating"
-                                value={promoter.rating.toFixed(1)}
+                                value={wingman.rating.toFixed(1)}
                                 change="-0.1"
                                 changeType="negative"
-                                onClick={() => onNavigate('promoterStats')}
+                                onClick={() => onNavigate('wingmanStats')}
                             />
                         </div>
                     </div>
@@ -309,8 +309,8 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                 <div className="animate-fade-in">
                     <h2 className="text-xl font-bold mb-4">My Network</h2>
                     <p className="text-gray-400 mb-6">Review your booked clients and people who joined through your referrals.</p>
-                    <PromoterNetworkTab 
-                        promoter={promoter}
+                    <WingmanNetworkTab 
+                        wingman={wingman}
                         users={users}
                         bookedItems={bookedItems}
                         onViewUser={onViewUser}
@@ -326,7 +326,7 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                         requests={myGuestlistRequests}
                         users={users}
                         venues={myVenues}
-                        promoters={[promoter]} 
+                        wingmen={[wingman]} 
                         onViewUser={onViewUser}
                         onUpdateRequestStatus={onUpdateRequestStatus}
                         onReviewGuestlistRequest={onReviewGuestlistRequest}
@@ -345,15 +345,15 @@ export const PromoterDashboard: React.FC<PromoterDashboardProps> = (props) => {
                         eventInvitations={props.eventInvitations}
                         onPreviewUser={props.onViewUser}
                         onSendDirectInvites={props.onSendDirectInvites}
-                        invitationRequests={[]} // Promoters don't manage requests here, just direct invites
+                        invitationRequests={[]} // Wingmen don't manage requests here, just direct invites
                     />
                 </div>
             )}
 
-            <PromoterDataExportModal 
+            <WingmanDataExportModal 
                 isOpen={isExportModalOpen}
                 onClose={() => setIsExportModalOpen(false)}
-                promoter={promoter}
+                wingman={wingman}
                 bookedItems={bookedItems}
                 guestlistRequests={myGuestlistRequests}
                 referredUsers={myReferrals}

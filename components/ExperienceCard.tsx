@@ -27,9 +27,9 @@ const getPriceForUser = (experience: Experience, user: User): { price?: number; 
 
     const format = (price: number) => ({ price, text: `$${price.toLocaleString()}` });
 
-    if (user.role === UserRole.PROMOTER || user.role === UserRole.ADMIN) {
-        if (typeof pricing.promoter === 'number') {
-            return format(pricing.promoter);
+    if (user.role === UserRole.WINGMAN || user.role === UserRole.ADMIN) {
+        if (typeof pricing.wingman === 'number') {
+            return format(pricing.wingman);
         }
     }
     if (user.accessLevel === UserAccessLevel.APPROVED_GIRL) {

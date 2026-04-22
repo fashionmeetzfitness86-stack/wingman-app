@@ -76,8 +76,8 @@ export const SideMenu: React.FC<SideMenuProps> = ({ isOpen, onClose, onNavigate,
           {/* Menu Items */}
           <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
             <MenuItem icon={<HomeIcon className="w-5 h-5" />} label="Home" isActive={currentPage === 'home'} onClick={() => handleNavigation('home')} />
-            {currentUser.role === UserRole.PROMOTER && (
-                <MenuItem icon={<ChartPieIcon className="w-5 h-5" />} label="Promoter Dashboard" isActive={currentPage === 'promoterDashboard'} onClick={() => handleNavigation('promoterDashboard')} />
+            {currentUser.role === UserRole.WINGMAN && (
+                <MenuItem icon={<ChartPieIcon className="w-5 h-5" />} label="Wingman Dashboard" isActive={currentPage === 'wingmanDashboard'} onClick={() => handleNavigation('wingmanDashboard')} />
             )}
             <MenuItem icon={<BookTableIcon className="w-5 h-5" />} label="Featured Venues" isActive={currentPage === 'featuredVenues'} onClick={() => handleNavigation('featuredVenues')} />
             <MenuItem icon={<SparkleIcon className="w-5 h-5" />} label="Experiences" isActive={currentPage === 'exclusiveExperiences' || currentPage === 'eventTimeline'} onClick={() => handleNavigation('eventTimeline')} />

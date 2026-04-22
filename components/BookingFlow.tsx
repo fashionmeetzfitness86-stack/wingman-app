@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Promoter, Venue, TableOption, UserAccessLevel, User, CartItem, UserRole } from '../types';
+import { Wingman, Venue, TableOption, UserAccessLevel, User, CartItem, UserRole } from '../types';
 import { CloseIcon } from './icons/CloseIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { UsersIcon } from './icons/UsersIcon';
@@ -8,7 +8,7 @@ import { AddedToPlansModal } from './modals/AddedToPlansModal';
 import { ExclamationCircleIcon } from './icons/ExclamationCircleIcon';
 
 interface BookingFlowProps {
-  promoter: Promoter;
+  wingman: Wingman;
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
   currentUser: User;
@@ -33,7 +33,7 @@ const DetailRow: React.FC<{ label: string; value: string | number }> = ({ label,
 );
 
 
-export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onAddToCart, currentUser, initialVenue, initialDate, tableBookings, onNavigateToCheckout, onKeepBooking, venues }) => {
+export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAddToCart, currentUser, initialVenue, initialDate, tableBookings, onNavigateToCheckout, onKeepBooking, venues }) => {
   const [step, setStep] = useState(initialVenue ? 2 : 1);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(initialVenue || null);
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || '');
@@ -53,13 +53,13 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
   // Ref for focus first input
   const firstInputRef = useRef<HTMLInputElement | HTMLButtonElement>(null);
 
-  const promoterVenues = useMemo(() => {
-      const assigned = venues.filter(v => promoter.assignedVenueIds.includes(v.id));
+  const wingmanVenues = useMemo(() => {
+      const assigned = venues.filter(v => wingman.assignedVenueIds.includes(v.id));
       if (initialVenue && !assigned.find(v => v.id === initialVenue.id)) {
           return [initialVenue, ...assigned];
       }
       return assigned;
-  }, [promoter.assignedVenueIds, venues, initialVenue]);
+  }, [wingman.assignedVenueIds, venues, initialVenue]);
 
   const minDate = useMemo(() => {
       const d = new Date();
@@ -158,7 +158,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
       depositPrice: DEPOSIT_AMOUNT,
       paymentOption: 'full',
       tableDetails: {
-        venue: selectedVenue, tableOption: selectedTable, promoter: promoter, numberOfGuests: totalGuests,
+        venue: selectedVenue, tableOption: selectedTable, wingman: wingman, numberOfGuests: totalGuests,
         guestDetails: bookingFor === 'guest' ? guestDetails : { name: currentUser.name, email: currentUser.email, phone: currentUser.phoneNumber || ''},
         specialRequests: specialRequests
       }
@@ -175,7 +175,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                 <div role="region" aria-label="Select a Venue">
                     <h2 className="text-2xl font-bold text-white mb-6">Select a Venue</h2>
                     <div className="space-y-3">
-                        {promoterVenues.map((venue, index) => (
+                        {wingmanVenues.map((venue, index) => (
                             <button 
                                 key={venue.id} 
                                 onClick={() => handleVenueSelect(venue)} 
@@ -281,7 +281,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                     name: 'General Reservation Request',
                     area: 'General',
                     minSpend: 0,
-                    description: 'Submit a request for a table. A promoter will contact you with options.',
+                    description: 'Submit a request for a table. A wingman will contact you with options.',
                     capacityHint: 'Small Groups'
                 } as TableOption];
 
@@ -348,7 +348,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ promoter, onClose, onA
                         <DetailRow label="Venue" value={selectedVenue.name} />
                         <DetailRow label="Date" value={new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} />
                         <DetailRow label="Table" value={selectedTable.name} />
-                        <DetailRow label="Wingman" value={promoter.name} />
+                        <DetailRow label="Wingman" value={wingman.name} />
                         <DetailRow label="Guests" value={totalGuests} />
                         
                         <div className="border-t border-gray-700 !mt-4 pt-3">

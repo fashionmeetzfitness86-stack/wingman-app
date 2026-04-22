@@ -142,7 +142,7 @@ export const AdminEditUserModal: React.FC<AdminEditUserModalProps> = ({ user, is
                         <option value="rejected">Rejected</option>
                     </select>
                 </div>
-                {editedUser.role === UserRole.PROMOTER && (
+                {editedUser.role === UserRole.WINGMAN && (
                     <div className="border-t border-gray-700 pt-4">
                         <h3 className="text-lg font-semibold text-white mb-2">Subscription Management</h3>
                         <div>

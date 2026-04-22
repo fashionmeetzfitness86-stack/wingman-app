@@ -68,7 +68,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
     currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL ||
     currentUser.accessLevel === UserAccessLevel.ACCESS_MALE ||
     currentUser.role === UserRole.ADMIN ||
-    currentUser.role === UserRole.PROMOTER;
+    currentUser.role === UserRole.WINGMAN;
 
   if (isPrivileged) {
     return (

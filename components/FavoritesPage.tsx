@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { Promoter, Venue, User, Page, Event, Experience } from '../types';
+import { Wingman, Venue, User, Page, Event, Experience } from '../types';
 import { venues as mockVenues } from '../data/mockData';
 import { SavedVenueCard } from './SavedVenueCard';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { SavedPromoterCard } from './SavedPromoterCard';
+import { SavedWingmanCard } from './SavedWingmanCard';
 import { EventCard } from './EventCard';
 import { ExperienceCard } from './ExperienceCard';
 
 interface FavoritesPageProps {
-  promoters: Promoter[];
-  onSelectPromoter: (promoter: Promoter) => void;
-  onToggleFavorite: (promoterId: number) => void;
+  wingmen: Wingman[];
+  onSelectWingman: (wingman: Wingman) => void;
+  onToggleFavorite: (wingmanId: number) => void;
   onNavigate: (page: Page) => void;
   favoriteVenueIds: number[];
   onToggleVenueFavorite: (venueId: number) => void;
@@ -31,11 +31,11 @@ interface FavoritesPageProps {
   onToggleBookmarkExperience?: (experienceId: number) => void;
 }
 
-type Tab = 'promoters' | 'venues' | 'events' | 'bookmarks' | 'experiences';
+type Tab = 'wingmen' | 'venues' | 'events' | 'bookmarks' | 'experiences';
 
 export const FavoritesPage: React.FC<FavoritesPageProps> = ({ 
-    promoters,
-    onSelectPromoter,
+    wingmen,
+    onSelectWingman,
     onToggleFavorite,
     onNavigate, 
     favoriteVenueIds, 
@@ -58,7 +58,7 @@ export const FavoritesPage: React.FC<FavoritesPageProps> = ({
   const [activeTab, setActiveTab] = useState<Tab>('events');
 
   const favoriteVenues = venues.filter(v => favoriteVenueIds.includes(v.id));
-  const favoritePromoters = promoters.filter(p => (currentUser.favoritePromoterIds || []).includes(p.id));
+  const favoriteWingmen = wingmen.filter(p => (currentUser.favoriteWingmanIds || []).includes(p.id));
   
   const favoriteEvents = events.filter(e => {
       const originalId = typeof e.id === 'string' ? parseInt(e.id.split('-')[0], 10) : e.id;
@@ -101,10 +101,10 @@ export const FavoritesPage: React.FC<FavoritesPageProps> = ({
             Saved ({bookmarkedEvents.length})
           </button>
           <button 
-            onClick={() => setActiveTab('promoters')}
-            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'promoters' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
+            onClick={() => setActiveTab('wingmen')}
+            className={`px-4 py-2 text-sm md:text-lg font-semibold transition-colors whitespace-nowrap ${activeTab === 'wingmen' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
           >
-            Promoters ({favoritePromoters.length})
+            Wingmen ({favoriteWingmen.length})
           </button>
           <button 
             onClick={() => setActiveTab('venues')}
@@ -197,20 +197,20 @@ export const FavoritesPage: React.FC<FavoritesPageProps> = ({
         </div>
       )}
 
-      {activeTab === 'promoters' && (
+      {activeTab === 'wingmen' && (
         <div className="space-y-3">
-            {favoritePromoters.length > 0 ? (
-                favoritePromoters.map(promoter => (
-                    <SavedPromoterCard 
-                        key={promoter.id}
-                        promoter={promoter}
-                        onSelect={onSelectPromoter}
+            {favoriteWingmen.length > 0 ? (
+                favoriteWingmen.map(wingman => (
+                    <SavedWingmanCard 
+                        key={wingman.id}
+                        wingman={wingman}
+                        onSelect={onSelectWingman}
                         onToggleFavorite={onToggleFavorite}
                     />
                 ))
             ) : (
                  <div className="text-center py-16 bg-gray-900 rounded-lg border border-gray-800">
-                    <p className="text-gray-400">You haven't favorited any promoters yet.</p>
+                    <p className="text-gray-400">You haven't favorited any wingmen yet.</p>
                  </div>
             )}
         </div>

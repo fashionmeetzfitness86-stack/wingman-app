@@ -1,10 +1,10 @@
 import React from 'react';
-import { GroupPost, User, Promoter, UserRole } from '../types';
+import { GroupPost, User, Wingman, UserRole } from '../types';
 import { HeartIcon } from './icons/HeartIcon';
 
 interface GroupPostCardProps {
     post: GroupPost;
-    author: User | Promoter;
+    author: User | Wingman;
     currentUser: User;
     onToggleLike: (postId: number) => void;
 }

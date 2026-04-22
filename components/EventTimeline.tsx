@@ -5,7 +5,7 @@ import { AskGabyBanner } from './AskGabyBanner';
 import { DiscoverCard } from './DiscoverCard';
 import { SuggestedEventCard } from './SuggestedEventCard';
 import { TimelineEventCard } from './TimelineEventCard';
-import { Event, User, UserAccessLevel, EventInvitationRequest, Venue, UserRole, Promoter, GuestlistJoinRequest } from '../types';
+import { Event, User, UserAccessLevel, EventInvitationRequest, Venue, UserRole, Wingman, GuestlistJoinRequest } from '../types';
 import { EventDetailModal } from './modals/EventDetailModal';
 import { MiamiMapModal } from './MiamiMapModal';
 import { EventParticipantsModal } from './modals/EventParticipantsModal';
@@ -31,7 +31,7 @@ interface EventTimelineProps {
   subscribedEventIds: number[];
   onToggleSubscription: (eventId: number | string) => void;
   onBookVenue: (venue: Venue) => void;
-  onJoinGuestlist: (context: { promoter?: Promoter; venue?: Venue, date?: string }) => void;
+  onJoinGuestlist: (context: { wingman?: Wingman; venue?: Venue, date?: string }) => void;
   guestlistRequests: GuestlistJoinRequest[];
   onBookEvent: (event: Event) => void;
 }

@@ -7,7 +7,7 @@ import { CartIcon } from './icons/CartIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { HomeIcon } from './icons/HomeIcon';
 
-interface PromoterBottomNavBarProps {
+interface WingmanBottomNavBarProps {
   currentPage: Page;
   onNavigate: (page: Page) => void;
   cartItemCount: number;
@@ -35,9 +35,9 @@ const NavItem: React.FC<{
   );
 };
 
-export const PromoterBottomNavBar: React.FC<PromoterBottomNavBarProps> = ({ currentPage, onNavigate, cartItemCount }) => {
+export const WingmanBottomNavBar: React.FC<WingmanBottomNavBarProps> = ({ currentPage, onNavigate, cartItemCount }) => {
     return (
-        <nav className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-lg border-t border-gray-800 z-40" aria-label="Promoter Navigation">
+        <nav className="fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-lg border-t border-gray-800 z-40" aria-label="Wingman Navigation">
             <div className="container mx-auto h-full grid grid-cols-5 items-center justify-around px-2 relative">
                 <NavItem
                     icon={<HomeIcon className="w-6 h-6" />}

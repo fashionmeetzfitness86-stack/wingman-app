@@ -1,11 +1,11 @@
 import React from 'react';
-import { User, Promoter } from '../../types';
+import { User, Wingman } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 
 interface ParticipantsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  participants: (User | Promoter)[];
+  participants: (User | Wingman)[];
 }
 
 export const ParticipantsModal: React.FC<ParticipantsModalProps> = ({ isOpen, onClose, participants }) => {

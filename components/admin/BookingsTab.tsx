@@ -23,11 +23,11 @@ export const BookingsTab: React.FC<BookingsTabProps> = ({ bookedItems, onViewUse
         const lowercasedQuery = searchTerm.toLowerCase();
         return sorted.filter(item => {
             const userName = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || '';
-            const promoterName = item.tableDetails?.promoter?.name || '';
+            const wingmanName = item.tableDetails?.wingman?.name || '';
             return (
                 item.name.toLowerCase().includes(lowercasedQuery) ||
                 userName.toLowerCase().includes(lowercasedQuery) ||
-                promoterName.toLowerCase().includes(lowercasedQuery)
+                wingmanName.toLowerCase().includes(lowercasedQuery)
             );
         });
     }, [searchTerm, bookedItems]);
@@ -36,7 +36,7 @@ export const BookingsTab: React.FC<BookingsTabProps> = ({ bookedItems, onViewUse
         <div className="space-y-6">
             <input 
                 type="text" 
-                placeholder="Search bookings by user, item, or promoter..." 
+                placeholder="Search bookings by user, item, or wingman..." 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3" 
@@ -48,14 +48,14 @@ export const BookingsTab: React.FC<BookingsTabProps> = ({ bookedItems, onViewUse
                             <th scope="col" className="px-4 py-3">User</th>
                             <th scope="col" className="px-4 py-3">Item</th>
                             <th scope="col" className="px-4 py-3">Date</th>
-                            <th scope="col" className="px-4 py-3">Promoter</th>
+                            <th scope="col" className="px-4 py-3">Wingman</th>
                             <th scope="col" className="px-4 py-3">Price</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredBookings.map(item => {
                             const user = findUserByDetails(item);
-                            const promoterName = item.tableDetails?.promoter?.name || 'N/A';
+                            const wingmanName = item.tableDetails?.wingman?.name || 'N/A';
                             const price = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
                             return (
                                 <tr key={item.id} className="bg-gray-900 border-b border-gray-800 hover:bg-gray-800">
@@ -71,7 +71,7 @@ export const BookingsTab: React.FC<BookingsTabProps> = ({ bookedItems, onViewUse
                                     </td>
                                     <td className="px-4 py-3">{item.name}</td>
                                     <td className="px-4 py-3">{item.date}</td>
-                                    <td className="px-4 py-3">{promoterName}</td>
+                                    <td className="px-4 py-3">{wingmanName}</td>
                                     <td className="px-4 py-3 font-semibold text-white">${price?.toFixed(2)}</td>
                                 </tr>
                             )

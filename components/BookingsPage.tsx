@@ -31,7 +31,7 @@ const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void
             <div className="flex justify-between items-start">
                 <div>
                     <p className="font-bold text-white text-lg">{booking.venueName}</p>
-                    <p className="text-sm text-gray-400">with {booking.promoterName}</p>
+                    <p className="text-sm text-gray-400">with {booking.wingmanName}</p>
                 </div>
                 {renderBookingStatus(booking.status)}
             </div>
@@ -236,7 +236,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="font-bold text-white text-lg">{item.venueName}</p>
-                                    <p className="text-sm text-gray-400">with {cartItem.tableDetails?.promoter?.name || 'N/A'}</p>
+                                    <p className="text-sm text-gray-400">with {cartItem.tableDetails?.wingman?.name || 'N/A'}</p>
                                 </div>
                                 <span className="text-blue-400 font-semibold">Confirmed</span>
                             </div>

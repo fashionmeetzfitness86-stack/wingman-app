@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { GuestlistJoinRequest, User, Venue, Promoter } from '../../types';
+import { GuestlistJoinRequest, User, Venue, Wingman } from '../../types';
 import { ChevronDownIcon } from '../icons/ChevronDownIcon';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CloseIcon } from '../icons/CloseIcon';
@@ -9,7 +9,7 @@ interface GuestlistAttendanceTabProps {
   requests: GuestlistJoinRequest[];
   users: User[];
   venues: Venue[];
-  promoters: Promoter[];
+  wingmen: Wingman[];
   onViewUser: (user: User) => void;
   onUpdateRequestStatus: (requestId: number, status: 'pending' | 'show' | 'no-show') => void;
   onReviewGuestlistRequest?: (requestId: number, status: 'approved' | 'rejected') => void;
@@ -18,10 +18,10 @@ interface GuestlistAttendanceTabProps {
 const GuestlistAttendanceRow: React.FC<{
     request: GuestlistJoinRequest;
     user: User;
-    promoter: Promoter;
+    wingman: Wingman;
     onViewUser: (user: User) => void;
     onUpdateRequestStatus: (requestId: number, status: 'pending' | 'show' | 'no-show') => void;
-}> = ({ request, user, promoter, onViewUser, onUpdateRequestStatus }) => {
+}> = ({ request, user, wingman, onViewUser, onUpdateRequestStatus }) => {
     
     const statusColor = {
         pending: 'bg-yellow-900/50 text-yellow-300',
@@ -37,7 +37,7 @@ const GuestlistAttendanceRow: React.FC<{
                     <span className="font-semibold text-white group-hover:underline">{user.name}</span>
                 </button>
             </td>
-            <td className="px-4 py-3 text-gray-300">{promoter.name}</td>
+            <td className="px-4 py-3 text-gray-300">{wingman.name}</td>
             <td className="px-4 py-3">
                 <select 
                     value={request.attendanceStatus}
@@ -101,7 +101,7 @@ const PendingRequestRow: React.FC<{
     );
 }
 
-export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ requests, users, venues, promoters, onViewUser, onUpdateRequestStatus, onReviewGuestlistRequest }) => {
+export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ requests, users, venues, wingmen, onViewUser, onUpdateRequestStatus, onReviewGuestlistRequest }) => {
     const [selectedVenueId, setSelectedVenueId] = useState<string>('all');
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [activeSubTab, setActiveSubTab] = useState<'pending' | 'approved'>('pending');
@@ -168,7 +168,7 @@ export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ 
                     <thead className="text-xs text-gray-400 uppercase bg-gray-800">
                         <tr>
                             <th scope="col" className="px-4 py-3">Attendee</th>
-                            {activeSubTab === 'approved' && <th scope="col" className="px-4 py-3">Promoter</th>}
+                            {activeSubTab === 'approved' && <th scope="col" className="px-4 py-3">Wingman</th>}
                             {activeSubTab === 'pending' && (
                                 <>
                                     <th scope="col" className="px-4 py-3">Request For</th>
@@ -182,8 +182,8 @@ export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ 
                         {filteredRequests.map(req => {
                             const user = users.find(u => u.id === req.userId);
                             const venue = venues.find(v => v.id === req.venueId);
-                            const promoter = promoters.find(p => p.id === req.promoterId);
-                            if (!user || !promoter || !venue) return null;
+                            const wingman = wingmen.find(p => p.id === req.wingmanId);
+                            if (!user || !wingman || !venue) return null;
                             
                             if (activeSubTab === 'pending') {
                                 return (
@@ -204,7 +204,7 @@ export const GuestlistAttendanceTab: React.FC<GuestlistAttendanceTabProps> = ({ 
                                     key={req.id} 
                                     request={req} 
                                     user={user} 
-                                    promoter={promoter}
+                                    wingman={wingman}
                                     onViewUser={onViewUser}
                                     onUpdateRequestStatus={onUpdateRequestStatus}
                                 />

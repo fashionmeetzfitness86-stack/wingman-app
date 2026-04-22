@@ -138,10 +138,10 @@ const AdminHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ us
   );
 };
 
-/** WINGMAN / PROMOTER VIEW */
+/** WINGMAN / WINGMAN VIEW */
 const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ user, onNavigate }) => {
-  const isPromoter = user.role === UserRole.PROMOTER;
-  const accent = isPromoter ? '#fb923c' : '#38bdf8';
+  const isWingman = user.role === UserRole.WINGMAN;
+  const accent = isWingman ? '#fb923c' : '#38bdf8';
 
   return (
     <div className="flex flex-col gap-6 px-5 pt-4 pb-10 animate-fade-in">
@@ -150,13 +150,13 @@ const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ 
         <div className="absolute inset-0 opacity-10" style={{ background: `radial-gradient(circle at 80% 20%,${accent},transparent 60%)` }} />
         <div className="relative z-10">
           <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: accent }}>
-            {isPromoter ? '🔥 Promoter Portal' : '⚡ Wingman Portal'}
+            {isWingman ? '🔥 Wingman Portal' : '⚡ Wingman Portal'}
           </p>
           <h2 className="text-2xl font-black text-white mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             {getGreeting()}, {firstName(user.name)}.
           </h2>
           <p className="text-sm" style={{ color: `${accent}cc` }}>
-            {isPromoter ? 'Your events are live. Keep the momentum.' : 'Your crew is waiting. Make it happen.'}
+            {isWingman ? 'Your events are live. Keep the momentum.' : 'Your crew is waiting. Make it happen.'}
           </p>
         </div>
       </div>
@@ -172,7 +172,7 @@ const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ 
       <div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-3">Your Hub</p>
         <div className="grid grid-cols-2 gap-3">
-          <QuickCard id="wingman-hq-btn" icon={<ChartBarIcon className="w-5 h-5" />} label={isPromoter ? 'Promoter HQ' : 'Wingman HQ'} sub="Your dashboard" accent={accent} onClick={() => onNavigate('promoterDashboard')} />
+          <QuickCard id="wingman-hq-btn" icon={<ChartBarIcon className="w-5 h-5" />} label={isWingman ? 'Wingman HQ' : 'Wingman HQ'} sub="Your dashboard" accent={accent} onClick={() => onNavigate('wingmanDashboard')} />
           <QuickCard id="wingman-feed-btn" icon={<SparkleIcon className="w-5 h-5" />} label="Event Feed" sub="Browse & invite" accent="#60a5fa" onClick={() => onNavigate('eventTimeline')} />
           <QuickCard id="wingman-refer-btn" icon={<UsersIcon className="w-5 h-5" />} label="Refer a Friend" sub="Earn rewards" accent="#34d399" onClick={() => onNavigate('referFriend')} />
           <QuickCard id="wingman-chats-btn" icon={<BookIcon className="w-5 h-5" />} label="My Bookings" sub="Confirmed plans" accent="#f472b6" onClick={() => onNavigate('checkout')} />
@@ -382,12 +382,12 @@ const PendingHome: React.FC<{ user: User; onNavigate: (p: Page) => void; onReque
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess }) => {
   const isAdmin   = currentUser.role === UserRole.ADMIN;
-  const isWingman = currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.PROMOTER;
+  const isWingman = currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.WINGMAN;
   const isApproved = currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active';
 
   const handleDashboardShortcut = () => {
     if (isAdmin)   return onNavigate('adminDashboard');
-    if (isWingman) return onNavigate('promoterDashboard');
+    if (isWingman) return onNavigate('wingmanDashboard');
   };
 
   // Accent color per role for the header highlight

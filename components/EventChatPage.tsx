@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SendIcon } from './icons/SendIcon';
-import { User, Promoter, EventChatMessage, Event, EventChat } from '../types';
+import { User, Wingman, EventChatMessage, Event, EventChat } from '../types';
 import { UsersIcon } from './icons/UsersIcon';
 import { EventParticipantsModal } from './modals/EventParticipantsModal';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -27,7 +27,7 @@ const ChatHeader: React.FC<{ event: Event; onBack: () => void; onOpenParticipant
 };
 
 
-const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Promoter | undefined; isCurrentUser: boolean; isRead: boolean; reader: User | Promoter | undefined; }> = ({ message, sender, isCurrentUser, isRead, reader }) => (
+const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Wingman | undefined; isCurrentUser: boolean; isRead: boolean; reader: User | Wingman | undefined; }> = ({ message, sender, isCurrentUser, isRead, reader }) => (
     <div className={`flex items-end gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
         <div className={`rounded-xl p-3 max-w-[80%] md:max-w-[70%] ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
@@ -50,7 +50,7 @@ const MessageBubble: React.FC<{ message: EventChatMessage; sender: User | Promot
     </div>
 );
 
-const TypingIndicator: React.FC<{ sender?: User | Promoter }> = ({ sender }) => (
+const TypingIndicator: React.FC<{ sender?: User | Wingman }> = ({ sender }) => (
     <div className="flex items-start gap-3">
         {sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover" />}
          <div className="bg-gray-800 rounded-xl rounded-bl-none p-4">
@@ -68,7 +68,7 @@ interface EventChatPageProps {
   chatId: number;
   currentUser: User;
   messages: EventChatMessage[];
-  allParticipants: (User | Promoter)[];
+  allParticipants: (User | Wingman)[];
   allEvents: Event[];
   eventChats: EventChat[];
   onSendMessage: (chatId: number, text: string) => void;
@@ -87,7 +87,7 @@ export const EventChatPage: React.FC<EventChatPageProps> = ({ chatId, currentUse
 
     const participants = useMemo(() => {
         if (!currentChat) return [];
-        return currentChat.memberIds.map(id => allParticipants.find(p => p.id === id)).filter((p): p is User | Promoter => !!p);
+        return currentChat.memberIds.map(id => allParticipants.find(p => p.id === id)).filter((p): p is User | Wingman => !!p);
     }, [currentChat, allParticipants]);
     
     const otherParticipant = useMemo(() => {

@@ -195,7 +195,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                         {item.type === 'table' && item.tableDetails && (
                             <>
                                 <DetailRow label="Table" value={item.tableDetails.tableOption?.name || 'Standard'} />
-                                <DetailRow label="Promoter" value={item.tableDetails.promoter?.name || 'None'} />
+                                <DetailRow label="Wingman" value={item.tableDetails.wingman?.name || 'None'} />
                                 <DetailRow label="Guests" value={item.tableDetails.numberOfGuests || 0} />
                                 {item.tableDetails.specialRequests && (
                                     <DetailRow label="Requests" value={item.tableDetails.specialRequests} />
@@ -216,7 +216,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({ item, venues, onRemo
                         {item.type === 'guestlist' && item.guestlistDetails && (
                             <>
                                 <DetailRow label="Venue" value={item.guestlistDetails.venue.name} />
-                                <DetailRow label="Promoter" value={item.guestlistDetails.promoter.name} />
+                                <DetailRow label="Wingman" value={item.guestlistDetails.wingman.name} />
                                 <DetailRow label="Guests" value={item.guestlistDetails.numberOfGuests} />
                                 <DetailRow label="Status" value={status === 'rejected' ? 'Restricted' : status === 'pending' ? 'Under Review' : status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Under Review'} />
                             </>

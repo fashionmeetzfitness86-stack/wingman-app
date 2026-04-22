@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess } from './utils/accessControl';
-import { User, Page, Promoter, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, PromoterApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
-import { users, promoters, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockPromoterApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
+import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
+import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
 
 // Component Imports
 import { HomeScreen } from './components/HomeScreen';
 import { MembershipRequestModal } from './components/modals/MembershipRequestModal';
-import { PromoterDirectory } from './components/PromoterDirectory';
-import { PromoterProfile } from './components/PromoterProfile';
+import { WingmanDirectory } from './components/WingmanDirectory';
+import { WingmanProfile } from './components/WingmanProfile';
 import { FeaturedVenuesPage } from './components/FeaturedVenuesPage';
 import { EventTimeline } from './components/EventTimeline';
 import { ExclusiveExperiencesPage } from './components/ExclusiveExperiencesPage';
@@ -20,7 +20,7 @@ import { FriendsZonePage } from './components/FriendsZonePage';
 import { StorePage } from './components/StorePage';
 import { ProfilePage } from './components/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
-import { PromoterDashboard } from './components/PromoterDashboard';
+import { WingmanDashboard } from './components/WingmanDashboard';
 import { BookingsPage } from './components/BookingsPage';
 import { SettingsPage } from './components/SettingsPage';
 import { ChatbotPage } from './components/ChatbotPage';
@@ -31,7 +31,7 @@ import { MyItinerariesPage } from './components/MyItinerariesPage';
 import { ItineraryDetailsPage } from './components/ItineraryDetailsPage';
 import { ItineraryBuilderPage } from './components/ItineraryBuilderPage';
 import { BookingConfirmedPage } from './components/BookingConfirmedPage';
-import { PromoterApplicationPage } from './components/PromoterApplicationPage';
+import { WingmanApplicationPage } from './components/WingmanApplicationPage';
 import { CreateGroupPage } from './components/CreateGroupPage';
 import { InvitationsPage } from './components/InvitationsPage';
 import { CheckoutPage } from './components/CheckoutPage';
@@ -40,7 +40,7 @@ import { GuestlistChatsPage } from './components/GuestlistChatsPage';
 import { EventChatPage } from './components/EventChatPage';
 import { GuestlistChatPage } from './components/GuestlistChatPage';
 import { FriendZoneChatPage } from './components/FriendZoneChatPage';
-import { PromoterStatsPage } from './components/PromoterStatsPage';
+import { WingmanStatsPage } from './components/WingmanStatsPage';
 import { PaymentMethodsPage } from './components/PaymentMethodsPage';
 import { FavoritesPage } from './components/FavoritesPage';
 import { VenueDetailsPage } from './components/VenueDetailsPage';
@@ -69,13 +69,13 @@ import { EventBookingFlow } from './components/EventBookingFlow';
 import { GuestlistModal } from './components/modals/GuestlistModal';
 import { NotificationsModal } from './components/modals/NotificationsModal';
 import { GuestlistJoinSuccessModal } from './components/modals/GuestlistJoinSuccessModal';
-import { PromoterBottomNavBar } from './components/PromoterBottomNavBar';
-import { SelectPromoterModal } from './components/SelectPromoterModal';
+import { WingmanBottomNavBar } from './components/WingmanBottomNavBar';
+import { SelectWingmanModal } from './components/SelectWingmanModal';
 import { Modal } from './components/ui/Modal';
 import { TokenIcon } from './components/icons/TokenIcon';
 import { AdminAddUserModal } from './components/modals/AdminAddUserModal';
 import { AdminEditUserModal } from './components/modals/AdminEditUserModal';
-import { AdminEditPromoterModal } from './components/modals/AdminEditPromoterModal';
+import { AdminEditWingmanModal } from './components/modals/AdminEditWingmanModal';
 import { AdminEditEventModal } from './components/modals/AdminEditEventModal';
 import { AdminEditVenueModal } from './components/modals/AdminEditVenueModal';
 import { AdminEditStoreItemModal } from './components/modals/AdminEditStoreItemModal';
@@ -107,12 +107,12 @@ const getOriginalEventId = (eventId: number | string) => {
 };
 
 type ModalState = 
-  | { type: 'booking'; promoter: Promoter; venue?: Venue; date?: string }
+  | { type: 'booking'; wingman: Wingman; venue?: Venue; date?: string }
   | { type: 'experienceBooking'; experience: Experience }
   | { type: 'eventBooking'; event: Event }
-  | { type: 'guestlist'; promoter?: Promoter; venue?: Venue; date?: string }
+  | { type: 'guestlist'; wingman?: Wingman; venue?: Venue; date?: string }
   | { type: 'guestlistSuccess'; venueName: string; date: string; isVip: boolean }
-  | { type: 'promoterSelection'; venue: Venue }
+  | { type: 'wingmanSelection'; venue: Venue }
   | null;
 
 export const App: React.FC = () => {
@@ -125,12 +125,12 @@ export const App: React.FC = () => {
             return users;
         }
     });
-    const [appPromoters, setAppPromoters] = useState<Promoter[]>(() => {
+    const [appWingmen, setAppWingmen] = useState<Wingman[]>(() => {
         try {
-            const saved = localStorage.getItem('wingman_promoters');
-            return saved ? JSON.parse(saved) : promoters;
+            const saved = localStorage.getItem('wingman_wingmen');
+            return saved ? JSON.parse(saved) : wingmen;
         } catch (e) {
-            return promoters;
+            return wingmen;
         }
     });
     const [appEvents, setAppEvents] = useState<Event[]>(() => {
@@ -236,8 +236,8 @@ export const App: React.FC = () => {
     const [wingmanChats, setWingmanChats] = useState<WingmanChat[]>(mockWingmanChats);
     const [wingmanChatMessages, setWingmanChatMessages] = useState<WingmanChatMessage[]>(mockWingmanChatMessages);
     const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>([]);
-    const [promoterApplications, setPromoterApplications] = useState(mockPromoterApplications);
-    // Membership access requests — separate system from PromoterApplication
+    const [wingmanApplications, setWingmanApplications] = useState(mockWingmanApplications);
+    // Membership access requests — separate system from WingmanApplication
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
     const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
 
@@ -303,7 +303,7 @@ export const App: React.FC = () => {
     // Admin Modal States
     const [isAdminAddUserOpen, setIsAdminAddUserOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
-    const [promoterToEdit, setPromoterToEdit] = useState<{promoter: Promoter, user: User} | null>(null);
+    const [wingmanToEdit, setWingmanToEdit] = useState<{wingman: Wingman, user: User} | null>(null);
     const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
     const [isAdminEditEventOpen, setIsAdminEditEventOpen] = useState(false);
     const [venueToEdit, setVenueToEdit] = useState<Venue | null>(null);
@@ -353,7 +353,7 @@ export const App: React.FC = () => {
 
     // Persistence Effects
     useEffect(() => { localStorage.setItem('wingman_users', JSON.stringify(appUsers)); }, [appUsers]);
-    useEffect(() => { localStorage.setItem('wingman_promoters', JSON.stringify(appPromoters)); }, [appPromoters]);
+    useEffect(() => { localStorage.setItem('wingman_wingmen', JSON.stringify(appWingmen)); }, [appWingmen]);
     useEffect(() => { localStorage.setItem('wingman_events', JSON.stringify(appEvents)); }, [appEvents]);
     useEffect(() => { localStorage.setItem('wingman_venues', JSON.stringify(appVenues)); }, [appVenues]);
     useEffect(() => { localStorage.setItem('wingman_challenges', JSON.stringify(appChallenges)); }, [appChallenges]);
@@ -379,14 +379,14 @@ export const App: React.FC = () => {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         
-        // Handle Promoter Profile Sharing
-        const promoterId = params.get('promoter');
-        if (promoterId) {
-            const id = parseInt(promoterId, 10);
+        // Handle Wingman Profile Sharing
+        const wingmanId = params.get('wingman');
+        if (wingmanId) {
+            const id = parseInt(wingmanId, 10);
             if (!isNaN(id)) {
-                const promoter = appPromoters.find(p => p.id === id);
-                if (promoter) {
-                    handleNavigate('promoterProfile', { promoterId: id });
+                const wingman = appWingmen.find(p => p.id === id);
+                if (wingman) {
+                    handleNavigate('wingmanProfile', { wingmanId: id });
                 }
             }
         }
@@ -409,7 +409,7 @@ export const App: React.FC = () => {
              handleNavigate('eventTimeline');
         }
 
-    }, [appPromoters, appVenues]);
+    }, [appWingmen, appVenues]);
 
     const handleNavigate = (page: Page, params: any = {}) => {
         setCurrentPage(page);
@@ -552,17 +552,17 @@ export const App: React.FC = () => {
     const handleStartBookingChat = (item: CartItem) => {
         if (item.type === 'table' || item.type === 'guestlist') {
             const venue = item.tableDetails?.venue || item.guestlistDetails?.venue;
-            const promoter = item.tableDetails?.promoter || item.guestlistDetails?.promoter;
+            const wingman = item.tableDetails?.wingman || item.guestlistDetails?.wingman;
             const date = item.sortableDate || item.date;
 
-            if (!venue || !promoter || !date) {
+            if (!venue || !wingman || !date) {
                 showToast("Cannot start chat: Missing booking details.", "error");
                 return;
             }
 
             let chat = guestlistChats.find(c => 
                 c.venueId === venue.id && 
-                c.promoterId === promoter.id && 
+                c.wingmanId === wingman.id && 
                 c.date === date && 
                 c.memberIds.includes(currentUser.id)
             );
@@ -573,8 +573,8 @@ export const App: React.FC = () => {
                     id: newId,
                     venueId: venue.id,
                     date: date,
-                    promoterId: promoter.id,
-                    memberIds: [currentUser.id, promoter.id],
+                    wingmanId: wingman.id,
+                    memberIds: [currentUser.id, wingman.id],
                     meetupTime: '11:00 PM'
                 };
                 setGuestlistChats(prev => [...prev, chat!]);
@@ -610,19 +610,19 @@ export const App: React.FC = () => {
         }
     };
 
-    const handleOpenGuestlistModal = (context: { promoter?: Promoter; venue?: Venue; date?: string }) => {
+    const handleOpenGuestlistModal = (context: { wingman?: Wingman; venue?: Venue; date?: string }) => {
         setActiveModal({ type: 'guestlist', ...context });
     };
 
-    const handleJoinGuestlistConfirm = (promoterId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => {
+    const handleJoinGuestlistConfirm = (wingmanId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => {
         const venue = venues.find(v => v.id === venueId);
-        const promoter = promoters.find(p => p.id === promoterId);
+        const wingman = wingmen.find(p => p.id === wingmanId);
 
         const newRequest: GuestlistJoinRequest = {
             id: Date.now(),
             userId: currentUser.id,
             venueId,
-            promoterId,
+            wingmanId,
             date,
             status: currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN ? 'approved' : 'pending',
             attendanceStatus: 'pending',
@@ -633,7 +633,7 @@ export const App: React.FC = () => {
         setGuestlistJoinRequests([...guestlistJoinRequests, newRequest]);
         
         // Create a CartItem for the guestlist entry so it appears in checkout/receipts
-        if (venue && promoter) {
+        if (venue && wingman) {
             const cartItem: CartItem = {
                 id: `guestlist-${venueId}-${date}-${Date.now()}`,
                 type: 'guestlist',
@@ -647,7 +647,7 @@ export const App: React.FC = () => {
                 isPlaceholder: false,
                 guestlistDetails: {
                     venue,
-                    promoter,
+                    wingman,
                     numberOfGuests: maleGuests + femaleGuests,
                     status: newRequest.status
                 }
@@ -664,22 +664,22 @@ export const App: React.FC = () => {
     };
 
     const handleBookVenue = (venue: Venue) => {
-        setActiveModal({ type: 'promoterSelection', venue });
+        setActiveModal({ type: 'wingmanSelection', venue });
     };
     
     const handleBookEvent = (event: Event) => {
         setActiveModal({ type: 'eventBooking', event });
     };
 
-    const handleToggleFavorite = (id: number, type: 'promoter' | 'venue' | 'event') => {
+    const handleToggleFavorite = (id: number, type: 'wingman' | 'venue' | 'event') => {
         let updatedUser = { ...currentUser };
-        if (type === 'promoter') {
-            const current = currentUser.favoritePromoterIds || [];
+        if (type === 'wingman') {
+            const current = currentUser.favoriteWingmanIds || [];
             const isFavoriting = !current.includes(id);
-            updatedUser.favoritePromoterIds = isFavoriting ? [...current, id] : current.filter(i => i !== id);
+            updatedUser.favoriteWingmanIds = isFavoriting ? [...current, id] : current.filter(i => i !== id);
             
-            // Update promoter count
-            setAppPromoters(prev => prev.map(p => {
+            // Update wingman count
+            setAppWingmen(prev => prev.map(p => {
                 if (p.id === id) {
                     return {
                         ...p,
@@ -694,7 +694,7 @@ export const App: React.FC = () => {
             updatedUser.favoriteVenueIds = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
         }
         handleUpdateUserWithRewardCheck(updatedUser); // Use central updater to persist
-        showToast(type === 'promoter' ? 'Promoter updated' : 'Favorites updated', 'success');
+        showToast(type === 'wingman' ? 'Wingman updated' : 'Favorites updated', 'success');
     };
 
     const handleRequestExperienceAccess = (experienceId: number) => {
@@ -1041,14 +1041,14 @@ export const App: React.FC = () => {
         };
         setAppUsers(prev => [...prev, newUser]);
         
-        // If added as promoter directly
-        if (newUser.role === UserRole.PROMOTER) {
-             const newPromoter: Promoter = {
+        // If added as wingman directly
+        if (newUser.role === UserRole.WINGMAN) {
+             const newWingman: Wingman = {
                 id: newUser.id,
                 name: newUser.name,
                 handle: newUser.instagramHandle ? `@${newUser.instagramHandle}` : `@${newUser.name.replace(/\s/g, '').toLowerCase()}`,
                 rating: 5.0,
-                bio: newUser.bio || 'New Promoter',
+                bio: newUser.bio || 'New Wingman',
                 profilePhoto: newUser.profilePhoto,
                 city: newUser.city || 'Miami',
                 weeklySchedule: [],
@@ -1058,7 +1058,7 @@ export const App: React.FC = () => {
                 favoritedByCount: 0,
                 galleryImages: []
             };
-            setAppPromoters(prev => [...prev, newPromoter]);
+            setAppWingmen(prev => [...prev, newWingman]);
         }
         showToast('User created successfully', 'success');
     };
@@ -1067,21 +1067,21 @@ export const App: React.FC = () => {
         // 1. Update User List
         setAppUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
         
-        // 2. Handle Role Changes (Promoter Logic)
-        if (updatedUser.role === UserRole.PROMOTER) {
-            setAppPromoters(prev => {
+        // 2. Handle Role Changes (Wingman Logic)
+        if (updatedUser.role === UserRole.WINGMAN) {
+            setAppWingmen(prev => {
                 const exists = prev.find(p => p.id === updatedUser.id);
                 if (exists) {
-                    // Update existing promoter basics
+                    // Update existing wingman basics
                     return prev.map(p => p.id === updatedUser.id ? { ...p, name: updatedUser.name, profilePhoto: updatedUser.profilePhoto } : p);
                 } else {
-                    // Create new promoter entry
-                    const newPromoter: Promoter = {
+                    // Create new wingman entry
+                    const newWingman: Wingman = {
                         id: updatedUser.id,
                         name: updatedUser.name,
                         handle: updatedUser.instagramHandle ? `@${updatedUser.instagramHandle}` : `@${updatedUser.name.replace(/\s/g, '').toLowerCase()}`,
                         rating: 5.0,
-                        bio: updatedUser.bio || 'Promoter',
+                        bio: updatedUser.bio || 'Wingman',
                         profilePhoto: updatedUser.profilePhoto,
                         city: updatedUser.city || 'Miami',
                         weeklySchedule: [],
@@ -1091,12 +1091,12 @@ export const App: React.FC = () => {
                         favoritedByCount: 0,
                         galleryImages: updatedUser.galleryImages || []
                     };
-                    return [...prev, newPromoter];
+                    return [...prev, newWingman];
                 }
             });
         } else {
-            // If role changed from Promoter to User/Admin, remove from promoters list
-            setAppPromoters(prev => prev.filter(p => p.id !== updatedUser.id));
+            // If role changed from Wingman to User/Admin, remove from wingmen list
+            setAppWingmen(prev => prev.filter(p => p.id !== updatedUser.id));
         }
 
         // 3. Update Current User if it's the one being edited
@@ -1108,15 +1108,15 @@ export const App: React.FC = () => {
         showToast('User updated successfully', 'success');
     };
 
-    const handleAdminEditPromoter = (updatedPromoter: Promoter, updatedUser: User) => {
-        setAppPromoters(prev => prev.map(p => p.id === updatedPromoter.id ? updatedPromoter : p));
+    const handleAdminEditWingman = (updatedWingman: Wingman, updatedUser: User) => {
+        setAppWingmen(prev => prev.map(p => p.id === updatedWingman.id ? updatedWingman : p));
         handleAdminEditUser(updatedUser); // Reuse user update logic
-        setPromoterToEdit(null);
-        showToast('Promoter updated successfully', 'success');
+        setWingmanToEdit(null);
+        showToast('Wingman updated successfully', 'success');
     };
 
-    const handleApprovePromoterApplication = (appId: number) => {
-        const app = promoterApplications.find(a => a.id === appId);
+    const handleApproveWingmanApplication = (appId: number) => {
+        const app = wingmanApplications.find(a => a.id === appId);
         if (!app) return;
 
         const newUserId = app.userId || Date.now();
@@ -1127,22 +1127,22 @@ export const App: React.FC = () => {
             email: app.email,
             profilePhoto: app.profilePhotoUrl,
             accessLevel: UserAccessLevel.GENERAL,
-            role: UserRole.PROMOTER, // Set role to Promoter
+            role: UserRole.WINGMAN, // Set role to Wingman
             city: app.city,
             joinDate: new Date().toISOString().split('T')[0],
             instagramHandle: app.instagram,
             phoneNumber: app.phone,
             status: 'active',
             galleryImages: app.mediaLinks,
-            bio: `Professional Promoter in ${app.city}`
+            bio: `Professional Wingman in ${app.city}`
         };
 
-        const newPromoter: Promoter = {
+        const newWingman: Wingman = {
             id: newUserId,
             name: app.stageName || app.fullName,
             handle: `@${app.instagram}`,
             rating: 5.0,
-            bio: `Promoter in ${app.city}. Specializing in ${app.categories.join(', ')}.`,
+            bio: `Wingman in ${app.city}. Specializing in ${app.categories.join(', ')}.`,
             profilePhoto: app.profilePhotoUrl,
             city: app.city,
             weeklySchedule: [],
@@ -1154,10 +1154,10 @@ export const App: React.FC = () => {
         };
 
         setAppUsers(prev => [...prev, newUser]);
-        setAppPromoters(prev => [...prev, newPromoter]);
+        setAppWingmen(prev => [...prev, newWingman]);
         
-        setPromoterApplications(prev => prev.map(a => a.id === appId ? { ...a, status: 'approved' } : a));
-        showToast(`${app.fullName} approved as Promoter!`, 'success');
+        setWingmanApplications(prev => prev.map(a => a.id === appId ? { ...a, status: 'approved' } : a));
+        showToast(`${app.fullName} approved as Wingman!`, 'success');
     };
 
     const handleInstanceBook = (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
@@ -1194,30 +1194,30 @@ export const App: React.FC = () => {
                     onRequestAccess={() => setIsMembershipRequestOpen(true)}
                />;
             case 'directory':
-                return <PromoterDirectory 
-                    promoters={appPromoters} 
+                return <WingmanDirectory 
+                    wingmen={appWingmen} 
                     isLoading={false} 
-                    onViewProfile={(p) => handleNavigate('promoterProfile', { promoterId: p.id })} 
-                    onBookPromoter={(p) => setActiveModal({ type: 'booking', promoter: p })} 
-                    onToggleFavorite={(id) => handleToggleFavorite(id, 'promoter')} 
+                    onViewProfile={(p) => handleNavigate('wingmanProfile', { wingmanId: p.id })} 
+                    onBookWingman={(p) => setActiveModal({ type: 'booking', wingman: p })} 
+                    onToggleFavorite={(id) => handleToggleFavorite(id, 'wingman')} 
                     currentUser={currentUser} 
                     onNavigate={handleNavigate}
-                    onJoinGuestlist={(p) => handleOpenGuestlistModal({ promoter: p })}
+                    onJoinGuestlist={(p) => handleOpenGuestlistModal({ wingman: p })}
                 />;
-            case 'promoterProfile': {
-                const promoter = appPromoters.find(p => p.id === (pageParams.promoterId || 1));
-                if (!promoter) return <div>Promoter not found</div>;
-                return <PromoterProfile 
-                    promoter={promoter} 
+            case 'wingmanProfile': {
+                const wingman = appWingmen.find(p => p.id === (pageParams.wingmanId || 1));
+                if (!wingman) return <div>Wingman not found</div>;
+                return <WingmanProfile 
+                    wingman={wingman} 
                     onBack={() => handleNavigate('directory')} 
-                    onBook={(p, v, d) => setActiveModal({ type: 'booking', promoter: p, venue: v, date: d })} 
-                    isFavorite={(currentUser.favoritePromoterIds || []).includes(promoter.id)} 
-                    onToggleFavorite={(id) => handleToggleFavorite(id, 'promoter')} 
+                    onBook={(p, v, d) => setActiveModal({ type: 'booking', wingman: p, venue: v, date: d })} 
+                    isFavorite={(currentUser.favoriteWingmanIds || []).includes(wingman.id)} 
+                    onToggleFavorite={(id) => handleToggleFavorite(id, 'wingman')} 
                     onViewVenue={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
-                    onJoinGuestlist={(p, v, d) => handleOpenGuestlistModal({ promoter: p, venue: v, date: d })} 
+                    onJoinGuestlist={(p, v, d) => handleOpenGuestlistModal({ wingman: p, venue: v, date: d })} 
                     currentUser={currentUser} 
                     onUpdateUser={handleUpdateUserWithRewardCheck} 
-                    onUpdatePromoter={(p) => setAppPromoters(prev => prev.map(pr => pr.id === p.id ? p : pr))}
+                    onUpdateWingman={(p) => setAppWingmen(prev => prev.map(pr => pr.id === p.id ? p : pr))}
                     onEditProfile={() => handleNavigate('editProfile')}
                     onNavigate={handleNavigate}
                     tokenBalance={userTokenBalance}
@@ -1231,8 +1231,8 @@ export const App: React.FC = () => {
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })}
                     currentUser={currentUser}
-                    promoters={appPromoters}
-                    onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ promoter: p, venue: v })}
+                    wingmen={appWingmen}
+                    onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ wingman: p, venue: v })}
                     guestlistJoinRequests={guestlistJoinRequests}
                     bookedMap={bookedMap}
                     cancelMap={cancelMap}
@@ -1386,7 +1386,7 @@ export const App: React.FC = () => {
             case 'adminDashboard':
                 return <AdminDashboard 
                     users={appUsers} 
-                    promoters={appPromoters} 
+                    wingmen={appWingmen} 
                     venues={appVenues} 
                     events={appEvents} 
                     storeItems={appStoreItems} 
@@ -1397,14 +1397,14 @@ export const App: React.FC = () => {
                     onAddUser={() => setIsAdminAddUserOpen(true)} 
                     onBlockUser={(u) => handleAdminEditUser({ ...u, status: u.status === 'blocked' ? 'active' : 'blocked' })} 
                     onViewUser={(u) => setPreviewUser(u)} 
-                    onEditPromoter={(p, u) => setPromoterToEdit({promoter: p, user: u})} 
-                    onDeletePromoter={(p) => {
-                        setAppPromoters(prev => prev.filter(prom => prom.id !== p.id));
+                    onEditWingman={(p, u) => setWingmanToEdit({wingman: p, user: u})} 
+                    onDeleteWingman={(p) => {
+                        setAppWingmen(prev => prev.filter(prom => prom.id !== p.id));
                         setAppUsers(prev => prev.map(u => u.id === p.id ? { ...u, role: UserRole.USER } : u));
-                        showToast('Promoter removed', 'success');
+                        showToast('Wingman removed', 'success');
                     }} 
-                    onSuspendPromoter={(u) => handleAdminEditUser({ ...u, status: u.status === 'suspended' ? 'active' : 'suspended' })} 
-                    onPreviewPromoter={(p) => handleNavigate('promoterProfile', { promoterId: p.id })} 
+                    onSuspendWingman={(u) => handleAdminEditUser({ ...u, status: u.status === 'suspended' ? 'active' : 'suspended' })} 
+                    onPreviewWingman={(p) => handleNavigate('wingmanProfile', { wingmanId: p.id })} 
                     onApproveGroup={(id) => {
                          setAppAccessGroups(prev => prev.map(g => g.id === id ? { ...g, status: 'approved' } : g));
                          showToast('Group approved', 'success');
@@ -1431,10 +1431,10 @@ export const App: React.FC = () => {
                     onEditStoreItem={(i) => { setStoreItemToEdit(i); setIsAdminEditStoreItemOpen(true); }} 
                     onDeleteStoreItem={(i) => { setAppStoreItems(prev => prev.filter(it => it.id !== i.id)); showToast('Item deleted', 'success'); }} 
                     onPreviewStoreItem={(i) => setPreviewStoreItem(i)} 
-                    promoterApplications={promoterApplications} 
-                    onApprovePromoterApplication={handleApprovePromoterApplication} 
-                    onRejectPromoterApplication={(id) => {
-                        setPromoterApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
+                    wingmanApplications={wingmanApplications} 
+                    onApproveWingmanApplication={handleApproveWingmanApplication} 
+                    onRejectWingmanApplication={(id) => {
+                        setWingmanApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
                         showToast('Application rejected', 'success');
                     }} 
                     bookedItems={bookedItems} 
@@ -1455,13 +1455,13 @@ export const App: React.FC = () => {
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
                 />;
-            case 'promoterDashboard': {
-                const myPromoter = appPromoters.find(p => p.id === currentUser.id);
-                if (!myPromoter) return <div>Promoter dashboard unavailable.</div>;
-                return <PromoterDashboard 
-                    promoter={myPromoter} 
+            case 'wingmanDashboard': {
+                const myWingman = appWingmen.find(p => p.id === currentUser.id);
+                if (!myWingman) return <div>Wingman dashboard unavailable.</div>;
+                return <WingmanDashboard 
+                    wingman={myWingman} 
                     onNavigate={handleNavigate} 
-                    promoterUser={currentUser} 
+                    wingmanUser={currentUser} 
                     onUpdateUser={handleUpdateUserWithRewardCheck} 
                     guestlistRequests={guestlistJoinRequests} 
                     users={appUsers} 
@@ -1473,7 +1473,7 @@ export const App: React.FC = () => {
                     bookedItems={bookedItems} 
                     eventInvitations={mockEventInvitations} 
                     onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
-                    promoters={appPromoters}
+                    wingmen={appWingmen}
                 />;
             }
             case 'bookings':
@@ -1597,10 +1597,10 @@ export const App: React.FC = () => {
                         handleNavigate('eventChatsList');
                     }} 
                 />;
-            case 'promoterApplication':
-                return <PromoterApplicationPage 
+            case 'wingmanApplication':
+                return <WingmanApplicationPage 
                     onApply={(app) => {
-                        setPromoterApplications(prev => [...prev, { ...app, id: Date.now(), userId: currentUser.id, status: 'pending', submissionDate: new Date().toISOString() }]);
+                        setWingmanApplications(prev => [...prev, { ...app, id: Date.now(), userId: currentUser.id, status: 'pending', submissionDate: new Date().toISOString() }]);
                         showToast('Application submitted successfully!', 'success');
                         handleNavigate('home'); 
                     }} 
@@ -1706,7 +1706,7 @@ export const App: React.FC = () => {
                     wingmanChats={wingmanChats}
                     allEvents={appEvents} 
                     venues={appVenues} 
-                    promoters={appPromoters} 
+                    wingmen={appWingmen} 
                     allUsers={appUsers} 
                 />;
             case 'guestlistChats':
@@ -1714,7 +1714,7 @@ export const App: React.FC = () => {
                     currentUser={currentUser} 
                     guestlistChats={guestlistChats} 
                     venues={appVenues} 
-                    promoters={appPromoters} 
+                    wingmen={appWingmen} 
                     onViewChat={(id) => handleNavigate('guestlistChat', { chatId: id })} 
                 />;
             case 'eventChat':
@@ -1722,7 +1722,7 @@ export const App: React.FC = () => {
                     chatId={pageParams.chatId} 
                     currentUser={currentUser} 
                     messages={eventChatMessages} 
-                    allParticipants={[...appUsers, ...appPromoters]} 
+                    allParticipants={[...appUsers, ...appWingmen]} 
                     allEvents={appEvents} 
                     eventChats={eventChats} 
                     onSendMessage={(id, text) => {
@@ -1743,7 +1743,7 @@ export const App: React.FC = () => {
                     currentUser={currentUser} 
                     messages={guestlistChatMessages} 
                     allUsers={appUsers} 
-                    allPromoters={appPromoters} 
+                    allWingmen={appWingmen} 
                     guestlistChats={guestlistChats} 
                     venues={appVenues} 
                     onSendMessage={(id, text) => {
@@ -1765,7 +1765,7 @@ export const App: React.FC = () => {
                     currentUser={currentUser} 
                     chats={friendZoneChats} 
                     messages={friendZoneChatMessages} 
-                    promoters={appPromoters} 
+                    wingmen={appWingmen} 
                     users={appUsers} 
                     onSendMessage={(id, text) => {
                         const newMsg: FriendZoneChatMessage = {
@@ -1777,18 +1777,18 @@ export const App: React.FC = () => {
                         };
                         setFriendZoneChatMessages(prev => [...prev, newMsg]);
                     }} 
-                    onAddPromoter={(cId, pId) => {
+                    onAddWingman={(cId, pId) => {
                          setFriendZoneChats(prev => prev.map(c => {
                              if (c.id === cId) {
-                                 const currentPromoters = c.promoterIds || [];
-                                 if (!currentPromoters.includes(pId)) {
-                                     return { ...c, promoterIds: [...currentPromoters, pId] };
+                                 const currentWingmen = c.wingmanIds || [];
+                                 if (!currentWingmen.includes(pId)) {
+                                     return { ...c, wingmanIds: [...currentWingmen, pId] };
                                  }
                              }
                              return c;
                          }));
-                         const promoter = appPromoters.find(p => p.id === pId);
-                         if (promoter) {
+                         const wingman = appWingmen.find(p => p.id === pId);
+                         if (wingman) {
                              const msg: FriendZoneChatMessage = {
                                  id: Date.now(),
                                  chatId: cId,
@@ -1798,17 +1798,17 @@ export const App: React.FC = () => {
                              };
                              setFriendZoneChatMessages(prev => [...prev, msg]);
                          }
-                         showToast('Promoter added', 'success');
+                         showToast('Wingman added', 'success');
                     }} 
-                    onRemovePromoter={(cId, pId) => {
+                    onRemoveWingman={(cId, pId) => {
                         setFriendZoneChats(prev => prev.map(c => {
                             if (c.id === cId) {
-                                const currentPromoters = c.promoterIds || [];
-                                return { ...c, promoterIds: currentPromoters.filter(id => id !== pId) };
+                                const currentWingmen = c.wingmanIds || [];
+                                return { ...c, wingmanIds: currentWingmen.filter(id => id !== pId) };
                             }
                             return c;
                         }));
-                        showToast('Promoter removed', 'success');
+                        showToast('Wingman removed', 'success');
                     }} 
                     onBack={() => handleNavigate('friendsZone')} 
                     onAddMember={(cId, uId) => {
@@ -1825,8 +1825,8 @@ export const App: React.FC = () => {
                         showToast('Left chat', 'success');
                     }} 
                 />;
-            case 'promoterStats':
-                return <PromoterStatsPage 
+            case 'wingmanStats':
+                return <WingmanStatsPage 
                     currentUser={currentUser} 
                     bookedItems={bookedItems} 
                     guestlistRequests={guestlistJoinRequests} 
@@ -1842,9 +1842,9 @@ export const App: React.FC = () => {
                 />;
             case 'favorites':
                 return <FavoritesPage 
-                    promoters={appPromoters} 
-                    onSelectPromoter={(p) => handleNavigate('promoterProfile', { promoterId: p.id })} 
-                    onToggleFavorite={(id) => handleToggleFavorite(id, 'promoter')} 
+                    wingmen={appWingmen} 
+                    onSelectWingman={(p) => handleNavigate('wingmanProfile', { wingmanId: p.id })} 
+                    onToggleFavorite={(id) => handleToggleFavorite(id, 'wingman')} 
                     onNavigate={handleNavigate} 
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     onToggleVenueFavorite={(id) => handleToggleFavorite(id, 'venue')} 
@@ -1874,9 +1874,9 @@ export const App: React.FC = () => {
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 
                     currentUser={currentUser} 
                     onUpdateVenue={(v) => setAppVenues(prev => prev.map(old => old.id === v.id ? v : old))} 
-                    promoters={appPromoters} 
-                    onBookWithSpecificPromoter={(p, v) => setActiveModal({ type: 'booking', promoter: p, venue: v })} 
-                    onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ promoter: p, venue: v })} 
+                    wingmen={appWingmen} 
+                    onBookWithSpecificWingman={(p, v) => setActiveModal({ type: 'booking', wingman: p, venue: v })} 
+                    onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ wingman: p, venue: v })} 
                     guestlistJoinRequests={guestlistJoinRequests} 
                     onCheckIn={(vId, data) => {
                         // Mark the active guestlist request for this venue as checked-in
@@ -1970,8 +1970,8 @@ export const App: React.FC = () => {
                         {renderPage()}
                     </main>
 
-                    {currentUser.role === UserRole.PROMOTER ? (
-                        <PromoterBottomNavBar currentPage={currentPage} onNavigate={handleNavigate} cartItemCount={cartItems.length} />
+                    {currentUser.role === UserRole.WINGMAN ? (
+                        <WingmanBottomNavBar currentPage={currentPage} onNavigate={handleNavigate} cartItemCount={cartItems.length} />
                     ) : (
                         <BottomNavBar 
                             currentUser={currentUser} 
@@ -2013,7 +2013,7 @@ export const App: React.FC = () => {
                         }} 
                     />
 
-                    {/* Membership Access Request Modal — separate from promoter application flow */}
+                    {/* Membership Access Request Modal — separate from wingman application flow */}
                     <MembershipRequestModal
                         isOpen={isMembershipRequestOpen}
                         onClose={() => setIsMembershipRequestOpen(false)}
@@ -2028,7 +2028,7 @@ export const App: React.FC = () => {
                     {/* Global Modals */}
                     {activeModal?.type === 'booking' && (
                         <BookingFlow 
-                            promoter={activeModal.promoter} 
+                            wingman={activeModal.wingman} 
                             onClose={() => setActiveModal(null)} 
                             onAddToCart={handleAddToCart} 
                             currentUser={currentUser} 
@@ -2076,7 +2076,7 @@ export const App: React.FC = () => {
                         <GuestlistModal 
                             isOpen={true} 
                             onClose={() => setActiveModal(null)} 
-                            context={{ promoter: activeModal.promoter, venue: activeModal.venue, date: activeModal.date }} 
+                            context={{ wingman: activeModal.wingman, venue: activeModal.venue, date: activeModal.date }} 
                             onConfirmJoin={handleJoinGuestlistConfirm} 
                             currentUser={currentUser} 
                             bookedItems={bookedItems} 
@@ -2098,16 +2098,16 @@ export const App: React.FC = () => {
                         />
                     )}
 
-                    {activeModal?.type === 'promoterSelection' && (
-                        <SelectPromoterModal
+                    {activeModal?.type === 'wingmanSelection' && (
+                        <SelectWingmanModal
                             isOpen={true}
                             onClose={() => setActiveModal(null)} 
                             venue={activeModal.venue}
-                            promoters={appPromoters}
-                            onSelectPromoter={(promoter) => {
-                                if (activeModal?.type === 'promoterSelection' && activeModal.venue) {
+                            wingmen={appWingmen}
+                            onSelectWingman={(wingman) => {
+                                if (activeModal?.type === 'wingmanSelection' && activeModal.venue) {
                                     const currentVenue = activeModal.venue;
-                                    setActiveModal({ type: 'booking', promoter, venue: currentVenue });
+                                    setActiveModal({ type: 'booking', wingman, venue: currentVenue });
                                 }
                             }}
                         />
@@ -2139,11 +2139,11 @@ export const App: React.FC = () => {
                         />
                     )}
                     
-                    <AdminEditPromoterModal 
-                        isOpen={!!promoterToEdit}
-                        onClose={() => setPromoterToEdit(null)}
-                        data={promoterToEdit}
-                        onSave={handleAdminEditPromoter}
+                    <AdminEditWingmanModal 
+                        isOpen={!!wingmanToEdit}
+                        onClose={() => setWingmanToEdit(null)}
+                        data={wingmanToEdit}
+                        onSave={handleAdminEditWingman}
                     />
                     
                     <AdminEditEventModal 

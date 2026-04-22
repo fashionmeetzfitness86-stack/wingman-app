@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 // Fix: Imported UserRole to resolve type errors.
-import { Page, User, EventChat, Event, UserAccessLevel, GuestlistChat, Venue, Promoter, UserRole, WingmanChat } from '../types';
+import { Page, User, EventChat, Event, UserAccessLevel, GuestlistChat, Venue, Wingman, UserRole, WingmanChat } from '../types';
 import { users, bookingHistory } from '../data/mockData';
 import { SparkleIcon } from './icons/SparkleIcon';
 
@@ -13,11 +13,11 @@ interface EventChatsListPageProps {
   wingmanChats?: WingmanChat[];
   allEvents: Event[];
   venues: Venue[];
-  promoters: Promoter[];
+  wingmen: Wingman[];
   allUsers: User[];
 }
 
-export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentUser, onNavigate, eventChats, guestlistChats, wingmanChats = [], allEvents, venues, promoters, allUsers }) => {
+export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentUser, onNavigate, eventChats, guestlistChats, wingmanChats = [], allEvents, venues, wingmen, allUsers }) => {
     
     const myEventChats = useMemo(() => eventChats.filter(chat => chat.memberIds.includes(currentUser.id)), [currentUser.id, eventChats]);
     
@@ -29,7 +29,7 @@ export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentU
         return wingmanChats.filter(chat => chat.userId === currentUser.id);
     }, [currentUser.id, wingmanChats]);
 
-    const showGuestlists = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const showGuestlists = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
     const [activeTab, setActiveTab] = useState<'guestlists' | 'events' | 'wingman'>(showGuestlists ? 'guestlists' : 'wingman');
 
     const EventChatList = () => (
@@ -63,19 +63,19 @@ export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({ currentU
          <div className="space-y-4">
             {myGuestlistChats.length > 0 ? myGuestlistChats.map(chat => {
               const venue = venues.find(v => v.id === chat.venueId);
-              const promoter = promoters.find(p => p.id === chat.promoterId);
-              if (!venue || !promoter) return null;
-              const otherMembers = chat.memberIds.filter(id => id !== currentUser.id && id !== promoter.id).map(id => allUsers.find(u => u.id === id)).filter(Boolean);
+              const wingman = wingmen.find(p => p.id === chat.wingmanId);
+              if (!venue || !wingman) return null;
+              const otherMembers = chat.memberIds.filter(id => id !== currentUser.id && id !== wingman.id).map(id => allUsers.find(u => u.id === id)).filter(Boolean);
               return (
                 <button key={chat.id} onClick={() => onNavigate('guestlistChat', { chatId: chat.id })} className="w-full flex items-center gap-4 p-3 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 text-left">
                   <img src={venue.coverImage} alt={venue.name} className="w-16 h-16 rounded-lg object-cover" />
                   <div className="flex-grow">
                     <p className="font-bold text-white text-lg">{venue.name} Guestlist</p>
                     <p className="text-sm text-gray-400">{new Date(chat.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
-                    <p className="text-xs text-gray-500 mt-1">Managed by {promoter.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">Managed by {wingman.name}</p>
                   </div>
                   <div className="flex -space-x-2">
-                    <img src={promoter.profilePhoto} alt={promoter.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
+                    <img src={wingman.profilePhoto} alt={wingman.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
                     {otherMembers.slice(0, 3).map(member => member && (
                         <img key={member.id} src={member.profilePhoto} alt={member.name} className="w-8 h-8 rounded-full object-cover border-2 border-black" />
                     ))}

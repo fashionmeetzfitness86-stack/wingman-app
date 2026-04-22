@@ -319,10 +319,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                                 <span className="text-gray-400 text-xs font-mono mr-2">{tokenBalance.toLocaleString()} TMKC</span>
                                 <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                             </button>
-                             {currentUser.role === UserRole.PROMOTER && (
-                                <button onClick={() => onNavigate('promoterDashboard')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
+                             {currentUser.role === UserRole.WINGMAN && (
+                                <button onClick={() => onNavigate('wingmanDashboard')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
                                     <div className="p-2 bg-gray-800 rounded-full text-gray-300"><ChartPieIcon className="w-4 h-4" /></div>
-                                    <span className="text-white text-sm font-bold flex-grow text-left">Promoter Dashboard</span>
+                                    <span className="text-white text-sm font-bold flex-grow text-left">Wingman Dashboard</span>
                                     <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                                 </button>
                             )}
@@ -341,10 +341,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                                 <span className="text-white text-sm font-bold flex-grow text-left">Itineraries</span>
                                 <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                             </button>
-                            {user.role === UserRole.PROMOTER && (
-                                 <button onClick={() => onNavigate('promoterStats')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
+                            {user.role === UserRole.WINGMAN && (
+                                 <button onClick={() => onNavigate('wingmanStats')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
                                     <div className="p-2 bg-gray-800 rounded-full text-gray-400"><ChartBarIcon className="w-4 h-4" /></div>
-                                    <span className="text-white text-sm font-bold flex-grow text-left">Promoter Stats</span>
+                                    <span className="text-white text-sm font-bold flex-grow text-left">Wingman Stats</span>
                                     <ChevronRightIcon className="w-4 h-4 text-gray-600" />
                                 </button>
                             )}
@@ -373,10 +373,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
                         {currentUser.role === UserRole.USER && (
                             <div className="text-center pt-4">
                                 <button 
-                                    onClick={() => onNavigate('promoterApplication')}
+                                    onClick={() => onNavigate('wingmanApplication')}
                                     className="text-xs text-gray-500 hover:text-amber-400 hover:underline transition-colors"
                                 >
-                                    Apply to be a Promoter
+                                    Apply to be a Wingman
                                 </button>
                             </div>
                         )}

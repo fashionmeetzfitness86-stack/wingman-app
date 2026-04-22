@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { Promoter, CartItem, GuestlistJoinRequest } from '../../types';
+import { Wingman, CartItem, GuestlistJoinRequest } from '../../types';
 import { Modal } from '../ui/Modal';
 import { StatCard } from '../StatCard';
 import { CurrencyDollarIcon } from '../icons/CurrencyDollarIcon';
 import { BookingsIcon } from '../icons/BookingsIcon';
 import { GuestlistIcon } from '../icons/GuestlistIcon';
 
-interface PromoterStatsModalProps {
+interface WingmanStatsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  promoter: Promoter | null;
+  wingman: Wingman | null;
   allBookings: CartItem[];
   allGuestlistRequests: GuestlistJoinRequest[];
 }
@@ -42,41 +42,41 @@ const isDateInPeriod = (date: Date, period: TimeFilter): boolean => {
 };
 
 
-export const PromoterStatsModal: React.FC<PromoterStatsModalProps> = ({ isOpen, onClose, promoter, allBookings, allGuestlistRequests }) => {
+export const WingmanStatsModal: React.FC<WingmanStatsModalProps> = ({ isOpen, onClose, wingman, allBookings, allGuestlistRequests }) => {
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('month');
 
-    const promoterStats = useMemo(() => {
-        if (!promoter) return null;
+    const wingmanStats = useMemo(() => {
+        if (!wingman) return null;
 
-        const promoterBookings = allBookings.filter(item => 
-            item.tableDetails?.promoter?.id === promoter.id &&
+        const wingmanBookings = allBookings.filter(item => 
+            item.tableDetails?.wingman?.id === wingman.id &&
             isDateInPeriod(new Date(item.bookedTimestamp || 0), timeFilter)
         );
 
-        const totalRevenue = promoterBookings.reduce((acc, item) => {
+        const totalRevenue = wingmanBookings.reduce((acc, item) => {
              const price = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
              return acc + (price || 0);
         }, 0);
 
-        const promoterGuestlistRequests = allGuestlistRequests.filter(req => 
-            req.promoterId === promoter.id &&
+        const wingmanGuestlistRequests = allGuestlistRequests.filter(req => 
+            req.wingmanId === wingman.id &&
             isDateInPeriod(new Date(req.date + 'T00:00:00'), timeFilter)
         );
-        const guestlistShows = promoterGuestlistRequests.filter(req => req.attendanceStatus === 'show').length;
-        const guestlistNoShows = promoterGuestlistRequests.filter(req => req.attendanceStatus === 'no-show').length;
+        const guestlistShows = wingmanGuestlistRequests.filter(req => req.attendanceStatus === 'show').length;
+        const guestlistNoShows = wingmanGuestlistRequests.filter(req => req.attendanceStatus === 'no-show').length;
 
         return {
-            totalBookings: promoterBookings.length,
+            totalBookings: wingmanBookings.length,
             totalRevenue,
             guestlistShows,
             guestlistNoShows,
         };
-    }, [promoter, allBookings, allGuestlistRequests, timeFilter]);
+    }, [wingman, allBookings, allGuestlistRequests, timeFilter]);
 
-    if (!isOpen || !promoter || !promoterStats) return null;
+    if (!isOpen || !wingman || !wingmanStats) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Stats for ${promoter.name}`}>
+        <Modal isOpen={isOpen} onClose={onClose} title={`Stats for ${wingman.name}`}>
             <div className="space-y-6">
                 <div className="flex items-center justify-center bg-gray-800 rounded-lg p-1">
                     {(['day', 'week', 'month', 'year'] as TimeFilter[]).map(period => (
@@ -91,10 +91,10 @@ export const PromoterStatsModal: React.FC<PromoterStatsModalProps> = ({ isOpen, 
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <StatCard icon={<CurrencyDollarIcon className="w-6 h-6" />} label="Revenue" value={`$${promoterStats.totalRevenue.toFixed(2)}`} />
-                    <StatCard icon={<BookingsIcon className="w-6 h-6" />} label="Bookings" value={promoterStats.totalBookings.toString()} />
-                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist Shows" value={promoterStats.guestlistShows.toString()} />
-                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist No-Shows" value={promoterStats.guestlistNoShows.toString()} />
+                    <StatCard icon={<CurrencyDollarIcon className="w-6 h-6" />} label="Revenue" value={`$${wingmanStats.totalRevenue.toFixed(2)}`} />
+                    <StatCard icon={<BookingsIcon className="w-6 h-6" />} label="Bookings" value={wingmanStats.totalBookings.toString()} />
+                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist Shows" value={wingmanStats.guestlistShows.toString()} />
+                    <StatCard icon={<GuestlistIcon className="w-6 h-6" />} label="Guestlist No-Shows" value={wingmanStats.guestlistNoShows.toString()} />
                 </div>
             </div>
         </Modal>

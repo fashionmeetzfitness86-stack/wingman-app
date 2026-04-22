@@ -47,7 +47,7 @@ export const GuestlistJoinSuccessModal: React.FC<GuestlistJoinSuccessModalProps>
         
         {!isVip && (
              <p className="text-gray-500 text-sm mt-4">
-                You will receive a notification once the promoter reviews your request.
+                You will receive a notification once the wingman reviews your request.
             </p>
         )}
 

@@ -10,7 +10,7 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { venues as allVenues } from '../data/mockData';
 import { StarIcon } from './icons/StarIcon';
 
-interface PromoterStatsPageProps {
+interface WingmanStatsPageProps {
   currentUser: User;
   bookedItems: CartItem[];
   guestlistRequests: GuestlistJoinRequest[];
@@ -61,20 +61,20 @@ const SortableHeader: React.FC<{
     );
 };
 
-export const PromoterStatsPage: React.FC<PromoterStatsPageProps> = ({ currentUser, bookedItems, guestlistRequests, users, onNavigate }) => {
+export const WingmanStatsPage: React.FC<WingmanStatsPageProps> = ({ currentUser, bookedItems, guestlistRequests, users, onNavigate }) => {
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
     const [clientSortConfig, setClientSortConfig] = useState<{ key: ClientSortKey | null; direction: 'asc' | 'desc' }>({ key: 'totalSpend', direction: 'desc' });
 
     const myBookings = useMemo(() => {
         return bookedItems.filter(item => 
-            item.tableDetails?.promoter?.id === currentUser.id &&
+            item.tableDetails?.wingman?.id === currentUser.id &&
             item.bookedTimestamp && isDateInPeriod(new Date(item.bookedTimestamp), timeFilter)
         );
     }, [bookedItems, currentUser.id, timeFilter]);
 
     const myGuestlistRequests = useMemo(() => {
         return guestlistRequests.filter(req => 
-            req.promoterId === currentUser.id &&
+            req.wingmanId === currentUser.id &&
             isDateInPeriod(new Date(req.date + 'T00:00:00'), timeFilter)
         );
     }, [guestlistRequests, currentUser.id, timeFilter]);

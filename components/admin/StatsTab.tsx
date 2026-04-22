@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { CartItem, GuestlistJoinRequest, User, Promoter, UserAccessLevel, UserRole } from '../../types';
+import { CartItem, GuestlistJoinRequest, User, Wingman, UserAccessLevel, UserRole } from '../../types';
 import { ArrowUpIcon, ArrowDownIcon } from '../icons/FeatureIcons';
 
 interface StatsTabProps {
     users: User[];
-    promoters: Promoter[];
+    wingmen: Wingman[];
     bookedItems: CartItem[];
     guestlistRequests: GuestlistJoinRequest[];
-    onViewPromoterStats: (promoter: Promoter) => void;
+    onViewWingmanStats: (wingman: Wingman) => void;
     onViewUserAnalytics: (accessLevel: UserAccessLevel) => void;
 }
 
@@ -53,36 +53,36 @@ const isDateInPeriod = (date: Date, period: TimeFilter): boolean => {
 };
 
 
-export const StatsTab: React.FC<StatsTabProps> = ({ users, promoters, bookedItems, guestlistRequests, onViewPromoterStats, onViewUserAnalytics }) => {
+export const StatsTab: React.FC<StatsTabProps> = ({ users, wingmen, bookedItems, guestlistRequests, onViewWingmanStats, onViewUserAnalytics }) => {
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('month');
 
-    const promoterStats = useMemo(() => {
-        return promoters.map(promoter => {
-            const promoterBookings = bookedItems.filter(item => 
-                item.tableDetails?.promoter?.id === promoter.id &&
+    const wingmanStats = useMemo(() => {
+        return wingmen.map(wingman => {
+            const wingmanBookings = bookedItems.filter(item => 
+                item.tableDetails?.wingman?.id === wingman.id &&
                 isDateInPeriod(new Date(item.bookedTimestamp || 0), timeFilter)
             );
-            const totalRevenue = promoterBookings.reduce((acc, item) => {
+            const totalRevenue = wingmanBookings.reduce((acc, item) => {
                  const price = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
                  return acc + (price || 0);
             }, 0);
 
-            const promoterGuestlistRequests = guestlistRequests.filter(req => 
-                req.promoterId === promoter.id &&
+            const wingmanGuestlistRequests = guestlistRequests.filter(req => 
+                req.wingmanId === wingman.id &&
                 isDateInPeriod(new Date(req.date + 'T00:00:00'), timeFilter)
             );
-            const guestlistShows = promoterGuestlistRequests.filter(req => req.attendanceStatus === 'show').length;
-            const guestlistNoShows = promoterGuestlistRequests.filter(req => req.attendanceStatus === 'no-show').length;
+            const guestlistShows = wingmanGuestlistRequests.filter(req => req.attendanceStatus === 'show').length;
+            const guestlistNoShows = wingmanGuestlistRequests.filter(req => req.attendanceStatus === 'no-show').length;
 
             return {
-                ...promoter,
-                totalBookings: promoterBookings.length,
+                ...wingman,
+                totalBookings: wingmanBookings.length,
                 totalRevenue,
                 guestlistShows,
                 guestlistNoShows,
             };
         }).sort((a,b) => b.totalRevenue - a.totalRevenue);
-    }, [promoters, bookedItems, guestlistRequests, timeFilter]);
+    }, [wingmen, bookedItems, guestlistRequests, timeFilter]);
 
     const userAnalytics = useMemo(() => {
         const analytics: Record<string, { totalUsers: number, totalSpend: number, totalBookings: number }> = {
@@ -121,7 +121,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({ users, promoters, bookedItem
         <div className="space-y-12">
             <div>
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wider">Promoter Performance</h3>
+                    <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wider">Wingman Performance</h3>
                     <div className="flex items-center bg-gray-800 rounded-lg p-1">
                         {(['day', 'week', 'month', 'year'] as TimeFilter[]).map(period => (
                             <button 
@@ -138,7 +138,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({ users, promoters, bookedItem
                     <table className="w-full text-sm text-left text-gray-300">
                         <thead className="text-xs text-gray-400 uppercase bg-gray-800">
                             <tr>
-                                <th className="px-4 py-3">Promoter</th>
+                                <th className="px-4 py-3">Wingman</th>
                                 <th className="px-4 py-3 text-right">Revenue</th>
                                 <th className="px-4 py-3 text-right">Bookings</th>
                                 <th className="px-4 py-3 text-right">GL Shows</th>
@@ -147,8 +147,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({ users, promoters, bookedItem
                             </tr>
                         </thead>
                         <tbody>
-                            {promoterStats.map(p => (
-                                <tr key={p.id} onClick={() => onViewPromoterStats(p)} className="bg-gray-900 border-b border-gray-800 hover:bg-gray-800 cursor-pointer">
+                            {wingmanStats.map(p => (
+                                <tr key={p.id} onClick={() => onViewWingmanStats(p)} className="bg-gray-900 border-b border-gray-800 hover:bg-gray-800 cursor-pointer">
                                     <td className="px-4 py-3 font-semibold text-white">{p.name}</td>
                                     <td className="px-4 py-3 text-right">${p.totalRevenue.toFixed(2)}</td>
                                     <td className="px-4 py-3 text-right">{p.totalBookings}</td>

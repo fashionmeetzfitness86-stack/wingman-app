@@ -105,10 +105,10 @@ export const AccessGroupsPage: React.FC<AccessGroupsPageProps> = ({ currentUser,
         return groups;
     }, [approvedGroups, myGroupIds, searchTerm, filter]);
 
-    const canCreateGroup = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const canCreateGroup = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
     
     const isApprovedUser = currentUser.accessLevel === UserAccessLevel.ACCESS_MALE || currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL;
-    const canJoinGroups = isApprovedUser || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const canJoinGroups = isApprovedUser || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
     
     const getJoinStatus = (groupId: number) => {
         if (myGroupIds.includes(groupId)) return 'joined';

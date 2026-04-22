@@ -1,37 +1,37 @@
 
 import React, { useState, useEffect } from 'react';
-import { Promoter, User } from '../../types';
+import { Wingman, User } from '../../types';
 import { venues } from '../../data/mockData';
 import { CloseIcon } from '../icons/CloseIcon';
 import { CurrencyDollarIcon } from '../icons/CurrencyDollarIcon';
 import { StarIcon } from '../icons/StarIcon';
 
-interface AdminEditPromoterModalProps {
-  data: { promoter: Promoter; user: User } | null;
+interface AdminEditWingmanModalProps {
+  data: { wingman: Wingman; user: User } | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (promoter: Promoter, user: User) => void;
+  onSave: (wingman: Wingman, user: User) => void;
 }
 
-export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ data, isOpen, onClose, onSave }) => {
-    const [editedPromoter, setEditedPromoter] = useState<Promoter | null>(null);
+export const AdminEditWingmanModal: React.FC<AdminEditWingmanModalProps> = ({ data, isOpen, onClose, onSave }) => {
+    const [editedWingman, setEditedWingman] = useState<Wingman | null>(null);
     const [editedUser, setEditedUser] = useState<User | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (data) {
-            setEditedPromoter(data.promoter);
+            setEditedWingman(data.wingman);
             setEditedUser(data.user);
             setErrors({});
         }
     }, [data]);
     
     const handleVenueToggle = (venueId: number) => {
-        if (!editedPromoter) return;
-        const newAssignedVenueIds = editedPromoter.assignedVenueIds.includes(venueId)
-            ? editedPromoter.assignedVenueIds.filter(id => id !== venueId)
-            : [...editedPromoter.assignedVenueIds, venueId];
-        setEditedPromoter({ ...editedPromoter, assignedVenueIds: newAssignedVenueIds });
+        if (!editedWingman) return;
+        const newAssignedVenueIds = editedWingman.assignedVenueIds.includes(venueId)
+            ? editedWingman.assignedVenueIds.filter(id => id !== venueId)
+            : [...editedWingman.assignedVenueIds, venueId];
+        setEditedWingman({ ...editedWingman, assignedVenueIds: newAssignedVenueIds });
         
         if (newAssignedVenueIds.length > 0) {
              setErrors(prev => ({...prev, assignedVenueIds: ''}));
@@ -41,10 +41,10 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
     const validate = () => {
         const newErrors: Record<string, string> = {};
         
-        if (!editedPromoter?.name.trim()) newErrors.name = "Name is required.";
-        if (!editedPromoter?.handle.trim()) newErrors.handle = "Handle is required.";
-        if (!editedPromoter?.bio.trim()) newErrors.bio = "Bio is required.";
-        if (!editedPromoter?.city.trim()) newErrors.city = "City is required.";
+        if (!editedWingman?.name.trim()) newErrors.name = "Name is required.";
+        if (!editedWingman?.handle.trim()) newErrors.handle = "Handle is required.";
+        if (!editedWingman?.bio.trim()) newErrors.bio = "Bio is required.";
+        if (!editedWingman?.city.trim()) newErrors.city = "City is required.";
         
         if (!editedUser?.email.trim()) {
             newErrors.email = "Email is required.";
@@ -54,7 +54,7 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
         
         if (!editedUser?.phoneNumber?.trim()) newErrors.phoneNumber = "Phone number is required.";
 
-        if (!editedPromoter?.assignedVenueIds || editedPromoter.assignedVenueIds.length === 0) {
+        if (!editedWingman?.assignedVenueIds || editedWingman.assignedVenueIds.length === 0) {
             newErrors.assignedVenueIds = "At least one venue must be assigned.";
         }
 
@@ -63,18 +63,18 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
     };
 
     const handleSaveChanges = () => {
-        if (validate() && editedPromoter && editedUser) {
-            onSave(editedPromoter, editedUser);
+        if (validate() && editedWingman && editedUser) {
+            onSave(editedWingman, editedUser);
         }
     };
   
-    if (!isOpen || !editedPromoter || !editedUser) return null;
+    if (!isOpen || !editedWingman || !editedUser) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true">
         <div className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg m-4 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center p-4 border-b border-gray-800">
-                <h2 className="text-xl font-bold text-white">Edit Promoter: {editedPromoter.name}</h2>
+                <h2 className="text-xl font-bold text-white">Edit Wingman: {editedWingman.name}</h2>
                 <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800" aria-label="Close">
                     <CloseIcon className="w-6 h-6" />
                 </button>
@@ -88,8 +88,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                             <label className="block text-sm font-medium text-gray-300 mb-2">Name <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
-                                value={editedPromoter.name} 
-                                onChange={e => setEditedPromoter({...editedPromoter, name: e.target.value})} 
+                                value={editedWingman.name} 
+                                onChange={e => setEditedWingman({...editedWingman, name: e.target.value})} 
                                 className={`w-full bg-gray-800 border ${errors.name ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400`} 
                             />
                             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -98,8 +98,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                             <label className="block text-sm font-medium text-gray-300 mb-2">Handle <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
-                                value={editedPromoter.handle} 
-                                onChange={e => setEditedPromoter({...editedPromoter, handle: e.target.value})} 
+                                value={editedWingman.handle} 
+                                onChange={e => setEditedWingman({...editedWingman, handle: e.target.value})} 
                                 className={`w-full bg-gray-800 border ${errors.handle ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400`} 
                             />
                             {errors.handle && <p className="text-red-500 text-xs mt-1">{errors.handle}</p>}
@@ -109,8 +109,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">Bio <span className="text-red-500">*</span></label>
                         <textarea 
-                            value={editedPromoter.bio} 
-                            onChange={e => setEditedPromoter({...editedPromoter, bio: e.target.value})} 
+                            value={editedWingman.bio} 
+                            onChange={e => setEditedWingman({...editedWingman, bio: e.target.value})} 
                             rows={3} 
                             className={`w-full bg-gray-800 border ${errors.bio ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400 resize-none`} 
                         />
@@ -122,8 +122,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                             <label className="block text-sm font-medium text-gray-300 mb-2">City <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
-                                value={editedPromoter.city} 
-                                onChange={e => setEditedPromoter({...editedPromoter, city: e.target.value})} 
+                                value={editedWingman.city} 
+                                onChange={e => setEditedWingman({...editedWingman, city: e.target.value})} 
                                 className={`w-full bg-gray-800 border ${errors.city ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400`} 
                             />
                             {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
@@ -191,8 +191,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                                 </div>
                                 <input 
                                     type="number" 
-                                    value={editedPromoter.earnings || 0} 
-                                    onChange={e => setEditedPromoter({...editedPromoter, earnings: parseFloat(e.target.value)})}
+                                    value={editedWingman.earnings || 0} 
+                                    onChange={e => setEditedWingman({...editedWingman, earnings: parseFloat(e.target.value)})}
                                     className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-amber-400 focus:border-amber-400"
                                 />
                             </div>
@@ -208,8 +208,8 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                                     step="0.1"
                                     min="0"
                                     max="5"
-                                    value={editedPromoter.rating} 
-                                    onChange={e => setEditedPromoter({...editedPromoter, rating: parseFloat(e.target.value)})}
+                                    value={editedWingman.rating} 
+                                    onChange={e => setEditedWingman({...editedWingman, rating: parseFloat(e.target.value)})}
                                     className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-amber-400 focus:border-amber-400"
                                 />
                             </div>
@@ -228,7 +228,7 @@ export const AdminEditPromoterModal: React.FC<AdminEditPromoterModalProps> = ({ 
                             <label key={venue.id} className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
                                 <input
                                     type="checkbox"
-                                    checked={editedPromoter.assignedVenueIds.includes(venue.id)}
+                                    checked={editedWingman.assignedVenueIds.includes(venue.id)}
                                     onChange={() => handleVenueToggle(venue.id)}
                                     className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-amber-500 focus:ring-amber-500"
                                 />

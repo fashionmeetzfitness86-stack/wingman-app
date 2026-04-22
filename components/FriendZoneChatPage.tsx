@@ -3,9 +3,9 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SendIcon } from './icons/SendIcon';
-import { User, Promoter, FriendZoneChatMessage, FriendZoneChat } from '../types';
+import { User, Wingman, FriendZoneChatMessage, FriendZoneChat } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { AddPromoterToChatModal } from './modals/AddPromoterToChatModal';
+import { AddWingmanToChatModal } from './modals/AddWingmanToChatModal';
 import { UsersIcon } from './icons/UsersIcon';
 import { StarIcon } from './icons/StarIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
@@ -16,18 +16,18 @@ interface FriendZoneChatPageProps {
   currentUser: User;
   chats: FriendZoneChat[];
   messages: FriendZoneChatMessage[];
-  promoters: Promoter[];
+  wingmen: Wingman[];
   users: User[];
   onSendMessage: (chatId: number, text: string) => void;
-  onAddPromoter: (chatId: number, promoterId: number) => void;
-  onRemovePromoter: (chatId: number, promoterId: number) => void;
+  onAddWingman: (chatId: number, wingmanId: number) => void;
+  onRemoveWingman: (chatId: number, wingmanId: number) => void;
   onBack: () => void;
   onAddMember: (chatId: number, userId: number) => void;
   onRemoveMember: (chatId: number, userId: number) => void;
   onLeaveChat: (chatId: number) => void;
 }
 
-const MessageBubble: React.FC<{ message: FriendZoneChatMessage, sender: User | Promoter | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
+const MessageBubble: React.FC<{ message: FriendZoneChatMessage, sender: User | Wingman | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
         <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-white text-black hover:bg-gray-200 rounded-br-none text-white' : 'bg-gray-800 rounded-bl-none text-white'}`}>
@@ -43,21 +43,21 @@ const MessageBubble: React.FC<{ message: FriendZoneChatMessage, sender: User | P
     </div>
 );
 
-export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, currentUser, chats, messages, promoters, users, onSendMessage, onAddPromoter, onRemovePromoter, onBack, onAddMember, onRemoveMember, onLeaveChat }) => {
+export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, currentUser, chats, messages, wingmen, users, onSendMessage, onAddWingman, onRemoveWingman, onBack, onAddMember, onRemoveMember, onLeaveChat }) => {
     const [inputValue, setInputValue] = useState('');
-    const [isPromoterModalOpen, setIsPromoterModalOpen] = useState(false);
+    const [isWingmanModalOpen, setIsWingmanModalOpen] = useState(false);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
     const currentChat = chats.find(c => c.id === chatId);
     const chatMessages = messages.filter(m => m.chatId === chatId);
     
-    const allParticipants = useMemo(() => [...users, ...promoters], [users, promoters]);
+    const allParticipants = useMemo(() => [...users, ...wingmen], [users, wingmen]);
     
-    const activePromoters = useMemo(() => {
-        if (!currentChat?.promoterIds) return [];
-        return currentChat.promoterIds.map(id => promoters.find(p => p.id === id)).filter(Boolean) as Promoter[];
-    }, [currentChat, promoters]);
+    const activeWingmen = useMemo(() => {
+        if (!currentChat?.wingmanIds) return [];
+        return currentChat.wingmanIds.map(id => wingmen.find(p => p.id === id)).filter(Boolean) as Wingman[];
+    }, [currentChat, wingmen]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -97,34 +97,34 @@ export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, 
                     </button>
                 </div>
                 
-                {/* Promoter Management Area */}
+                {/* Wingman Management Area */}
                 <div className="flex flex-col gap-2 bg-gray-900 rounded-lg p-2 px-3 border border-gray-800">
                     <div className="flex items-center justify-between">
                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Wingmen</span>
                          <button 
-                            onClick={() => setIsPromoterModalOpen(true)}
+                            onClick={() => setIsWingmanModalOpen(true)}
                             className="text-xs bg-white text-black hover:bg-gray-200 text-white font-bold px-3 py-1.5 rounded-full hover:bg-[#E5E5E5] transition-colors"
                         >
-                            + Add Promoter
+                            + Add Wingman
                         </button>
                     </div>
-                    {activePromoters.length > 0 ? (
+                    {activeWingmen.length > 0 ? (
                         <div className="flex flex-col gap-2">
-                            {activePromoters.map(promoter => (
-                                <div key={promoter.id} className="flex items-center justify-between bg-black/20 p-2 rounded-lg">
+                            {activeWingmen.map(wingman => (
+                                <div key={wingman.id} className="flex items-center justify-between bg-black/20 p-2 rounded-lg">
                                     <div className="flex items-center gap-3">
                                         <div className="relative">
-                                            <img src={promoter.profilePhoto} alt={promoter.name} className="w-8 h-8 rounded-full object-cover border-2 border-amber-400" />
+                                            <img src={wingman.profilePhoto} alt={wingman.name} className="w-8 h-8 rounded-full object-cover border-2 border-amber-400" />
                                             <div className="absolute -bottom-1 -right-1 bg-amber-400 rounded-full p-0.5">
                                                 <StarIcon className="w-2 h-2 text-black fill-current" />
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white">{promoter.name}</p>
+                                            <p className="text-sm font-bold text-white">{wingman.name}</p>
                                         </div>
                                     </div>
                                     <button 
-                                        onClick={() => onRemovePromoter(chatId, promoter.id)}
+                                        onClick={() => onRemoveWingman(chatId, wingman.id)}
                                         className="ml-auto text-xs text-red-400 hover:text-red-300 border border-red-900/50 bg-red-900/20 px-2 py-1 rounded transition-colors"
                                     >
                                         Remove
@@ -135,7 +135,7 @@ export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, 
                     ) : (
                         <div className="flex items-center gap-2 text-gray-500 py-1">
                             <UsersIcon className="w-4 h-4" />
-                            <span className="text-xs italic">No promoter in chat</span>
+                            <span className="text-xs italic">No wingman in chat</span>
                         </div>
                     )}
                 </div>
@@ -182,13 +182,13 @@ export const FriendZoneChatPage: React.FC<FriendZoneChatPageProps> = ({ chatId, 
                 </form>
             </div>
 
-            <AddPromoterToChatModal 
-                isOpen={isPromoterModalOpen}
-                onClose={() => setIsPromoterModalOpen(false)}
-                promoters={promoters}
-                onAdd={(promoterId) => {
-                    onAddPromoter(chatId, promoterId);
-                    setIsPromoterModalOpen(false);
+            <AddWingmanToChatModal 
+                isOpen={isWingmanModalOpen}
+                onClose={() => setIsWingmanModalOpen(false)}
+                wingmen={wingmen}
+                onAdd={(wingmanId) => {
+                    onAddWingman(chatId, wingmanId);
+                    setIsWingmanModalOpen(false);
                 }}
             />
 

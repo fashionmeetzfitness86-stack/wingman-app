@@ -1,14 +1,14 @@
 import React from 'react';
-import { PromoterApplication, AccessGroup, EventInvitationRequest, User, Event, Page, CartItem, EventInvitation, MembershipRequest } from '../../types';
+import { WingmanApplication, AccessGroup, EventInvitationRequest, User, Event, Page, CartItem, EventInvitation, MembershipRequest } from '../../types';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CloseIcon } from '../icons/CloseIcon';
 import { SendInvitations } from './SendInvitations';
 import { PlusIcon } from '../icons/PlusIcon';
 
 interface ManagementTabProps {
-    promoterApplications: PromoterApplication[];
-    onApprovePromoterApplication: (appId: number) => void;
-    onRejectPromoterApplication: (appId: number, feedback?: string) => void;
+    wingmanApplications: WingmanApplication[];
+    onApproveWingmanApplication: (appId: number) => void;
+    onRejectWingmanApplication: (appId: number, feedback?: string) => void;
     pendingGroups: AccessGroup[];
     onApproveGroup: (groupId: number) => void;
     invitationRequests: EventInvitationRequest[];
@@ -25,7 +25,7 @@ interface ManagementTabProps {
     onApproveMembershipRequest: (requestId: number) => void;
     onRejectMembershipRequest: (requestId: number) => void;
 }
-// Member access request card — visually distinct from ApplicationCard (no promoter fields)
+// Member access request card — visually distinct from ApplicationCard (no wingman fields)
 const MemberAccessCard: React.FC<{
     request: MembershipRequest;
     onApprove: () => void;
@@ -75,7 +75,7 @@ const MemberAccessCard: React.FC<{
 );
 
 const ApplicationCard: React.FC<{
-    app: PromoterApplication;
+    app: WingmanApplication;
     onApprove: () => void;
     onReject: () => void;
 }> = ({ app, onApprove, onReject }) => (
@@ -112,9 +112,9 @@ const ApplicationCard: React.FC<{
 
 export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
     const {
-        promoterApplications,
-        onApprovePromoterApplication,
-        onRejectPromoterApplication,
+        wingmanApplications,
+        onApproveWingmanApplication,
+        onRejectWingmanApplication,
         pendingGroups,
         onApproveGroup,
         invitationRequests,
@@ -131,8 +131,8 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
     const pendingMembershipRequests = membershipRequests.filter(r => r.status === 'pending');
     const processedMembershipRequests = membershipRequests.filter(r => r.status !== 'pending');
 
-    const pendingApplications = promoterApplications.filter(a => a.status === 'pending');
-    const processedApplications = promoterApplications.filter(a => a.status !== 'pending');
+    const pendingApplications = wingmanApplications.filter(a => a.status === 'pending');
+    const processedApplications = wingmanApplications.filter(a => a.status !== 'pending');
     const pendingInviteRequests = invitationRequests.filter(req => req.status === 'pending');
 
     return (
@@ -175,18 +175,18 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                 )}
             </div>
 
-            {/* ── Promoter Applications (existing, unchanged) ─── */}
+            {/* ── Wingman Applications (existing, unchanged) ─── */}
             <div className="border-t border-gray-800 pt-8">
-                <h3 className="text-xl font-bold mb-4">Promoter Applications ({pendingApplications.length} pending)</h3>
+                <h3 className="text-xl font-bold mb-4">Wingman Applications ({pendingApplications.length} pending)</h3>
                 <div className="space-y-3">
                     {pendingApplications.length > 0 ? pendingApplications.map(app => (
                         <ApplicationCard 
                             key={app.id} 
                             app={app} 
-                            onApprove={() => onApprovePromoterApplication(app.id)} 
-                            onReject={() => onRejectPromoterApplication(app.id)}
+                            onApprove={() => onApproveWingmanApplication(app.id)} 
+                            onReject={() => onRejectWingmanApplication(app.id)}
                         />
-                    )) : <div className="bg-gray-800 p-8 rounded-lg text-center text-gray-400">No pending promoter applications.</div>}
+                    )) : <div className="bg-gray-800 p-8 rounded-lg text-center text-gray-400">No pending wingman applications.</div>}
                 </div>
 
                 {processedApplications.length > 0 && (

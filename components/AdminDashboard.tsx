@@ -1,26 +1,26 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Promoter, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, PromoterApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest } from '../types';
+import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest } from '../types';
 import { ManagementTab } from './admin/ManagementTab';
 import { AnalyticsTab } from './admin/AnalyticsTab';
-import { AdminPromoterListItem } from './AdminPromoterListItem';
+import { AdminWingmanListItem } from './AdminWingmanListItem';
 import { AdminUserListItem } from './AdminUserListItem';
 import { AdminEventListItem } from './AdminEventListItem';
 import { AdminVenueListItem } from './AdminVenueListItem';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { StoreTab } from './admin/StoreTab';
-import { PromoterStatsTab } from './admin/PromoterStatsTab';
+import { WingmanStatsTab } from './admin/WingmanStatsTab';
 import { PushNotificationsTab } from './admin/PushNotificationsTab';
 import { TrashIcon } from './icons/TrashIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { CloseIcon } from './icons/CloseIcon';
 import { UserAnalyticsModal } from './modals/UserAnalyticsModal';
-import { PromoterStatsModal } from './modals/PromoterStatsModal';
+import { WingmanStatsModal } from './modals/WingmanStatsModal';
 import { AccessControlTab } from './admin/AccessControlTab';
 
 interface AdminDashboardProps {
     users: User[];
-    promoters: Promoter[];
+    wingmen: Wingman[];
     venues: Venue[];
     events: Event[];
     storeItems: StoreItem[];
@@ -31,10 +31,10 @@ interface AdminDashboardProps {
     onAddUser: () => void;
     onBlockUser: (user: User) => void;
     onViewUser: (user: User) => void;
-    onEditPromoter: (promoter: Promoter, user: User) => void;
-    onDeletePromoter: (promoter: Promoter) => void;
-    onSuspendPromoter: (user: User) => void;
-    onPreviewPromoter: (promoter: Promoter) => void;
+    onEditWingman: (wingman: Wingman, user: User) => void;
+    onDeleteWingman: (wingman: Wingman) => void;
+    onSuspendWingman: (user: User) => void;
+    onPreviewWingman: (wingman: Wingman) => void;
     onApproveGroup: (groupId: number) => void;
     onApproveRequest: (requestId: number) => void;
     onRejectRequest: (requestId: number) => void;
@@ -52,9 +52,9 @@ interface AdminDashboardProps {
     onEditStoreItem: (item: StoreItem) => void;
     onDeleteStoreItem: (item: StoreItem) => void;
     onPreviewStoreItem: (item: StoreItem) => void;
-    promoterApplications: PromoterApplication[];
-    onApprovePromoterApplication: (appId: number) => void;
-    onRejectPromoterApplication: (appId: number, feedback?: string) => void;
+    wingmanApplications: WingmanApplication[];
+    onApproveWingmanApplication: (appId: number) => void;
+    onRejectWingmanApplication: (appId: number, feedback?: string) => void;
     bookedItems: CartItem[];
     guestlistRequests: GuestlistJoinRequest[];
     allRsvps: { userId: number; eventId: number }[];
@@ -97,13 +97,13 @@ const FilterDropdown: React.FC<{ label: string; value: string; onChange: (value:
 
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
-    const [activeTab, setActiveTab] = useState<'analytics' | 'management' | 'promoters' | 'users' | 'events' | 'venues' | 'store' | 'promoterStats' | 'pushNotifications' | 'accessControl'>('management');
+    const [activeTab, setActiveTab] = useState<'analytics' | 'management' | 'wingmen' | 'users' | 'events' | 'venues' | 'store' | 'wingmanStats' | 'pushNotifications' | 'accessControl'>('management');
     const [searchTerm, setSearchTerm] = useState('');
-    const { promoters, venues, users, events } = props;
+    const { wingmen, venues, users, events } = props;
 
     // Filter states
-    const [promoterCityFilter, setPromoterCityFilter] = useState('all');
-    const [promoterVenueFilter, setPromoterVenueFilter] = useState('all');
+    const [wingmanCityFilter, setWingmanCityFilter] = useState('all');
+    const [wingmanVenueFilter, setWingmanVenueFilter] = useState('all');
     const [userRoleFilter, setUserRoleFilter] = useState('all');
     const [userAccessLevelFilter, setUserAccessLevelFilter] = useState('all');
     const [userStatusFilter, setUserStatusFilter] = useState('all');
@@ -119,12 +119,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     
     // User Analytics State
     const [userForAnalytics, setUserForAnalytics] = useState<User | null>(null);
-    const [promoterForStats, setPromoterForStats] = useState<Promoter | null>(null);
+    const [wingmanForStats, setWingmanForStats] = useState<Wingman | null>(null);
 
     useEffect(() => {
         setSearchTerm('');
-        setPromoterCityFilter('all');
-        setPromoterVenueFilter('all');
+        setWingmanCityFilter('all');
+        setWingmanVenueFilter('all');
         setUserRoleFilter('all');
         setUserAccessLevelFilter('all');
         setUserStatusFilter('all');
@@ -139,11 +139,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
 
 
     const pendingRequestsCount = useMemo(() => {
-        return props.promoterApplications.filter(a => a.status === 'pending').length +
+        return props.wingmanApplications.filter(a => a.status === 'pending').length +
                props.pendingGroups.length +
                props.invitationRequests.filter(req => req.status === 'pending').length +
                props.membershipRequests.filter(r => r.status === 'pending').length;
-    }, [props.promoterApplications, props.pendingGroups, props.invitationRequests, props.membershipRequests]);
+    }, [props.wingmanApplications, props.pendingGroups, props.invitationRequests, props.membershipRequests]);
 
     // Pass 4: count of users awaiting approval — drives badge on Users tab
     const pendingApprovalsCount = useMemo(() => {
@@ -154,12 +154,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         ).length;
     }, [users]);
     
-    const filteredPromoters = useMemo(() => promoters.filter(p => {
+    const filteredWingmen = useMemo(() => wingmen.filter(p => {
         const searchMatch = searchTerm === '' || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.handle.toLowerCase().includes(searchTerm.toLowerCase()) || p.city.toLowerCase().includes(searchTerm.toLowerCase());
-        const cityMatch = promoterCityFilter === 'all' || p.city === promoterCityFilter;
-        const venueMatch = promoterVenueFilter === 'all' || p.assignedVenueIds.includes(parseInt(promoterVenueFilter));
+        const cityMatch = wingmanCityFilter === 'all' || p.city === wingmanCityFilter;
+        const venueMatch = wingmanVenueFilter === 'all' || p.assignedVenueIds.includes(parseInt(wingmanVenueFilter));
         return searchMatch && cityMatch && venueMatch;
-    }), [promoters, searchTerm, promoterCityFilter, promoterVenueFilter]);
+    }), [wingmen, searchTerm, wingmanCityFilter, wingmanVenueFilter]);
 
     const filteredUsers = useMemo(() => users.filter(u => {
         const searchMatch = searchTerm === '' || u.name.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -185,7 +185,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         return searchMatch && locationMatch && musicTypeMatch && vibeMatch;
     }), [venues, searchTerm, venueLocationFilter, venueMusicTypeFilter, venueVibeFilter]);
     
-    const promoterCities = useMemo(() => [...new Set(promoters.map(p => p.city))], [promoters]);
+    const wingmanCities = useMemo(() => [...new Set(wingmen.map(p => p.city))], [wingmen]);
     const venueLocations = useMemo(() => [...new Set(venues.map(v => v.location))], [venues]);
     const venueMusicTypes = useMemo(() => [...new Set(venues.map(v => v.musicType))], [venues]);
     const venueVibes = useMemo(() => [...new Set(venues.map(v => v.vibe))], [venues]);
@@ -222,11 +222,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const renderFilters = () => {
         const filters = (() => {
             switch (activeTab) {
-                case 'promoters':
+                case 'wingmen':
                     return (
                         <>
-                            <FilterDropdown label="City" value={promoterCityFilter} onChange={setPromoterCityFilter} options={promoterCities} />
-                            <FilterDropdown label="Venue" value={promoterVenueFilter} onChange={setPromoterVenueFilter} options={venues.map(v => ({ value: v.id.toString(), label: v.name }))} />
+                            <FilterDropdown label="City" value={wingmanCityFilter} onChange={setWingmanCityFilter} options={wingmanCities} />
+                            <FilterDropdown label="Venue" value={wingmanVenueFilter} onChange={setWingmanVenueFilter} options={venues.map(v => ({ value: v.id.toString(), label: v.name }))} />
                         </>
                     );
                 case 'users':
@@ -269,11 +269,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 <button onClick={() => setActiveTab('analytics')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'analytics' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Analytics
                 </button>
-                 <button onClick={() => setActiveTab('promoterStats')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'promoterStats' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
-                    Promoter Stats
+                 <button onClick={() => setActiveTab('wingmanStats')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'wingmanStats' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
+                    Wingman Stats
                 </button>
-                <button onClick={() => setActiveTab('promoters')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'promoters' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
-                    Promoters
+                <button onClick={() => setActiveTab('wingmen')} className={`flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'wingmen' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
+                    Wingmen
                 </button>
                 <button onClick={() => setActiveTab('users')} className={`relative flex-shrink-0 px-6 py-3 text-sm font-semibold tracking-widest uppercase transition-colors border-b-2 ${activeTab === 'users' ? 'text-white border-white' : 'text-[#8A8E99] border-transparent hover:border-[#5D616B] hover:text-gray-300'}`}>
                     Users
@@ -309,7 +309,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             </div>
             
              <div className="mb-6 space-y-4">
-                {activeTab !== 'management' && activeTab !== 'analytics' && activeTab !== 'store' && activeTab !== 'promoterStats' && activeTab !== 'pushNotifications' && (
+                {activeTab !== 'management' && activeTab !== 'analytics' && activeTab !== 'store' && activeTab !== 'wingmanStats' && activeTab !== 'pushNotifications' && (
                     <div className="relative">
                         <input
                             type="search"
@@ -335,28 +335,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         users={props.users}
                         events={props.events}
                         venues={props.venues}
-                        promoters={props.promoters}
+                        wingmen={props.wingmen}
                     />
                 )}
-                {activeTab === 'promoterStats' && (
-                    <PromoterStatsTab 
-                        promoters={props.promoters}
+                {activeTab === 'wingmanStats' && (
+                    <WingmanStatsTab 
+                        wingmen={props.wingmen}
                         bookedItems={props.bookedItems}
                         guestlistRequests={props.guestlistRequests}
-                        onPreviewPromoter={props.onPreviewPromoter}
-                        onViewStats={(p) => setPromoterForStats(p)}
+                        onPreviewWingman={props.onPreviewWingman}
+                        onViewStats={(p) => setWingmanForStats(p)}
                     />
                 )}
-                {activeTab === 'promoters' && (
+                {activeTab === 'wingmen' && (
                     <div className="space-y-3">
                         <div className="flex justify-end mb-4">
-                            <button onClick={() => props.onNavigate('promoterApplication')} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Promoter</button>
+                            <button onClick={() => props.onNavigate('wingmanApplication')} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Wingman</button>
                         </div>
-                        {filteredPromoters.length > 0 ? filteredPromoters.map(promoter => {
-                            const user = props.users.find(u => u.id === promoter.id);
+                        {filteredWingmen.length > 0 ? filteredWingmen.map(wingman => {
+                            const user = props.users.find(u => u.id === wingman.id);
                             if (!user) return null;
-                            return <AdminPromoterListItem key={promoter.id} promoter={promoter} user={user} onEdit={props.onEditPromoter} onDelete={props.onDeletePromoter} onPreview={props.onPreviewPromoter} onSuspend={props.onSuspendPromoter} onViewStats={(p) => setPromoterForStats(p)} />;
-                        }) : <p className="text-center text-gray-500 py-8">No promoters found.</p>}
+                            return <AdminWingmanListItem key={wingman.id} wingman={wingman} user={user} onEdit={props.onEditWingman} onDelete={props.onDeleteWingman} onPreview={props.onPreviewWingman} onSuspend={props.onSuspendWingman} onViewStats={(p) => setWingmanForStats(p)} />;
+                        }) : <p className="text-center text-gray-500 py-8">No wingmen found.</p>}
                     </div>
                 )}
                 {activeTab === 'users' && (
@@ -426,9 +426,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 )}
                 {activeTab === 'management' && (
                      <ManagementTab 
-                        promoterApplications={props.promoterApplications}
-                        onApprovePromoterApplication={props.onApprovePromoterApplication}
-                        onRejectPromoterApplication={props.onRejectPromoterApplication}
+                        wingmanApplications={props.wingmanApplications}
+                        onApproveWingmanApplication={props.onApproveWingmanApplication}
+                        onRejectWingmanApplication={props.onRejectWingmanApplication}
                         pendingGroups={props.pendingGroups}
                         onApproveGroup={props.onApproveGroup}
                         invitationRequests={props.invitationRequests}
@@ -470,10 +470,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 venues={props.venues}
             />
 
-            <PromoterStatsModal
-                isOpen={!!promoterForStats}
-                onClose={() => setPromoterForStats(null)}
-                promoter={promoterForStats}
+            <WingmanStatsModal
+                isOpen={!!wingmanForStats}
+                onClose={() => setWingmanForStats(null)}
+                wingman={wingmanForStats}
                 allBookings={props.bookedItems}
                 allGuestlistRequests={props.guestlistRequests}
             />

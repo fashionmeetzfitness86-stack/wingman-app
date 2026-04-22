@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SendIcon } from './icons/SendIcon';
-import { UserRole, User, Promoter } from '../types';
+import { UserRole, User, Wingman } from '../types';
 import { mockGroupChatMessages } from '../data/mockData';
 import { EmojiIcon } from './icons/EmojiIcon';
 import { EmojiPicker } from './EmojiPicker';
@@ -8,7 +8,7 @@ import { EmojiPicker } from './EmojiPicker';
 interface GroupChatPageProps {
   currentUser: User;
   users: User[];
-  promoters: Promoter[];
+  wingmen: Wingman[];
 }
 
 interface Message {
@@ -17,7 +17,7 @@ interface Message {
     timestamp: string;
 }
 
-const MessageBubble: React.FC<{ message: Message, sender: User | Promoter | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
+const MessageBubble: React.FC<{ message: Message, sender: User | Wingman | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover" />}
         <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
@@ -32,7 +32,7 @@ const MessageBubble: React.FC<{ message: Message, sender: User | Promoter | unde
     </div>
 );
 
-const TypingIndicator: React.FC<{ sender?: User | Promoter }> = ({ sender }) => (
+const TypingIndicator: React.FC<{ sender?: User | Wingman }> = ({ sender }) => (
     <div className="flex items-start gap-3">
         {sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover" />}
          <div className="bg-gray-800 rounded-xl rounded-bl-none p-4">
@@ -45,13 +45,13 @@ const TypingIndicator: React.FC<{ sender?: User | Promoter }> = ({ sender }) => 
     </div>
 );
 
-export const GroupChatPage: React.FC<GroupChatPageProps> = ({ currentUser, users, promoters }) => {
+export const GroupChatPage: React.FC<GroupChatPageProps> = ({ currentUser, users, wingmen }) => {
     const [messages, setMessages] = useState<Message[]>(mockGroupChatMessages);
     const [inputValue, setInputValue] = useState('');
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const allParticipants = useMemo(() => [...users, ...promoters], [users, promoters]);
+    const allParticipants = useMemo(() => [...users, ...wingmen], [users, wingmen]);
 
     const getParticipantById = (id: number) => allParticipants.find(p => p.id === id);
 
@@ -77,13 +77,13 @@ export const GroupChatPage: React.FC<GroupChatPageProps> = ({ currentUser, users
         setIsEmojiPickerOpen(false);
 
         // Simulate a reply
-        const replyingPromoter = promoters.find(p => p.id === 1); // Anderson
-        if (replyingPromoter) {
+        const replyingWingman = wingmen.find(p => p.id === 1); // Anderson
+        if (replyingWingman) {
             setTimeout(() => {
                 setIsTyping(true);
                 setTimeout(() => {
                     const replyMessage: Message = {
-                        senderId: replyingPromoter.id,
+                        senderId: replyingWingman.id,
                         text: "On it. I'll get back to you shortly.",
                         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     };

@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
             <ChevronLeftIcon className="w-5 h-5 text-white" />
           </button>
         ) : (
-          (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER) ? (
+          (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) ? (
             <button
               onClick={onOpenGroupChat}
               className="p-2 -ml-1 rounded-full hover:bg-white/5 transition-colors"

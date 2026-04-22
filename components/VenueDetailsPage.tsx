@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Venue, User, UserRole, Promoter, UserAccessLevel, GuestlistJoinRequest } from '../types';
+import { Venue, User, UserRole, Wingman, UserAccessLevel, GuestlistJoinRequest } from '../types';
 import { HeartIcon } from './icons/HeartIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
 import { LocationMarkerIcon } from './icons/LocationMarkerIcon';
@@ -23,9 +23,9 @@ interface VenueDetailsPageProps {
   onToggleFavorite: (venueId: number) => void;
   currentUser: User;
   onUpdateVenue: (venue: Venue) => void;
-  promoters: Promoter[];
-  onBookWithSpecificPromoter: (promoter: Promoter, venue: Venue) => void;
-  onJoinGuestlist: (promoter: Promoter, venue: Venue) => void;
+  wingmen: Wingman[];
+  onBookWithSpecificWingman: (wingman: Wingman, venue: Venue) => void;
+  onJoinGuestlist: (wingman: Wingman, venue: Venue) => void;
   guestlistJoinRequests: GuestlistJoinRequest[];
   onCheckIn: (venueId: number, qrData: string) => void;
 }
@@ -37,7 +37,7 @@ const DetailChip: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, 
     </div>
 );
 
-export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBack, onBookVenue, isFavorite, onToggleFavorite, currentUser, onUpdateVenue, promoters, onBookWithSpecificPromoter, onJoinGuestlist, guestlistJoinRequests, onCheckIn }) => {
+export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBack, onBookVenue, isFavorite, onToggleFavorite, currentUser, onUpdateVenue, wingmen, onBookWithSpecificWingman, onJoinGuestlist, guestlistJoinRequests, onCheckIn }) => {
   const [isImageGenerating, setIsImageGenerating] = useState(false);
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
   const [videoLoadingMessage, setVideoLoadingMessage] = useState('');
@@ -53,7 +53,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
   const dayOfWeek = WEEKDAYS[new Date().getDay()];
   const isOpenToday = venue.operatingDays.includes(dayOfWeek);
   
-  const assignedPromoters = promoters.filter(p => p.assignedVenueIds.includes(venue.id));
+  const assignedWingmen = wingmen.filter(p => p.assignedVenueIds.includes(venue.id));
   
   const activeGuestlistRequest = useMemo(() => {
     if (!isApprovedGirl) return null;
@@ -252,7 +252,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
                 </p>
             )}
              <p className="text-xs text-gray-500 mt-3">
-                Operating times may vary. Please contact your promoter for specific hours.
+                Operating times may vary. Please contact your wingman for specific hours.
             </p>
         </div>
 

@@ -1,5 +1,5 @@
 
-import { Venue, Promoter, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, PromoterApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
+import { Venue, Wingman, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, WingmanApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
 
 // Mock Users
 export const users: User[] = [
@@ -118,14 +118,14 @@ export const users: User[] = [
   }
 ];
 
-// Mock Promoters
-export const promoters: Promoter[] = [
+// Mock Wingmen
+export const wingmen: Wingman[] = [
   {
     id: 1,
     name: 'Anderson',
     handle: '@anderson_promo',
     rating: 4.9,
-    bio: 'Top promoter for LIV and Story. I can get you the best tables.',
+    bio: 'Top wingman for LIV and Story. I can get you the best tables.',
     profilePhoto: 'https://i.pravatar.cc/150?u=1',
     city: 'Miami',
     weeklySchedule: [{ day: 'Friday', venueId: 1 }, { day: 'Saturday', venueId: 2 }],
@@ -221,8 +221,8 @@ export const bottles: Bottle[] = [
 
 // Mock Booking History
 export const bookingHistory: Booking[] = [
-    { id: 1, userId: 101, venueName: 'LIV', promoterName: 'Anderson', date: '2023-10-15', tableTier: 'Dance Floor Table', status: 'Completed' },
-    { id: 2, userId: 102, venueName: 'Story', promoterName: 'Anderson', date: '2023-11-20', tableTier: 'VIP Booth', status: 'Confirmed' }
+    { id: 1, userId: 101, venueName: 'LIV', wingmanName: 'Anderson', date: '2023-10-15', tableTier: 'Dance Floor Table', status: 'Completed' },
+    { id: 2, userId: 102, venueName: 'Story', wingmanName: 'Anderson', date: '2023-11-20', tableTier: 'VIP Booth', status: 'Confirmed' }
 ];
 
 // Mock Transactions
@@ -382,7 +382,7 @@ export const mockNotifications: AppNotification[] = [
 
 // Mock Chats
 export const mockGuestlistChats: GuestlistChat[] = [
-    { id: 1, venueId: 1, date: '2025-06-15', promoterId: 1, memberIds: [101, 1] }
+    { id: 1, venueId: 1, date: '2025-06-15', wingmanId: 1, memberIds: [101, 1] }
 ];
 
 export const mockGuestlistChatMessages: GuestlistChatMessage[] = [
@@ -404,14 +404,14 @@ export const mockFriendZoneChats: FriendZoneChat[] = [
         name: "Weekend Plans 🥂",
         creatorId: 101,
         memberIds: [101, 102],
-        promoterIds: []
+        wingmanIds: []
     },
     {
         id: 2,
         name: "Birthday Trip 🌴",
         creatorId: 102,
         memberIds: [102, 101],
-        promoterIds: [1] // Anderson added
+        wingmanIds: [1] // Anderson added
     }
 ];
 
@@ -446,10 +446,10 @@ export const mockEventInvitations: EventInvitation[] = [
 ];
 
 export const mockGuestlistJoinRequests: GuestlistJoinRequest[] = [
-    { id: 1, userId: 102, venueId: 1, promoterId: 1, date: '2025-06-15', status: 'pending', attendanceStatus: 'pending', isVip: true }
+    { id: 1, userId: 102, venueId: 1, wingmanId: 1, date: '2025-06-15', status: 'pending', attendanceStatus: 'pending', isVip: true }
 ];
 
-export const mockPromoterApplications: PromoterApplication[] = [
+export const mockWingmanApplications: WingmanApplication[] = [
     {
         id: 1, userId: 0, status: 'pending', fullName: 'Mike Ross', stageName: 'Mikey', email: 'mike@test.com', phone: '1234567890', instagram: 'mike_promo', city: 'Miami', dob: '1995-05-05', profilePhotoUrl: '', experienceYears: '3-5 years', categories: ['Nightclubs'], venuesList: 'Space, E11even', avgWeeklyGuests: '30-60', worksWithOtherGroups: 'No', targetClientele: 'Tourists', instagramFollowers: '5000', postsEvents: 'Yes', mediaLinks: [], daysAvailable: ['Friday', 'Saturday'], preferredVenuesText: '', wantsToPromoteAccess: 'Yes', agreesToTools: 'Yes', signature: 'Mike Ross', dateSigned: '2024-01-01', submissionDate: '2024-01-01'
     }

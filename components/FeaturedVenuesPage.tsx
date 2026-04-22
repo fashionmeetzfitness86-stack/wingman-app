@@ -25,7 +25,7 @@ interface FeaturedVenuesPageProps {
   onToggleFavorite?: (venueId: number) => void;
   onViewVenueDetails: (venue: Venue) => void;
   currentUser: User;
-  promoters?: unknown[];
+  wingmen?: unknown[];
   onJoinGuestlist?: unknown;
   guestlistJoinRequests?: unknown[];
   // Experience booking (passed from App.tsx)
@@ -492,7 +492,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
   const isApproved = currentUser.approvalStatus === 'approved';
   const hasActiveSub = currentUser.subscriptionStatus === 'active';
-  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Wingman' || currentUser.role === 'Promoter';
+  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Wingman' || currentUser.role === 'Wingman';
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
   // Generate all upcoming instances

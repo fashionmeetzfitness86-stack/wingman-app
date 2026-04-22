@@ -22,9 +22,9 @@ interface ExperienceBookingFlowProps {
 const getPriceForUser = (experience: Experience, user: User): { price: number; type: string } | null => {
     const { pricing } = experience;
 
-    if (user.role === UserRole.PROMOTER || user.role === UserRole.ADMIN) {
-        if (typeof pricing.promoter === 'number') {
-            return { price: pricing.promoter, type: 'Promoter Rate' };
+    if (user.role === UserRole.WINGMAN || user.role === UserRole.ADMIN) {
+        if (typeof pricing.wingman === 'number') {
+            return { price: pricing.wingman, type: 'Wingman Rate' };
         }
     }
     if (user.accessLevel === UserAccessLevel.APPROVED_GIRL) {

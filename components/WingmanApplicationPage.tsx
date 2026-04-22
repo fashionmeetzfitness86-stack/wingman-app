@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { PromoterApplication } from '../types';
+import { WingmanApplication } from '../types';
 import { CloudArrowUpIcon } from './icons/CloudArrowUpIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { Spinner } from './icons/Spinner';
 
-interface PromoterApplicationPageProps {
-  onApply: (application: Omit<PromoterApplication, 'id' | 'status' | 'submissionDate' | 'userId'>) => void;
+interface WingmanApplicationPageProps {
+  onApply: (application: Omit<WingmanApplication, 'id' | 'status' | 'submissionDate' | 'userId'>) => void;
   onCancel: () => void;
   showToast: (message: string, type: 'success' | 'error') => void;
 }
@@ -79,7 +79,7 @@ const CheckboxGroup: React.FC<{ label: string; groupKey: 'categories' | 'daysAva
 );
 
 
-export const PromoterApplicationPage: React.FC<PromoterApplicationPageProps> = ({ onApply, onCancel, showToast }) => {
+export const WingmanApplicationPage: React.FC<WingmanApplicationPageProps> = ({ onApply, onCancel, showToast }) => {
     const [formData, setFormData] = useState({
         fullName: '', stageName: '', email: '', phone: '', instagram: '', city: 'Miami', dob: '',
         experienceYears: '', categories: [] as string[], venuesList: '', avgWeeklyGuests: '',
@@ -163,7 +163,7 @@ export const PromoterApplicationPage: React.FC<PromoterApplicationPageProps> = (
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const applicationData: Omit<PromoterApplication, 'id' | 'status' | 'submissionDate' | 'userId'> = {
+        const applicationData: Omit<WingmanApplication, 'id' | 'status' | 'submissionDate' | 'userId'> = {
             fullName: formData.fullName,
             stageName: formData.stageName,
             email: formData.email,
@@ -196,14 +196,14 @@ export const PromoterApplicationPage: React.FC<PromoterApplicationPageProps> = (
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white">
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold">Become a Promoter</h1>
-                <p className="text-gray-400 mt-2 max-w-lg mx-auto">Join our elite team of promoters. Fill out the application below.</p>
+                <h1 className="text-3xl font-bold">Become a Wingman</h1>
+                <p className="text-gray-400 mt-2 max-w-lg mx-auto">Join our elite team of wingmen. Fill out the application below.</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
                 
                 <FormSection title="Personal Information">
                     <Input label="Full Name" id="fullName" name="fullName" type="text" value={formData.fullName} onChange={handleInputChange} required placeholder="First Last" />
-                    <Input label="Promoter / Host Name" id="stageName" name="stageName" type="text" value={formData.stageName} onChange={handleInputChange} placeholder="Alias or promoter name (if applicable)" />
+                    <Input label="Wingman / Host Name" id="stageName" name="stageName" type="text" value={formData.stageName} onChange={handleInputChange} placeholder="Alias or wingman name (if applicable)" />
                     <Input label="Email Address" id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required placeholder="you@example.com" />
                     <Input label="Phone Number" id="phone" name="phone" type="tel" value={formData.phone} onChange={handleInputChange} required placeholder="+1 (305) 555-0123" />
                     <Input label="Instagram Handle" id="instagram" name="instagram" type="text" value={formData.instagram} onChange={handleInputChange} required prefix="@" placeholder="yourhandle" />
@@ -251,7 +251,7 @@ export const PromoterApplicationPage: React.FC<PromoterApplicationPageProps> = (
                     <CheckboxGroup label="Which types of venues or categories do you currently work with?" groupKey="categories" options={['Nightclubs', 'Restaurants', 'Pool Parties', 'Yachts / Private Events', 'Hotel Rooms / Apartments', 'Private Jets']} values={formData.categories} onChange={handleCheckboxChange} required />
                     <Textarea label="List 2–3 venues or properties you’ve collaborated with" id="venuesList" name="venuesList" value={formData.venuesList} onChange={handleInputChange} required placeholder="e.g., LIV, Papi Steak, Hyde Beach, etc." />
                     <RadioGroup label="Average number of guests you bring per week" name="avgWeeklyGuests" options={['1–10', '10–30', '30–60', '60+']} value={formData.avgWeeklyGuests} onChange={handleInputChange} required />
-                    <RadioGroup label="Do you currently work with any other promoter groups, agencies, or concierges?" name="worksWithOtherGroups" options={['Yes', 'No']} value={formData.worksWithOtherGroups} onChange={handleInputChange} required />
+                    <RadioGroup label="Do you currently work with any other wingman groups, agencies, or concierges?" name="worksWithOtherGroups" options={['Yes', 'No']} value={formData.worksWithOtherGroups} onChange={handleInputChange} required />
                     {formData.worksWithOtherGroups === 'Yes' && (
                         <Input label="If yes, please name them" id="otherGroupsNames" name="otherGroupsNames" type="text" value={formData.otherGroupsNames} onChange={handleInputChange} />
                     )}

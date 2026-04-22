@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CartItem, GuestlistJoinRequest, User, Event, Venue, Promoter } from '../../types';
+import { CartItem, GuestlistJoinRequest, User, Event, Venue, Wingman } from '../../types';
 import { StatCard } from '../StatCard';
 import { CurrencyDollarIcon } from '../icons/CurrencyDollarIcon';
 import { BookingsIcon } from '../icons/BookingsIcon';
@@ -14,7 +14,7 @@ interface AnalyticsTabProps {
     users: User[];
     events: Event[];
     venues: Venue[];
-    promoters: Promoter[];
+    wingmen: Wingman[];
 }
 
 const Table: React.FC<{ headers: string[]; children: React.ReactNode }> = ({ headers, children }) => (
@@ -98,7 +98,7 @@ const BookingsByVenueChart: React.FC<{ data: { name: string; count: number }[] }
 };
 
 
-export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestlistRequests, allRsvps, users, events, venues, promoters }) => {
+export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestlistRequests, allRsvps, users, events, venues, wingmen }) => {
     const [bookingSearch, setBookingSearch] = useState('');
     const [guestlistSearch, setGuestlistSearch] = useState('');
     const [rsvpSearch, setRsvpSearch] = useState('');
@@ -151,11 +151,11 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
         const lowercasedQuery = bookingSearch.toLowerCase();
         return bookings.filter(item => {
             const userName = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || '';
-            const promoterName = item.tableDetails?.promoter?.name || '';
+            const wingmanName = item.tableDetails?.wingman?.name || '';
             return (
                 item.name.toLowerCase().includes(lowercasedQuery) ||
                 userName.toLowerCase().includes(lowercasedQuery) ||
-                promoterName.toLowerCase().includes(lowercasedQuery)
+                wingmanName.toLowerCase().includes(lowercasedQuery)
             );
         });
     }, [bookingSearch, bookedItems]);
@@ -166,14 +166,14 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
         return guestlistRequests.filter(req => {
             const user = users.find(u => u.id === req.userId);
             const venue = venues.find(v => v.id === req.venueId);
-            const promoter = promoters.find(p => p.id === req.promoterId);
+            const wingman = wingmen.find(p => p.id === req.wingmanId);
             return (
                 (user && user.name.toLowerCase().includes(lowercasedQuery)) ||
                 (venue && venue.name.toLowerCase().includes(lowercasedQuery)) ||
-                (promoter && promoter.name.toLowerCase().includes(lowercasedQuery))
+                (wingman && wingman.name.toLowerCase().includes(lowercasedQuery))
             );
         });
-    }, [guestlistSearch, guestlistRequests, users, venues, promoters]);
+    }, [guestlistSearch, guestlistRequests, users, venues, wingmen]);
     
     const filteredRsvps = useMemo(() => {
         if (!rsvpSearch) return allRsvps;
@@ -237,18 +237,18 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
 
                     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
                         <h3 className="text-xl font-bold mb-4">Recent Bookings</h3>
-                        <input type="text" placeholder="Search bookings by user, item, or promoter..." value={bookingSearch} onChange={e => setBookingSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
-                        <Table headers={['User', 'Item', 'Date', 'Promoter', 'Price']}>
+                        <input type="text" placeholder="Search bookings by user, item, or wingman..." value={bookingSearch} onChange={e => setBookingSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+                        <Table headers={['User', 'Item', 'Date', 'Wingman', 'Price']}>
                             {filteredBookings.map(item => {
                                 const userName = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || 'N/A';
-                                const promoterName = item.tableDetails?.promoter?.name || 'N/A';
+                                const wingmanName = item.tableDetails?.wingman?.name || 'N/A';
                                 const price = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
                                 return (
                                     <TableRow key={item.id}>
                                         <TableCell>{userName}</TableCell>
                                         <TableCell>{item.name}</TableCell>
                                         <TableCell>{item.date}</TableCell>
-                                        <TableCell>{promoterName}</TableCell>
+                                        <TableCell>{wingmanName}</TableCell>
                                         <TableCell>${price?.toFixed(2)}</TableCell>
                                     </TableRow>
                                 )
@@ -258,17 +258,17 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
 
                     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
                         <h3 className="text-xl font-bold mb-4">Guestlist Attendance</h3>
-                        <input type="text" placeholder="Search by user, venue, or promoter..." value={guestlistSearch} onChange={e => setGuestlistSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
-                        <Table headers={['User', 'Venue', 'Promoter', 'Date', 'Status']}>
+                        <input type="text" placeholder="Search by user, venue, or wingman..." value={guestlistSearch} onChange={e => setGuestlistSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+                        <Table headers={['User', 'Venue', 'Wingman', 'Date', 'Status']}>
                             {filteredGuestlist.map(req => {
                                 const user = users.find(u => u.id === req.userId);
                                 const venue = venues.find(v => v.id === req.venueId);
-                                const promoter = promoters.find(p => p.id === req.promoterId);
+                                const wingman = wingmen.find(p => p.id === req.wingmanId);
                                 return (
                                     <TableRow key={req.id}>
                                         <TableCell>{user?.name || 'N/A'}</TableCell>
                                         <TableCell>{venue?.name || 'N/A'}</TableCell>
-                                        <TableCell>{promoter?.name || 'N/A'}</TableCell>
+                                        <TableCell>{wingman?.name || 'N/A'}</TableCell>
                                         <TableCell>{req.date}</TableCell>
                                         <TableCell>
                                             <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${

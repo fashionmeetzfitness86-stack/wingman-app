@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SendIcon } from './icons/SendIcon';
-import { User, Promoter, GuestlistChatMessage } from '../types';
-import { users as allUsers, promoters } from '../data/mockData';
+import { User, Wingman, GuestlistChatMessage } from '../types';
+import { users as allUsers, wingmen } from '../data/mockData';
 
 interface GuestlistChatFeedPageProps {
   chatId: number;
@@ -10,7 +10,7 @@ interface GuestlistChatFeedPageProps {
   onSendMessage: (chatId: number, text: string) => void;
 }
 
-const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Promoter | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
+const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Wingman | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover" />}
         <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
@@ -28,7 +28,7 @@ const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Pr
 export const GuestlistChatFeedPage: React.FC<GuestlistChatFeedPageProps> = ({ chatId, currentUser, messages, onSendMessage }) => {
     const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const allParticipants = useMemo(() => [...allUsers, ...promoters], []);
+    const allParticipants = useMemo(() => [...allUsers, ...wingmen], []);
 
     const getParticipantById = (id: number) => allParticipants.find(p => p.id === id);
     const chatMessages = messages.filter(m => m.chatId === chatId);

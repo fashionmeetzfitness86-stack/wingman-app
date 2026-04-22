@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { EventCard } from './EventCard';
 import { venues } from '../data/mockData';
-import { Event, Promoter, Venue, User, UserAccessLevel, Page, EventInvitationRequest, GuestlistJoinRequest } from '../types';
+import { Event, Wingman, Venue, User, UserAccessLevel, Page, EventInvitationRequest, GuestlistJoinRequest } from '../types';
 import { FeaturedVenueCard } from './FeaturedVenueCard';
 import { EventDetailModal } from './modals/EventDetailModal';
 import { SavedVenueCard } from './SavedVenueCard';
@@ -25,7 +25,7 @@ interface EventsCalendarProps {
   onBookVenue: (venue: Venue) => void;
   onViewVenueDetails: (venue: Venue) => void;
   onViewVenueExperiences: (venue: Venue) => void;
-  promoters: Promoter[];
+  wingmen: Wingman[];
   bookmarkedEventIds: number[];
   onToggleBookmark: (eventId: number | string) => void;
   users: User[];
@@ -36,7 +36,7 @@ interface EventsCalendarProps {
   subscribedEventIds: number[];
   onToggleSubscription: (eventId: number | string) => void;
   guestlistRequests?: GuestlistJoinRequest[];
-  onJoinGuestlist: (context: { promoter?: Promoter; venue?: Venue, date?: string }) => void;
+  onJoinGuestlist: (context: { wingman?: Wingman; venue?: Venue, date?: string }) => void;
 }
 
 export const EventsCalendar: React.FC<EventsCalendarProps> = ({ 
@@ -53,7 +53,7 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
     onBookVenue,
     onViewVenueDetails,
     onViewVenueExperiences,
-    promoters,
+    wingmen,
     bookmarkedEventIds,
     onToggleBookmark,
     users,

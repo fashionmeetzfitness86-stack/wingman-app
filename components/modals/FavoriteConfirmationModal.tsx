@@ -9,7 +9,7 @@ interface FavoriteConfirmationModalProps {
   onClose: () => void;
   onConfirm: () => void;
   entityName: string;
-  entityType?: 'Promoter' | 'Venue' | 'Event';
+  entityType?: 'Wingman' | 'Venue' | 'Event';
   action: 'add' | 'remove';
 }
 
@@ -18,7 +18,7 @@ export const FavoriteConfirmationModal: React.FC<FavoriteConfirmationModalProps>
   onClose, 
   onConfirm, 
   entityName, 
-  entityType = 'Promoter',
+  entityType = 'Wingman',
   action 
 }) => {
   if (!isOpen) return null;

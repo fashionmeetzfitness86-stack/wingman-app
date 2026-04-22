@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SendIcon } from './icons/SendIcon';
-import { User, Promoter, GuestlistChatMessage, GuestlistChat, Venue, CartItem } from '../types';
+import { User, Wingman, GuestlistChatMessage, GuestlistChat, Venue, CartItem } from '../types';
 import { ParticipantsModal } from './modals/ParticipantsModal';
 import { UsersIcon } from './icons/UsersIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -13,7 +13,7 @@ interface GuestlistChatPageProps {
   currentUser: User;
   messages: GuestlistChatMessage[];
   allUsers: User[];
-  allPromoters: Promoter[];
+  allWingmen: Wingman[];
   guestlistChats: GuestlistChat[];
   venues: Venue[]; 
   onSendMessage: (chatId: number, text: string) => void;
@@ -27,16 +27,16 @@ const ChatHeader: React.FC<{ venue: Venue, chat: GuestlistChat, onBack: () => vo
     const bookingInfo = useMemo(() => {
         if (!bookedItems) return null;
         // Find booking for this chat context
-        // Matching logic: venueId, promoterId, date
+        // Matching logic: venueId, wingmanId, date
         const booking = bookedItems.find(item => {
             if (item.type === 'table' && item.tableDetails) {
                  return item.tableDetails.venue.id === venue.id && 
-                        item.tableDetails.promoter?.id === chat.promoterId &&
+                        item.tableDetails.wingman?.id === chat.wingmanId &&
                         (item.sortableDate === chat.date || item.date === chat.date);
             }
             if (item.type === 'guestlist' && item.guestlistDetails) {
                  return item.guestlistDetails.venue.id === venue.id &&
-                        item.guestlistDetails.promoter.id === chat.promoterId &&
+                        item.guestlistDetails.wingman.id === chat.wingmanId &&
                         (item.sortableDate === chat.date || item.date === chat.date);
             }
             return false;
@@ -57,7 +57,7 @@ const ChatHeader: React.FC<{ venue: Venue, chat: GuestlistChat, onBack: () => vo
             };
         }
         return null;
-    }, [bookedItems, venue.id, chat.promoterId, chat.date]);
+    }, [bookedItems, venue.id, chat.wingmanId, chat.date]);
 
 
     return (
@@ -93,7 +93,7 @@ const ChatHeader: React.FC<{ venue: Venue, chat: GuestlistChat, onBack: () => vo
 };
 
 
-const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Promoter | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
+const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Wingman | undefined, isCurrentUser: boolean }> = ({ message, sender, isCurrentUser }) => (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
         {!isCurrentUser && sender && <img src={sender.profilePhoto} alt={`Avatar of ${sender.name}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />}
         <div className={`rounded-xl p-3 max-w-xs md:max-w-md ${isCurrentUser ? 'bg-blue-600 rounded-br-none' : 'bg-gray-800 rounded-bl-none'}`}>
@@ -108,18 +108,18 @@ const MessageBubble: React.FC<{ message: GuestlistChatMessage, sender: User | Pr
     </div>
 );
 
-export const GuestlistChatPage: React.FC<GuestlistChatPageProps> = ({ chatId, currentUser, messages, allUsers, allPromoters, guestlistChats, venues, onSendMessage, onBack, bookedItems }) => {
+export const GuestlistChatPage: React.FC<GuestlistChatPageProps> = ({ chatId, currentUser, messages, allUsers, allWingmen, guestlistChats, venues, onSendMessage, onBack, bookedItems }) => {
     const [inputValue, setInputValue] = useState('');
     const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const allKnownUsers = useMemo(() => [...allUsers, ...allPromoters], [allUsers, allPromoters]);
+    const allKnownUsers = useMemo(() => [...allUsers, ...allWingmen], [allUsers, allWingmen]);
 
     const currentChat = useMemo(() => guestlistChats.find(c => c.id === chatId), [chatId, guestlistChats]);
     const currentVenue = useMemo(() => venues.find(v => v.id === currentChat?.venueId), [currentChat, venues]);
 
     const participants = useMemo(() => {
         if (!currentChat) return [];
-        return currentChat.memberIds.map(id => allKnownUsers.find(p => p.id === id)).filter((p): p is User | Promoter => !!p);
+        return currentChat.memberIds.map(id => allKnownUsers.find(p => p.id === id)).filter((p): p is User | Wingman => !!p);
     }, [currentChat, allKnownUsers]);
 
     const getParticipantById = (id: number) => allKnownUsers.find(p => p.id === id);

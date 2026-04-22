@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { AccessGroup, GroupPost, User, UserRole, Promoter, GroupJoinRequest } from '../types';
-import { promoters, users } from '../data/mockData';
+import { AccessGroup, GroupPost, User, UserRole, Wingman, GroupJoinRequest } from '../types';
+import { wingmen, users } from '../data/mockData';
 import { GroupPostCard } from './GroupPostCard';
 import { SendIcon } from './icons/SendIcon';
 import { CheckIcon } from './icons/CheckIcon';
@@ -19,7 +19,7 @@ interface AccessGroupFeedPageProps {
     users: User[];
 }
 
-const allAuthors = [...promoters, ...users.filter(u => u.role === UserRole.ADMIN)];
+const allAuthors = [...wingmen, ...users.filter(u => u.role === UserRole.ADMIN)];
 
 export const AccessGroupFeedPage: React.FC<AccessGroupFeedPageProps> = ({ groupId, currentUser, allPosts, allGroups, onToggleLike, groupJoinRequests, onApproveRequest, onRejectRequest, users }) => {
     
@@ -30,7 +30,7 @@ export const AccessGroupFeedPage: React.FC<AccessGroupFeedPageProps> = ({ groupI
         return <div className="p-8 text-center text-red-500">Group not found.</div>;
     }
 
-    const canPost = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+    const canPost = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
     const isCreator = currentUser.id === group.creatorId;
 
     const pendingRequests = groupJoinRequests.filter(r => r.groupId === groupId && r.status === 'pending');

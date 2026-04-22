@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Experience, User, UserRole, UserAccessLevel, Venue, Promoter } from '../../types';
+import { Experience, User, UserRole, UserAccessLevel, Venue, Wingman } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 import { CalendarIcon } from '../icons/CalendarIcon';
 import { LocationMarkerIcon } from '../icons/LocationMarkerIcon';
@@ -19,7 +19,7 @@ interface ExperienceDetailModalProps {
   invitationStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   onRequestAccess?: (experienceId: number) => void;
   venue?: Venue;
-  onJoinGuestlist?: (context: { promoter?: Promoter; venue?: Venue; date?: string }) => void;
+  onJoinGuestlist?: (context: { wingman?: Wingman; venue?: Venue; date?: string }) => void;
   isLiked?: boolean;
   onToggleLike?: () => void;
   isBookmarked?: boolean;
@@ -33,8 +33,8 @@ const getPriceForUser = (experience: Experience, user: User): { price?: number; 
 
     const format = (price: number) => ({ price, text: `$${price.toLocaleString()}` });
 
-    if ((user.role === UserRole.PROMOTER || user.role === UserRole.ADMIN) && typeof pricing.promoter === 'number') {
-        return format(pricing.promoter);
+    if ((user.role === UserRole.WINGMAN || user.role === UserRole.ADMIN) && typeof pricing.wingman === 'number') {
+        return format(pricing.wingman);
     }
     if (user.accessLevel === UserAccessLevel.APPROVED_GIRL && typeof pricing.female === 'number') {
         return pricing.female === 0 ? { price: 0, text: 'Complimentary' } : format(pricing.female);

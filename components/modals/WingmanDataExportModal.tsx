@@ -3,24 +3,24 @@ import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { CartItem, GuestlistJoinRequest, User, Promoter } from '../../types';
+import { CartItem, GuestlistJoinRequest, User, Wingman } from '../../types';
 import { DownloadIcon } from '../icons/DownloadIcon';
 import { ToggleSwitch } from '../ui/ToggleSwitch';
 
-interface PromoterDataExportModalProps {
+interface WingmanDataExportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  promoter: Promoter;
+  wingman: Wingman;
   bookedItems: CartItem[];
   guestlistRequests: GuestlistJoinRequest[];
   referredUsers: User[];
   venues: { id: number; name: string }[];
 }
 
-export const PromoterDataExportModal: React.FC<PromoterDataExportModalProps> = ({
+export const WingmanDataExportModal: React.FC<WingmanDataExportModalProps> = ({
   isOpen,
   onClose,
-  promoter,
+  wingman,
   bookedItems,
   guestlistRequests,
   referredUsers,
@@ -56,8 +56,8 @@ export const PromoterDataExportModal: React.FC<PromoterDataExportModalProps> = (
         
         const itemDate = new Date(itemDateStr);
         if (itemDate >= start && itemDate <= end) {
-            // Ensure it belongs to this promoter
-            if (item.tableDetails?.promoter?.id === promoter.id) {
+            // Ensure it belongs to this wingman
+            if (item.tableDetails?.wingman?.id === wingman.id) {
                 const price = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
                 const guestName = item.tableDetails?.guestDetails?.name || 'Guest';
                 const venueName = item.tableDetails?.venue.name || 'N/A';
@@ -84,7 +84,7 @@ export const PromoterDataExportModal: React.FC<PromoterDataExportModalProps> = (
         const reqDateLocal = new Date(req.date + 'T00:00:00');
 
         if (reqDateLocal >= start && reqDateLocal <= end) {
-             if (req.promoterId === promoter.id || promoter.assignedVenueIds.includes(req.venueId)) {
+             if (req.wingmanId === wingman.id || wingman.assignedVenueIds.includes(req.venueId)) {
                  // Find user details if possible, otherwise use placeholder
                  // Note: Ideally we'd pass the full user object list to map IDs to names, 
                  // but relying on ID if user object isn't directly linked in request type here.
@@ -131,7 +131,7 @@ export const PromoterDataExportModal: React.FC<PromoterDataExportModalProps> = (
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `promoter_report_${startDate}_to_${endDate}.csv`);
+    link.setAttribute('download', `wingman_report_${startDate}_to_${endDate}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

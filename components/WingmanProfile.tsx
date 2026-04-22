@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Promoter, Venue, User, UserAccessLevel, UserRole, Page, Event } from '../types';
+import { Wingman, Venue, User, UserAccessLevel, UserRole, Page, Event } from '../types';
 import { venues } from '../data/mockData';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { StarIcon } from './icons/StarIcon';
@@ -17,25 +17,25 @@ import { EditScheduleModal } from './modals/EditScheduleModal';
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-interface PromoterProfileProps {
-  promoter: Promoter;
+interface WingmanProfileProps {
+  wingman: Wingman;
   onBack: () => void;
-  onBook: (promoter: Promoter, venue?: Venue, date?: string) => void;
+  onBook: (wingman: Wingman, venue?: Venue, date?: string) => void;
   isFavorite: boolean;
-  onToggleFavorite: (promoterId: number) => void;
+  onToggleFavorite: (wingmanId: number) => void;
   onViewVenue: (venue: Venue) => void;
-  onJoinGuestlist: (promoter: Promoter, venue?: Venue, date?: string) => void;
+  onJoinGuestlist: (wingman: Wingman, venue?: Venue, date?: string) => void;
   currentUser: User;
   onUpdateUser: (user: User) => void;
-  onUpdatePromoter: (promoter: Promoter) => void;
+  onUpdateWingman: (wingman: Wingman) => void;
   onEditProfile?: () => void;
   onNavigate?: (page: Page, params?: any) => void;
   tokenBalance?: number;
   events?: Event[];
 }
 
-export const PromoterProfile: React.FC<PromoterProfileProps> = ({ 
-    promoter, 
+export const WingmanProfile: React.FC<WingmanProfileProps> = ({ 
+    wingman, 
     onBack, 
     onBook, 
     isFavorite, 
@@ -44,7 +44,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
     onJoinGuestlist, 
     currentUser, 
     onUpdateUser, 
-    onUpdatePromoter,
+    onUpdateWingman,
     onEditProfile,
     onNavigate,
     tokenBalance = 0,
@@ -62,16 +62,16 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
   const [reviewText, setReviewText] = useState('');
   const [isReviewSubmitted, setIsReviewSubmitted] = useState(false);
 
-  const isOwnProfile = currentUser.id === promoter.id;
+  const isOwnProfile = currentUser.id === wingman.id;
   const canEdit = currentUser.role === UserRole.ADMIN || isOwnProfile;
   const isApprovedGirl = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN;
 
   useEffect(() => {
-    const existingRating = currentUser.promoterRatings?.find(r => r.promoterId === promoter.id)?.rating;
+    const existingRating = currentUser.wingmanRatings?.find(r => r.wingmanId === wingman.id)?.rating;
     if (existingRating) {
         setUserRating(existingRating);
     }
-  }, [currentUser, promoter.id]);
+  }, [currentUser, wingman.id]);
 
   const openGalleryModal = (index: number) => {
     setGalleryModalState({ isOpen: true, startIndex: index });
@@ -117,7 +117,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
           const checkDayIndex = (todayIndex + i) % 7;
           const dayName = WEEKDAYS_ORDER[checkDayIndex];
           
-          const scheduleForDay = promoter.weeklySchedule.find(s => s.day === dayName && s.venueId);
+          const scheduleForDay = wingman.weeklySchedule.find(s => s.day === dayName && s.venueId);
           if (scheduleForDay && scheduleForDay.venueId) {
               const venue = getVenueById(scheduleForDay.venueId);
               if (venue) {
@@ -140,17 +140,17 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
 
   const handleJoinGuestlistClick = () => {
     if (!nextWorkingInfo) {
-      onJoinGuestlist(promoter);
+      onJoinGuestlist(wingman);
       return;
     }
-    onJoinGuestlist(promoter, nextWorkingInfo.venue, nextWorkingInfo.date);
+    onJoinGuestlist(wingman, nextWorkingInfo.venue, nextWorkingInfo.date);
   };
 
   const handleShareClick = async () => {
-    const shareUrl = `${window.location.origin}?promoter=${promoter.id}`;
+    const shareUrl = `${window.location.origin}?wingman=${wingman.id}`;
     const shareData = {
-        title: `Check out ${promoter.name} on WINGMAN`,
-        text: `Check out ${promoter.name}'s profile on WINGMAN!`,
+        title: `Check out ${wingman.name} on WINGMAN`,
+        text: `Check out ${wingman.name}'s profile on WINGMAN!`,
         url: shareUrl,
     };
 
@@ -175,13 +175,13 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
   const handleRate = (rating: number) => {
       setUserRating(rating);
       
-      const currentRatings = currentUser.promoterRatings || [];
-      const otherRatings = currentRatings.filter(r => r.promoterId !== promoter.id);
-      const newRatings = [...otherRatings, { promoterId: promoter.id, rating }];
+      const currentRatings = currentUser.wingmanRatings || [];
+      const otherRatings = currentRatings.filter(r => r.wingmanId !== wingman.id);
+      const newRatings = [...otherRatings, { wingmanId: wingman.id, rating }];
       
       onUpdateUser({
           ...currentUser,
-          promoterRatings: newRatings
+          wingmanRatings: newRatings
       });
   };
 
@@ -194,42 +194,42 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
     if (isFavorite) {
         setIsFavoriteModalOpen(true);
     } else {
-        onToggleFavorite(promoter.id);
+        onToggleFavorite(wingman.id);
     }
   };
 
   const confirmFavorite = () => {
-    onToggleFavorite(promoter.id);
+    onToggleFavorite(wingman.id);
     setIsFavoriteModalOpen(false);
   };
 
   const handleScheduleUpdate = (newSchedule: { day: string; venueId?: number; eventId?: number | string }[]) => {
-      onUpdatePromoter({
-          ...promoter,
+      onUpdateWingman({
+          ...wingman,
           weeklySchedule: newSchedule
       });
   };
 
   // Group schedule items by day for cleaner display
   const groupedSchedule = WEEKDAYS.map(day => {
-      const items = promoter.weeklySchedule.filter(s => s.day === day);
+      const items = wingman.weeklySchedule.filter(s => s.day === day);
       return { day, items };
   }).filter(group => group.items.length > 0);
 
-  // Filter events for this promoter
-  const promoterEvents = useMemo(() => {
+  // Filter events for this wingman
+  const wingmanEvents = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     return events.filter(e => 
-        promoter.assignedVenueIds.includes(e.venueId) && 
+        wingman.assignedVenueIds.includes(e.venueId) && 
         e.date >= today
     ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [events, promoter.assignedVenueIds]);
+  }, [events, wingman.assignedVenueIds]);
 
   return (
     <div className="animate-fade-in bg-[var(--color-background)] min-h-screen pb-32">
       {/* Hero Header */}
       <div className="relative h-96 w-full">
-        <img src={promoter.profilePhoto} alt={`Profile of ${promoter.name}`} className="w-full h-full object-cover" />
+        <img src={wingman.profilePhoto} alt={`Profile of ${wingman.name}`} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-background)] via-black/50 to-transparent"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent opacity-60"></div>
         
@@ -253,8 +253,8 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
         <div className="absolute bottom-0 left-0 p-6 w-full">
            <div className="container mx-auto max-w-6xl flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                 <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-2 drop-shadow-lg">{promoter.name}</h1>
-                 <p className="text-xl text-gray-200 font-medium tracking-wide drop-shadow-md">{promoter.handle}</p>
+                 <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-2 drop-shadow-lg">{wingman.name}</h1>
+                 <p className="text-xl text-gray-200 font-medium tracking-wide drop-shadow-md">{wingman.handle}</p>
               </div>
               {!isOwnProfile && (
                   <button onClick={handleFavoriteToggle} className="self-start md:self-end bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold flex items-center gap-2 transition-all hover:scale-105 border border-white/20">
@@ -272,29 +272,29 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
             <div className="text-center border-r border-gray-800 last:border-0">
                 <div className="flex items-center justify-center gap-1 mb-1">
                     <StarIcon className="w-4 h-4 text-gray-300" />
-                    <span className="text-2xl font-bold text-white">{promoter.rating.toFixed(1)}</span>
+                    <span className="text-2xl font-bold text-white">{wingman.rating.toFixed(1)}</span>
                 </div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Rating</p>
             </div>
             <div className="text-center border-r border-gray-800 last:border-0">
                 <div className="flex items-center justify-center gap-1 mb-1">
                     <UsersIcon className="w-5 h-5 text-blue-400" />
-                    <span className="text-2xl font-bold text-white">{promoter.favoritedByCount}</span>
+                    <span className="text-2xl font-bold text-white">{wingman.favoritedByCount}</span>
                 </div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Followers</p>
             </div>
              <div className="text-center border-r border-gray-800 last:border-0">
                 <div className="flex items-center justify-center gap-1 mb-1">
                     <CalendarIcon className="w-5 h-5 text-green-400" />
-                    <span className="text-2xl font-bold text-white">{promoter.weeklySchedule.length}</span>
+                    <span className="text-2xl font-bold text-white">{wingman.weeklySchedule.length}</span>
                 </div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Venues/Events</p>
             </div>
-            {(currentUser.role === UserRole.ADMIN || isOwnProfile) && promoter.earnings !== undefined && (
+            {(currentUser.role === UserRole.ADMIN || isOwnProfile) && wingman.earnings !== undefined && (
                  <div className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
                         <CurrencyDollarIcon className="w-5 h-5 text-amber-400" />
-                        <span className="text-2xl font-bold text-white">${(promoter.earnings / 1000).toFixed(1)}k</span>
+                        <span className="text-2xl font-bold text-white">${(wingman.earnings / 1000).toFixed(1)}k</span>
                     </div>
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Earnings</p>
                 </div>
@@ -305,7 +305,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
          <div className="sticky top-20 z-10 bg-[var(--color-background)]/95 backdrop-blur-md border-b border-gray-800 py-3 -mx-6 px-6 flex gap-6 overflow-x-auto no-scrollbar">
             <button onClick={() => scrollToSection('about')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">About</button>
             <button onClick={() => scrollToSection('gallery')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">Gallery</button>
-            {promoterEvents.length > 0 && <button onClick={() => scrollToSection('upcoming')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">Upcoming Events</button>}
+            {wingmanEvents.length > 0 && <button onClick={() => scrollToSection('upcoming')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">Upcoming Events</button>}
             <button onClick={() => scrollToSection('schedule')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">Weekly Schedule</button>
             {!isOwnProfile && (
                 <button onClick={() => scrollToSection('rating')} className="text-sm font-bold text-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">Rate Experience</button>
@@ -321,7 +321,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                       <span className="w-1 h-6 bg-white text-black hover:bg-gray-200 rounded-full"></span> About
                   </h2>
                   <div className="bg-[#1C1C1E] p-6 rounded-2xl border border-gray-800 leading-relaxed text-gray-300">
-                      {promoter.bio}
+                      {wingman.bio}
                   </div>
                </section>
 
@@ -330,15 +330,15 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                   <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                       <span className="w-1 h-6 bg-amber-400 rounded-full"></span> Gallery
                   </h2>
-                  {promoter.galleryImages && promoter.galleryImages.length > 0 ? (
+                  {wingman.galleryImages && wingman.galleryImages.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {promoter.galleryImages.map((img, index) => (
+                      {wingman.galleryImages.map((img, index) => (
                         <button 
                           key={index} 
                           onClick={() => openGalleryModal(index)}
                           className="aspect-square rounded-xl overflow-hidden group relative focus:outline-none focus:ring-2 focus:ring-amber-400"
                         >
-                          <img src={img} alt={`${promoter.name} gallery ${index + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <img src={img} alt={`${wingman.name} gallery ${index + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
                         </button>
                       ))}
@@ -349,13 +349,13 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                </section>
 
                {/* Section 2.5: Upcoming Events */}
-               {promoterEvents.length > 0 && (
+               {wingmanEvents.length > 0 && (
                    <section id="upcoming" className="scroll-mt-36">
                       <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                           <span className="w-1 h-6 bg-green-500 rounded-full"></span> Upcoming Events
                       </h2>
                       <div className="space-y-4">
-                          {promoterEvents.map(event => {
+                          {wingmanEvents.map(event => {
                               const venue = getVenueById(event.venueId);
                               return (
                                   <div key={event.id} className="bg-[#1C1C1E] rounded-xl border border-gray-800 overflow-hidden flex flex-col md:flex-row hover:border-[#FFFFFF]/50 transition-colors">
@@ -384,7 +384,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                               </button>
                                               {!isOwnProfile && isApprovedGirl && (
                                                   <button 
-                                                      onClick={() => onJoinGuestlist(promoter, venue, event.date)}
+                                                      onClick={() => onJoinGuestlist(wingman, venue, event.date)}
                                                       className="flex-1 bg-gray-800 text-amber-400 border border-amber-400/30 hover:bg-gray-700 text-xs font-bold py-2 rounded-lg transition-colors"
                                                   >
                                                       Guestlist
@@ -392,7 +392,7 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                               )}
                                               {!isOwnProfile && (
                                                   <button 
-                                                      onClick={() => onBook(promoter, venue, event.date)}
+                                                      onClick={() => onBook(wingman, venue, event.date)}
                                                       className="flex-1 bg-white text-black hover:bg-gray-200 hover:bg-[#E5E5E5] text-white text-xs font-bold py-2 rounded-lg transition-colors"
                                                   >
                                                       Book Table
@@ -414,8 +414,8 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                           <span className="w-1 h-6 bg-gray-200 text-black hover:bg-white rounded-full"></span> Rate Experience
                       </h2>
                       <div className="bg-[#1C1C1E] p-8 rounded-2xl border border-gray-800 flex flex-col items-center text-center">
-                          <h3 className="text-lg font-semibold text-white mb-2">How was your experience with {promoter.name.split(' ')[0]}?</h3>
-                          <p className="text-gray-400 text-sm mb-6">Your feedback helps the community find the best promoters.</p>
+                          <h3 className="text-lg font-semibold text-white mb-2">How was your experience with {wingman.name.split(' ')[0]}?</h3>
+                          <p className="text-gray-400 text-sm mb-6">Your feedback helps the community find the best wingmen.</p>
                           <div className="flex gap-3 mb-6">
                               {[1, 2, 3, 4, 5].map((star) => (
                                   <button 
@@ -522,14 +522,14 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                                                       <>
                                                           {isApprovedGirl && targetVenue && (
                                                               <button 
-                                                                  onClick={() => onJoinGuestlist(promoter, targetVenue, targetDate)}
+                                                                  onClick={() => onJoinGuestlist(wingman, targetVenue, targetDate)}
                                                                   className="flex-1 bg-gray-800 text-amber-400 border border-amber-400/30 hover:bg-gray-700 text-[10px] font-bold py-1.5 rounded-md transition-colors"
                                                               >
                                                                   Guestlist
                                                               </button>
                                                           )}
                                                           <button 
-                                                              onClick={() => venue ? onBook(promoter, venue, nextDate) : onNavigate?.('eventTimeline', { eventId: event?.id })}
+                                                              onClick={() => venue ? onBook(wingman, venue, nextDate) : onNavigate?.('eventTimeline', { eventId: event?.id })}
                                                               className="flex-1 bg-white text-black hover:bg-gray-200 hover:bg-[#E5E5E5] text-white text-[10px] font-bold py-1.5 rounded-md transition-colors shadow-lg shadow-[#FFFFFF]/20"
                                                           >
                                                               {venue ? 'Book Table' : 'View Event'}
@@ -561,8 +561,8 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
                 </button>
             ) : (
                 <>
-                    <button onClick={() => onBook(promoter)} className="w-full sm:flex-1 bg-white text-black hover:bg-gray-200 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] hover:bg-[#E5E5E5] shadow-xl shadow-[#FFFFFF]/20 text-lg" aria-label={`Book a table with ${promoter.name}`}>
-                        Book with {promoter.name.split(' ')[0]}
+                    <button onClick={() => onBook(wingman)} className="w-full sm:flex-1 bg-white text-black hover:bg-gray-200 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] hover:bg-[#E5E5E5] shadow-xl shadow-[#FFFFFF]/20 text-lg" aria-label={`Book a table with ${wingman.name}`}>
+                        Book with {wingman.name.split(' ')[0]}
                     </button>
                     {(currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN) && (
                     <button
@@ -579,21 +579,21 @@ export const PromoterProfile: React.FC<PromoterProfileProps> = ({
       <ImageCarouselModal 
         isOpen={galleryModalState.isOpen}
         onClose={closeGalleryModal}
-        images={promoter.galleryImages}
+        images={wingman.galleryImages}
         startIndex={galleryModalState.startIndex}
       />
       <FavoriteConfirmationModal 
         isOpen={isFavoriteModalOpen}
         onClose={() => setIsFavoriteModalOpen(false)}
         onConfirm={confirmFavorite}
-        entityName={promoter.name}
-        entityType="Promoter"
+        entityName={wingman.name}
+        entityType="Wingman"
         action={isFavorite ? 'remove' : 'add'}
       />
       <EditScheduleModal 
         isOpen={isEditScheduleModalOpen} 
         onClose={() => setIsEditScheduleModalOpen(false)} 
-        currentSchedule={promoter.weeklySchedule} 
+        currentSchedule={wingman.weeklySchedule} 
         venues={venues} 
         events={events}
         onSave={handleScheduleUpdate} 

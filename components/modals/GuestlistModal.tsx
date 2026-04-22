@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Promoter, Venue, User, UserAccessLevel, CartItem, UserRole } from '../../types';
-import { venues as allVenues, promoters as allPromoters, users as allUsers } from '../../data/mockData';
+import { Wingman, Venue, User, UserAccessLevel, CartItem, UserRole } from '../../types';
+import { venues as allVenues, wingmen as allWingmen, users as allUsers } from '../../data/mockData';
 import { CloseIcon } from '../icons/CloseIcon';
 import { UsersIcon } from '../icons/UsersIcon';
 import { StarIcon } from '../icons/StarIcon';
@@ -9,8 +9,8 @@ import { StarIcon } from '../icons/StarIcon';
 interface GuestlistModalProps {
   isOpen: boolean;
   onClose: () => void;
-  context: { promoter?: Promoter; venue?: Venue; date?: string; };
-  onConfirmJoin: (promoterId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => void;
+  context: { wingman?: Wingman; venue?: Venue; date?: string; };
+  onConfirmJoin: (wingmanId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => void;
   currentUser: User;
   bookedItems: CartItem[];
   onViewProfile: (user: User) => void;
@@ -53,13 +53,13 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
   const [maleGuests, setMaleGuests] = useState(0);
   const [femaleGuests, setFemaleGuests] = useState(1);
   
-  const isPrivilegedUser = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.PROMOTER;
+  const isPrivilegedUser = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const isVipUser = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN;
 
   const selectableVenues = useMemo(() => {
     if (context.venue) return [context.venue];
-    if (context.promoter) {
-        return allVenues.filter(v => context.promoter!.assignedVenueIds.includes(v.id));
+    if (context.wingman) {
+        return allVenues.filter(v => context.wingman!.assignedVenueIds.includes(v.id));
     }
     return [];
   }, [context]);
@@ -140,13 +140,13 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
     );
   }, [isPrivilegedUser, selectedDate, selectedVenueId, bookedItems]);
   
-  const primaryPromoter = useMemo(() => {
+  const primaryWingman = useMemo(() => {
       if (!selectedVenue) return null;
-      return context.promoter || allPromoters.find(p => p.assignedVenueIds.includes(selectedVenue.id));
-  }, [selectedVenue, context.promoter]);
+      return context.wingman || allWingmen.find(p => p.assignedVenueIds.includes(selectedVenue.id));
+  }, [selectedVenue, context.wingman]);
 
   const handleConfirm = () => {
-    if (!primaryPromoter || !selectedVenueId || !selectedDate) {
+    if (!primaryWingman || !selectedVenueId || !selectedDate) {
         (window as any).showAppToast?.("Please select a venue and a valid date.");
         return;
     }
@@ -154,7 +154,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
         (window as any).showAppToast?.("Please specify the number of guests.");
         return;
     }
-    onConfirmJoin(primaryPromoter.id, selectedVenueId, selectedDate, maleGuests, femaleGuests);
+    onConfirmJoin(primaryWingman.id, selectedVenueId, selectedDate, maleGuests, femaleGuests);
   };
 
   if (!isOpen) return null;
@@ -170,9 +170,9 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
           <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:text-white"><CloseIcon className="w-6 h-6" /></button>
         </div>
         <div className="p-6 space-y-6 overflow-y-auto">
-          {!context.venue && context.promoter && (
+          {!context.venue && context.wingman && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Select Venue for {context.promoter?.name}</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Select Venue for {context.wingman?.name}</label>
               <select 
                 value={selectedVenueId || ''} 
                 onChange={(e) => {
@@ -289,7 +289,7 @@ export const GuestlistModal: React.FC<GuestlistModalProps> = ({ isOpen, onClose,
         <div className="p-4 border-t border-gray-800">
             {!isVipUser && (
                 <p className="text-xs text-gray-500 mb-4 text-center">
-                    Non-approved girls are not guaranteed entry. Make sure they fit the dress code/profile. Speak to the promoter for approval.
+                    Non-approved girls are not guaranteed entry. Make sure they fit the dress code/profile. Speak to the wingman for approval.
                 </p>
             )}
             <button 

@@ -3,7 +3,7 @@
 
 
 import React, { useMemo, useState } from 'react';
-import { Experience, User, Venue, ExperienceInvitationRequest, Promoter } from '../types';
+import { Experience, User, Venue, ExperienceInvitationRequest, Wingman } from '../types';
 import { experiences as allExperiences } from '../data/mockData';
 import { ExperienceCard } from './ExperienceCard';
 import { ExperienceDetailModal } from './modals/ExperienceDetailModal';
@@ -17,7 +17,7 @@ interface ExclusiveExperiencesPageProps {
   experienceRequests: ExperienceInvitationRequest[];
   onRequestAccess: (experienceId: number) => void;
   venues: Venue[];
-  onJoinGuestlist: (context: { promoter?: Promoter; venue?: Venue; date?: string }) => void;
+  onJoinGuestlist: (context: { wingman?: Wingman; venue?: Venue; date?: string }) => void;
   likedExperienceIds?: number[];
   onToggleLikeExperience?: (experienceId: number) => void;
   bookmarkedExperienceIds?: number[];

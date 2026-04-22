@@ -1,9 +1,8 @@
 
 export enum UserRole {
   ADMIN = 'Admin',
-  PROMOTER = 'Promoter',
+  WINGMAN = 'Wingman',
   USER = 'User',
-  WINGMAN = 'Wingman', // New: single host role for the curated experience model
 }
 
 export type SpenderCategory = '<$5k' | '$5k+' | '$10k+' | '$20k+';
@@ -27,7 +26,7 @@ export interface User {
     personality: string;
     timeOfDay?: 'Daytime' | 'Nighttime' | 'Both';
   };
-  approvedByPromoters?: number[];
+  approvedByWingmen?: number[];
   accessGroupIds?: number[];
   friends?: number[];
   isOnline?: boolean;
@@ -41,7 +40,7 @@ export interface User {
     hairColor: string;
     build: string;
   };
-  favoritePromoterIds?: number[];
+  favoriteWingmanIds?: number[];
   favoriteVenueIds?: number[];
   galleryImages?: string[];
   subscriptionStatus?: 'active' | 'past_due' | 'suspended' | 'free_tier';
@@ -52,8 +51,8 @@ export interface User {
   referralCode?: string;
   referralsCount?: number;
   referralEarnings?: number;
-  referredByPromoterId?: number;
-  promoterRatings?: { promoterId: number; rating: number }[];
+  referredByWingmanId?: number;
+  wingmanRatings?: { wingmanId: number; rating: number }[];
   hasProfileReward?: boolean;
   notificationsEnabled?: boolean;
 }
@@ -63,7 +62,7 @@ export interface UserWithAnalytics extends User {
     spenderCategory: SpenderCategory;
 }
 
-// Membership / platform access request — independent from PromoterApplication.
+// Membership / platform access request — independent from WingmanApplication.
 // Submitted by users who want approved access to book experiences.
 // Approving sets the user's approvalStatus to 'approved' in App state.
 export interface MembershipRequest {
@@ -116,7 +115,7 @@ export interface Venue {
   guestlistCapacity?: number;
 }
 
-export interface Promoter {
+export interface Wingman {
   id: number;
   name: string;
   handle: string;
@@ -132,7 +131,7 @@ export interface Promoter {
   galleryImages: string[];
 }
 
-export interface PromoterApplication {
+export interface WingmanApplication {
   id: number;
   userId: number;
   status: 'pending' | 'approved' | 'rejected';
@@ -180,7 +179,7 @@ export interface Bottle {
 
 export interface ConfirmedBookingDetails {
   bookingId?: string;
-  promoter?: Promoter;
+  wingman?: Wingman;
   venue?: Venue;
   date: string;
   tableOption?: TableOption;
@@ -199,7 +198,7 @@ export interface Booking {
   id: number;
   userId: number;
   venueName: string;
-  promoterName: string;
+  wingmanName: string;
   date: string;
   tableTier: string;
   status: 'Confirmed' | 'Completed' | 'Cancelled';
@@ -280,11 +279,11 @@ export interface Experience {
       male?: number;
       female?: number;
       general?: number;
-      promoter?: number;
+      wingman?: number;
   };
   access: 'open' | 'restricted' | 'invite-only';
   requiredAccessLevel?: UserAccessLevel;
-  promoterId?: number;
+  wingmanId?: number;
   capacity?: number;
   amenities?: string[];
   bedrooms?: number;
@@ -404,7 +403,7 @@ export interface AccessGroup {
 export interface GroupPost {
   id: number;
   groupId: number;
-  authorId: number; // Promoter or Admin ID
+  authorId: number; // Wingman or Admin ID
   content: string;
   image?: string;
   likes: number[]; // Array of user IDs who liked
@@ -436,7 +435,7 @@ export interface GuestlistChat {
   id: number;
   venueId: number;
   date: string;
-  promoterId: number;
+  wingmanId: number;
   memberIds: number[];
   meetupTime?: string;
 }
@@ -453,7 +452,7 @@ export interface GuestlistJoinRequest {
   id: number;
   userId: number;
   venueId: number;
-  promoterId: number;
+  wingmanId: number;
   date: string; // "YYYY-MM-DD"
   status: 'pending' | 'approved' | 'rejected';
   attendanceStatus: 'pending' | 'show' | 'no-show';
@@ -480,7 +479,7 @@ export interface FriendZoneChat {
     name: string;
     creatorId: number;
     memberIds: number[];
-    promoterIds?: number[]; // Array of promoter IDs added to chat
+    wingmanIds?: number[]; // Array of wingman IDs added to chat
 }
 
 export interface FriendZoneChatMessage {
@@ -551,7 +550,7 @@ export interface CartItem {
   tableDetails?: {
       venue: Venue;
       tableOption?: TableOption;
-      promoter?: Promoter;
+      wingman?: Wingman;
       guestDetails?: { name: string; email: string; phone: string; };
       numberOfGuests?: number;
       selectedBottles?: { id: string; name: string; price: number; quantity: number; }[];
@@ -572,7 +571,7 @@ export interface CartItem {
   };
   guestlistDetails?: {
     venue: Venue;
-    promoter: Promoter;
+    wingman: Wingman;
     numberOfGuests: number;
     status?: 'pending' | 'approved' | 'rejected';
   };
@@ -626,7 +625,7 @@ export interface PaymentMethod {
 export type Page =
   | 'home'
   | 'directory'
-  | 'promoterProfile'
+  | 'wingmanProfile'
   | 'userProfile'
   | 'editProfile'
   | 'favorites'
@@ -646,7 +645,7 @@ export type Page =
   | 'liveChat'
   | 'exclusiveExperiences'
   | 'adminDashboard'
-  | 'promoterDashboard'
+  | 'wingmanDashboard'
   | 'groupChat'
   | 'store'
   | 'tokenWallet'
@@ -657,7 +656,7 @@ export type Page =
   | 'itineraryDetails'
   | 'itineraryBuilder'
   | 'bookingConfirmed'
-  | 'promoterApplication'
+  | 'wingmanApplication'
   | 'createGroup'
   | 'guestlistChats'
   | 'guestlistChat'
@@ -666,7 +665,7 @@ export type Page =
   | 'eventChat'
   | 'eventChatsList'
   | 'startBookingChat'
-  | 'promoterStats'
+  | 'wingmanStats'
   | 'paymentMethods'
   | 'friendsZone'
   | 'friendZoneChat' // Added friendZoneChat

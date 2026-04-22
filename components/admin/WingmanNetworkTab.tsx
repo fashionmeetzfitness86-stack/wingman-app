@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
-import { User, Promoter, CartItem, UserAccessLevel } from '../../types';
+import { User, Wingman, CartItem, UserAccessLevel } from '../../types';
 import { EyeIcon } from '../icons/FeatureIcons';
 import { ChevronDownIcon } from '../icons/ChevronDownIcon';
 
-interface PromoterNetworkTabProps {
-    promoter: Promoter;
+interface WingmanNetworkTabProps {
+    wingman: Wingman;
     users: User[];
     bookedItems: CartItem[];
     onViewUser: (user: User) => void;
@@ -43,25 +43,25 @@ const UserRow: React.FC<{ user: User; type: 'Referral' | 'Client'; subtext: stri
     </tr>
 );
 
-export const PromoterNetworkTab: React.FC<PromoterNetworkTabProps> = ({ promoter, users, bookedItems, onViewUser }) => {
+export const WingmanNetworkTab: React.FC<WingmanNetworkTabProps> = ({ wingman, users, bookedItems, onViewUser }) => {
     const [activeFilter, setActiveFilter] = useState<'all' | 'referrals' | 'clients'>('all');
     const [searchTerm, setSearchTerm] = useState('');
 
     const referrals = useMemo(() => {
-        return users.filter(u => u.referredByPromoterId === promoter.id);
-    }, [users, promoter.id]);
+        return users.filter(u => u.referredByWingmanId === wingman.id);
+    }, [users, wingman.id]);
 
     const clients = useMemo(() => {
         const clientIds = new Set<number>();
         bookedItems.forEach(item => {
-            if (item.tableDetails?.promoter?.id === promoter.id && item.tableDetails.guestDetails) {
+            if (item.tableDetails?.wingman?.id === wingman.id && item.tableDetails.guestDetails) {
                 const user = users.find(u => u.email === item.tableDetails?.guestDetails?.email);
                 if (user) clientIds.add(user.id);
             }
         });
         // Exclude those who are already counted as referrals if we want distinct lists, but here 'Clients' might overlap
         return users.filter(u => clientIds.has(u.id));
-    }, [bookedItems, users, promoter.id]);
+    }, [bookedItems, users, wingman.id]);
 
     const displayedUsers = useMemo(() => {
         let list: { user: User; type: 'Referral' | 'Client'; subtext: string }[] = [];
@@ -83,7 +83,7 @@ export const PromoterNetworkTab: React.FC<PromoterNetworkTabProps> = ({ promoter
                 
                 // Find last booking date
                 const userBookings = bookedItems.filter(b => 
-                    b.tableDetails?.promoter?.id === promoter.id && 
+                    b.tableDetails?.wingman?.id === wingman.id && 
                     (b.tableDetails.guestDetails?.email === u.email || b.tableDetails.guestDetails?.name === u.name)
                 );
                 const lastBooking = userBookings.sort((a,b) => (b.bookedTimestamp || 0) - (a.bookedTimestamp || 0))[0];
@@ -106,7 +106,7 @@ export const PromoterNetworkTab: React.FC<PromoterNetworkTabProps> = ({ promoter
         }
 
         return list;
-    }, [referrals, clients, activeFilter, searchTerm, bookedItems, promoter.id]);
+    }, [referrals, clients, activeFilter, searchTerm, bookedItems, wingman.id]);
 
     return (
         <div className="space-y-6">

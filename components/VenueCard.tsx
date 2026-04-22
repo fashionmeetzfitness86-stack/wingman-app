@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { Venue, User, Promoter, UserAccessLevel, GuestlistJoinRequest } from '../types';
+import { Venue, User, Wingman, UserAccessLevel, GuestlistJoinRequest } from '../types';
 import { HeartIcon } from './icons/HeartIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
 import { StarIcon } from './icons/StarIcon';
@@ -14,8 +14,8 @@ interface VenueCardProps {
   onToggleFavorite: (venueId: number) => void;
   onViewDetails: (venue: Venue) => void;
   currentUser: User;
-  promoters: Promoter[];
-  onJoinGuestlist: (promoter: Promoter, venue: Venue) => void;
+  wingmen: Wingman[];
+  onJoinGuestlist: (wingman: Wingman, venue: Venue) => void;
   guestlistJoinRequests: GuestlistJoinRequest[];
 }
 
@@ -28,7 +28,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
     onToggleFavorite, 
     onViewDetails,
     currentUser,
-    promoters,
+    wingmen,
     onJoinGuestlist,
     guestlistJoinRequests
 }) => {
@@ -54,11 +54,11 @@ export const VenueCard: React.FC<VenueCardProps> = ({
   };
   
   const isApprovedGirl = currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL;
-  const assignedPromoters = useMemo(() => promoters.filter(p => p.assignedVenueIds.includes(venue.id)), [promoters, venue.id]);
-  const primaryPromoter = assignedPromoters.length > 0 ? assignedPromoters[0] : null;
+  const assignedWingmen = useMemo(() => wingmen.filter(p => p.assignedVenueIds.includes(venue.id)), [wingmen, venue.id]);
+  const primaryWingman = assignedWingmen.length > 0 ? assignedWingmen[0] : null;
 
   const request = useMemo(() => {
-    if (!primaryPromoter) return null;
+    if (!primaryWingman) return null;
     
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -82,20 +82,20 @@ export const VenueCard: React.FC<VenueCardProps> = ({
 
     return guestlistJoinRequests.find(req => 
         req.userId === currentUser.id && 
-        req.promoterId === primaryPromoter.id && 
+        req.wingmanId === primaryWingman.id && 
         req.venueId === venue.id &&
         req.date === dateString
     );
-  }, [primaryPromoter, guestlistJoinRequests, currentUser.id, venue.id, venue.operatingDays]);
+  }, [primaryWingman, guestlistJoinRequests, currentUser.id, venue.id, venue.operatingDays]);
 
   const guestlistStatus = request?.status;
 
   const handleJoinGuestlistClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (primaryPromoter) {
-        onJoinGuestlist(primaryPromoter, venue);
+    if (primaryWingman) {
+        onJoinGuestlist(primaryWingman, venue);
     } else {
-        (window as any).showAppToast?.("No promoters available for this venue's guestlist at the moment.");
+        (window as any).showAppToast?.("No wingmen available for this venue's guestlist at the moment.");
     }
   };
   
@@ -160,7 +160,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
             >
                 Book Now
             </button>
-            {isApprovedGirl && primaryPromoter && (
+            {isApprovedGirl && primaryWingman && (
                 <div className="text-center">
                     <button
                         onClick={handleJoinGuestlistClick}

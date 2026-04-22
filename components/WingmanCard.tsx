@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Promoter, User, UserAccessLevel, UserRole } from '../types';
+import { Wingman, User, UserAccessLevel, UserRole } from '../types';
 import { StarIcon } from './icons/StarIcon';
 import { HeartIcon } from './icons/HeartIcon';
 import { ShareIcon } from './icons/ShareIcon';
@@ -8,18 +8,18 @@ import { CheckIcon } from './icons/CheckIcon';
 import { ImageCarousel } from './ImageCarousel';
 import { FavoriteConfirmationModal } from './modals/FavoriteConfirmationModal';
 
-interface PromoterCardProps {
-  promoter: Promoter;
-  onViewProfile: (promoter: Promoter) => void;
-  onBook: (promoter: Promoter) => void;
+interface WingmanCardProps {
+  wingman: Wingman;
+  onViewProfile: (wingman: Wingman) => void;
+  onBook: (wingman: Wingman) => void;
   isFavorite: boolean;
-  onToggleFavorite: (promoterId: number) => void;
-  onJoinGuestlist: (promoter: Promoter) => void;
+  onToggleFavorite: (wingmanId: number) => void;
+  onJoinGuestlist: (wingman: Wingman) => void;
   currentUser: User;
   showEarnings?: boolean;
 }
 
-export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProfile, onBook, isFavorite, onToggleFavorite, onJoinGuestlist, currentUser, showEarnings }) => {
+export const WingmanCard: React.FC<WingmanCardProps> = ({ wingman, onViewProfile, onBook, isFavorite, onToggleFavorite, onJoinGuestlist, currentUser, showEarnings }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
 
@@ -28,21 +28,21 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
     if (isFavorite) {
         setIsFavoriteModalOpen(true);
     } else {
-        onToggleFavorite(promoter.id);
+        onToggleFavorite(wingman.id);
     }
   };
 
   const confirmFavorite = () => {
-    onToggleFavorite(promoter.id);
+    onToggleFavorite(wingman.id);
     setIsFavoriteModalOpen(false);
   };
 
   const handleShareClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}?promoter=${promoter.id}`;
+    const shareUrl = `${window.location.origin}?wingman=${wingman.id}`;
     const shareData = {
-        title: `Check out ${promoter.name} on WINGMAN`,
-        text: `I found this promoter, ${promoter.name}, on WINGMAN. Check out their profile!`,
+        title: `Check out ${wingman.name} on WINGMAN`,
+        text: `I found this wingman, ${wingman.name}, on WINGMAN. Check out their profile!`,
         url: shareUrl,
     };
 
@@ -64,20 +64,20 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
     }
   };
 
-  const promoterImages = [promoter.profilePhoto, ...promoter.galleryImages].filter(Boolean);
+  const wingmanImages = [wingman.profilePhoto, ...wingman.galleryImages].filter(Boolean);
 
   return (
     <>
       <div 
-          onClick={() => onViewProfile(promoter)} 
+          onClick={() => onViewProfile(wingman)} 
           className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#FFFFFF] hover:shadow-2xl hover:shadow-[#FFFFFF]/10 group cursor-pointer relative"
           role="button"
           tabIndex={0}
-          onKeyPress={(e) => e.key === 'Enter' && onViewProfile(promoter)}
-          aria-label={`View profile for ${promoter.name}`}
+          onKeyPress={(e) => e.key === 'Enter' && onViewProfile(wingman)}
+          aria-label={`View profile for ${wingman.name}`}
       >
         <div className="relative">
-          <ImageCarousel images={promoterImages} className="w-full h-64" />
+          <ImageCarousel images={wingmanImages} className="w-full h-64" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
           {/* Action Buttons (Favorite & Share) */}
@@ -89,7 +89,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
                   <button
                     onClick={handleShareClick}
                     className={`p-2 rounded-full text-white transition-all active:scale-95 backdrop-blur-sm ${isCopied ? 'bg-green-500' : 'bg-black/40 hover:bg-white/20'}`}
-                    aria-label={`Share ${promoter.name}'s profile`}
+                    aria-label={`Share ${wingman.name}'s profile`}
                     title="Share Profile"
                   >
                     {isCopied ? <CheckIcon className="w-5 h-5" /> : <ShareIcon className="w-5 h-5" />}
@@ -98,7 +98,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
               <button
                 onClick={handleFavoriteClick}
                 className="bg-black/40 backdrop-blur-sm p-2 rounded-full text-white hover:bg-white/20 transition-colors active:scale-95"
-                aria-label={isFavorite ? `Remove ${promoter.name} from favorites` : `Add ${promoter.name} to favorites`}
+                aria-label={isFavorite ? `Remove ${wingman.name} from favorites` : `Add ${wingman.name} to favorites`}
                 title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
               >
                 <HeartIcon className={`w-5 h-5 transition-transform duration-300 ${isFavorite ? 'scale-110 text-gray-300 fill-[#FFFFFF]' : 'text-white'}`} isFilled={isFavorite} />
@@ -108,43 +108,43 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
           <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none bg-gradient-to-t from-black/90 to-transparent">
             <div className="flex items-end justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-white leading-tight">{promoter.name}</h3>
-                  <p className="text-sm text-gray-300 font-medium">{promoter.handle}</p>
+                  <h3 className="text-2xl font-bold text-white leading-tight">{wingman.name}</h3>
+                  <p className="text-sm text-gray-300 font-medium">{wingman.handle}</p>
                 </div>
                 <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full backdrop-blur-md border border-white/10">
                     <StarIcon className="w-3.5 h-3.5 text-gray-300" />
-                    <span className="text-white font-bold text-sm">{promoter.rating.toFixed(1)}</span>
+                    <span className="text-white font-bold text-sm">{wingman.rating.toFixed(1)}</span>
                 </div>
             </div>
           </div>
         </div>
         <div className="p-4 flex flex-col gap-4">
-          <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 h-10">{promoter.bio}</p>
+          <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 h-10">{wingman.bio}</p>
           
-          {showEarnings && promoter.earnings !== undefined && (
+          {showEarnings && wingman.earnings !== undefined && (
               <div className="pt-2">
-                <p className="text-sm font-bold text-green-400">Total Earnings: ${promoter.earnings.toLocaleString()}</p>
+                <p className="text-sm font-bold text-green-400">Total Earnings: ${wingman.earnings.toLocaleString()}</p>
               </div>
           )}
 
           <div className="flex flex-col gap-2 pt-2 border-t border-gray-800">
               <button
-                onClick={(e) => { e.stopPropagation(); onBook(promoter); }}
+                onClick={(e) => { e.stopPropagation(); onBook(wingman); }}
                 className="w-full text-center bg-white text-black hover:bg-gray-200 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-all duration-300 hover:bg-[#E5E5E5] hover:shadow-lg hover:shadow-[#FFFFFF]/20"
-                aria-label={`Book a table with ${promoter.name}`}
+                aria-label={`Book a table with ${wingman.name}`}
               >
                 Book Table
               </button>
               {(currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN) ? (
                   <div className="grid grid-cols-2 gap-2">
                       <button
-                          onClick={(e) => { e.stopPropagation(); onViewProfile(promoter); }}
+                          onClick={(e) => { e.stopPropagation(); onViewProfile(wingman); }}
                           className="w-full text-center bg-gray-800 text-gray-300 font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-300 hover:bg-gray-700"
                       >
                           View Profile
                       </button>
                       <button
-                          onClick={(e) => { e.stopPropagation(); onJoinGuestlist(promoter); }}
+                          onClick={(e) => { e.stopPropagation(); onJoinGuestlist(wingman); }}
                           className="w-full text-center bg-gray-800 text-amber-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors duration-300 hover:bg-gray-700"
                       >
                           Guestlist
@@ -152,7 +152,7 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
                   </div>
               ) : (
                   <button
-                      onClick={(e) => { e.stopPropagation(); onViewProfile(promoter); }}
+                      onClick={(e) => { e.stopPropagation(); onViewProfile(wingman); }}
                       className="w-full text-center bg-gray-800 text-gray-300 font-bold py-2.5 px-4 rounded-lg text-sm transition-colors duration-300 hover:bg-gray-700 hover:text-white"
                   >
                       View Profile
@@ -165,8 +165,8 @@ export const PromoterCard: React.FC<PromoterCardProps> = ({ promoter, onViewProf
         isOpen={isFavoriteModalOpen}
         onClose={() => setIsFavoriteModalOpen(false)}
         onConfirm={confirmFavorite}
-        entityName={promoter.name}
-        entityType="Promoter"
+        entityName={wingman.name}
+        entityType="Wingman"
         action={isFavorite ? 'remove' : 'add'}
       />
     </>
