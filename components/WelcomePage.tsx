@@ -699,25 +699,6 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         </button>
         <p className="text-[10px] text-gray-700 mt-3">Have a passcode? Unlock full access in seconds.</p>
       </div>
-
-      {/* Divider */}
-      <div className="flex items-center gap-4 px-5 mb-6 flex-shrink-0">
-        <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-widest">Upcoming Events</span>
-        <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
-      </div>
-
-
-
-      {/* Viewing events link */}
-      <div className="px-5 pb-12 text-center flex-shrink-0">
-        <button
-          onClick={() => setMode('enter')}
-          className="text-sm font-bold text-gray-400 hover:text-white transition-colors underline underline-offset-4 decoration-gray-600 hover:decoration-white"
-        >
-          Viewing events
-        </button>
-      </div>
     </div>
   );
 };
