@@ -548,6 +548,14 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   // Reset page on filter/search change
   useEffect(() => { setPage(1); }, [typeFilter, dayFilter, searchQuery]);
 
+  // ── Schedule overview data ── (must be declared before filteredSchedule)
+  const activeSchedule = WEEKLY_SCHEDULE.filter(s => s.isActive);
+  const scheduleByDay = DAYS.map((d, i) => ({
+    day: d,
+    dayIndex: i,
+    entries: activeSchedule.filter(s => s.dayOfWeek === i),
+  }));
+
   // ── Schedule: find nearest instance for a given schedule entry ──
   const findInstanceForEntry = useCallback((entryId: string) => {
     // Look through allInstances for the nearest upcoming event matching this schedule id
@@ -590,13 +598,6 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const getUserBooking = (instance: EventInstance) =>
     instanceBookings.find(b => b.instanceId === instance.instanceId && b.userId === currentUser.id);
 
-  // ── Schedule overview data ──
-  const activeSchedule = WEEKLY_SCHEDULE.filter(s => s.isActive);
-  const scheduleByDay = DAYS.map((d, i) => ({
-    day: d,
-    dayIndex: i,
-    entries: activeSchedule.filter(s => s.dayOfWeek === i),
-  }));
 
   return (
     <div className="min-h-screen animate-fade-in" style={{ background: 'transparent' }}>
