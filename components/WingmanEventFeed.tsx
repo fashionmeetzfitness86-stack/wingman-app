@@ -261,6 +261,13 @@ const BookingModal: React.FC<{
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(
     instance.bookingRules.maxPerBooking ?? spotsLeft,
@@ -285,8 +292,8 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
@@ -294,8 +301,9 @@ const BookingModal: React.FC<{
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '92vh',
+          maxHeight: '90dvh',
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
         }}
         onClick={e => e.stopPropagation()}
