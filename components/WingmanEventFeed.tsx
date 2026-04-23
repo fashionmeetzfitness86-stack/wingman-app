@@ -261,6 +261,13 @@ const BookingModal: React.FC<{
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(
     instance.bookingRules.maxPerBooking ?? spotsLeft,
@@ -285,8 +292,8 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
@@ -294,8 +301,9 @@ const BookingModal: React.FC<{
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '92vh',
+          maxHeight: '90dvh',
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
         }}
         onClick={e => e.stopPropagation()}
@@ -493,9 +501,10 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
   // ── Filters ──
-  const [typeFilter, setTypeFilter] = useState<ExperienceType | 'All'>('All');
+  const [typeFilter, setTypeFilter] = useState<ExperienceType | 'All' | 'Schedule'>('All');
   const [dayFilter, setDayFilter] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // ── Pagination ──
   const [page, setPage] = useState(1);
@@ -513,10 +522,21 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   // ── Filter ──
   const filtered = useMemo(() => {
     let out = allInstances;
-    if (typeFilter !== 'All') out = out.filter(i => i.experienceType === typeFilter);
+    if (typeFilter !== 'All' && typeFilter !== 'Schedule') out = out.filter(i => i.experienceType === typeFilter);
     if (dayFilter !== null) out = out.filter(i => new Date(i.date + 'T00:00:00').getDay() === dayFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      out = out.filter(i =>
+        i.title.toLowerCase().includes(q) ||
+        i.venue.toLowerCase().includes(q) ||
+        i.date.toLowerCase().includes(q) ||
+        (i.arrivalTime || i.time || '').toLowerCase().includes(q) ||
+        i.experienceType.toLowerCase().includes(q) ||
+        DAYS[new Date(i.date + 'T00:00:00').getDay()].toLowerCase().includes(q)
+      );
+    }
     return out;
-  }, [allInstances, typeFilter, dayFilter]);
+  }, [allInstances, typeFilter, dayFilter, searchQuery]);
 
   const visible = filtered.slice(0, page * PAGE_SIZE);
   const hasMore = visible.length < filtered.length;
@@ -533,8 +553,42 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
     return () => obs.disconnect();
   }, [hasMore]);
 
-  // Reset page on filter change
-  useEffect(() => { setPage(1); }, [typeFilter, dayFilter]);
+  // Reset page on filter/search change
+  useEffect(() => { setPage(1); }, [typeFilter, dayFilter, searchQuery]);
+
+  // ── Schedule overview data ── (must be declared before filteredSchedule)
+  const activeSchedule = WEEKLY_SCHEDULE.filter(s => s.isActive);
+  const scheduleByDay = DAYS.map((d, i) => ({
+    day: d,
+    dayIndex: i,
+    entries: activeSchedule.filter(s => s.dayOfWeek === i),
+  }));
+
+  // ── Schedule: find nearest instance for a given schedule entry ──
+  const findInstanceForEntry = useCallback((entryId: string) => {
+    // Look through allInstances for the nearest upcoming event matching this schedule id
+    return allInstances
+      .filter(i => i.scheduleId === entryId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      [0] ?? null;
+  }, [allInstances]);
+
+  // ── Schedule search filter ──
+  const filteredSchedule = useMemo(() => {
+    if (!searchQuery.trim()) return scheduleByDay;
+    const q = searchQuery.toLowerCase();
+    return scheduleByDay.map(({ day, dayIndex, entries }) => ({
+      day,
+      dayIndex,
+      entries: entries.filter(e =>
+        e.title.toLowerCase().includes(q) ||
+        e.venue.toLowerCase().includes(q) ||
+        (e.arrivalTime || e.time || '').toLowerCase().includes(q) ||
+        e.experienceType.toLowerCase().includes(q) ||
+        day.toLowerCase().includes(q)
+      ),
+    }));
+  }, [scheduleByDay, searchQuery]);
 
   // ── Booking handler — called by modal, modal handles close + navigation ──
   const handleBook = useCallback((partySize: number) => {
@@ -552,13 +606,6 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const getUserBooking = (instance: EventInstance) =>
     instanceBookings.find(b => b.instanceId === instance.instanceId && b.userId === currentUser.id);
 
-  // ── Schedule overview data ──
-  const activeSchedule = WEEKLY_SCHEDULE.filter(s => s.isActive);
-  const scheduleByDay = DAYS.map((d, i) => ({
-    day: d,
-    dayIndex: i,
-    entries: activeSchedule.filter(s => s.dayOfWeek === i),
-  }));
 
   return (
     <div className="min-h-screen animate-fade-in" style={{ background: 'transparent' }}>
@@ -572,7 +619,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
               Experiences
             </h1>
             <p className="text-[10px] text-gray-500">
-              {filtered.length} upcoming
+              {typeFilter === 'Schedule' ? `${WEEKLY_SCHEDULE.filter(s => s.isActive).length} recurring` : `${filtered.length} upcoming`}
             </p>
           </div>
           <button
@@ -587,18 +634,44 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           </button>
         </div>
 
+        {/* Search bar */}
+        <div className="relative mb-3">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search venues, dates, nightclub, yacht…"
+            className="w-full text-[11px] text-white placeholder-gray-600 pl-8 pr-8 py-2 rounded-full outline-none transition-all"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         {/* Type filter pills */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {(['All', 'Nightclub', 'Dinner', 'Yacht'] as const).map(t => {
+          {(['All', 'Nightclub', 'Dinner', 'Yacht', 'Schedule'] as const).map(t => {
             const active = typeFilter === t;
-            const cfg = t !== 'All' ? TYPE_CONFIG[t] : null;
+            const cfg = t !== 'All' && t !== 'Schedule' ? TYPE_CONFIG[t as ExperienceType] : null;
+            const scheduleColor = '#0EA5E9'; // sky blue for schedule
             return (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
                 className="flex-shrink-0 text-[10px] font-bold rounded-full px-3 py-1 transition-all"
                 style={active
-                  ? { background: cfg?.color ?? '#EC4899', color: '#fff' }
+                  ? { background: t === 'Schedule' ? scheduleColor : (cfg?.color ?? '#EC4899'), color: '#fff' }
                   : { background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 {t}
@@ -648,8 +721,8 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           </div>
         )}
 
-        {/* ── Event grid ── */}
-        {visible.length > 0 ? (
+        {/* ── Event grid (hidden when Schedule tab is active) ── */}
+        {typeFilter !== 'Schedule' && (visible.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {visible.map(instance => (
               <EventCard
@@ -667,7 +740,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
             <p className="text-3xl mb-2">🗓</p>
             <p className="text-xs font-semibold">No events match your filters.</p>
           </div>
-        )}
+        ))}
 
         {/* ── Infinite scroll loader ── */}
         <div ref={loaderRef} className="flex justify-center py-2">
@@ -682,47 +755,78 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           ) : null}
         </div>
 
-        {/* ── Weekly Schedule View ── */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-black text-white">Weekly Schedule</h2>
-          </div>
-          <div className="space-y-2">
-            {scheduleByDay.map(({ day, dayIndex, entries }) => {
-              if (entries.length === 0) return null;
-              const isToday = new Date().getDay() === dayIndex;
-              return (
-                <div key={day}
-                  className="rounded-xl overflow-hidden"
-                  style={{
-                    background: isToday ? 'rgba(236,72,153,0.05)' : 'rgba(255,255,255,0.02)',
-                    border: isToday ? '1px solid rgba(236,72,153,0.2)' : '1px solid rgba(255,255,255,0.05)',
-                  }}>
-                  <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest w-8">{day}</span>
-                    {isToday && <span className="text-xs font-bold text-purple-400">Today</span>}
+        {/* ── Weekly Schedule View (shown when Schedule tab is active) ── */}
+        {typeFilter === 'Schedule' && (
+          <div>
+            <div className="space-y-2">
+              {filteredSchedule.map(({ day, dayIndex, entries }) => {
+                if (entries.length === 0) return null;
+                const isToday = new Date().getDay() === dayIndex;
+                return (
+                  <div key={day}
+                    className="rounded-xl overflow-hidden"
+                    style={{
+                      background: isToday ? 'rgba(14,165,233,0.05)' : 'rgba(255,255,255,0.02)',
+                      border: isToday ? '1px solid rgba(14,165,233,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                    }}>
+                    <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span className="text-xs font-black text-gray-400 uppercase tracking-widest w-8">{day}</span>
+                      {isToday && <span className="text-xs font-bold" style={{ color: '#0EA5E9' }}>Today</span>}
+                    </div>
+                    {entries.map(entry => {
+                      const tc2 = TYPE_CONFIG[entry.experienceType];
+                      const matchedInstance = findInstanceForEntry(entry.id);
+                      const isBooked = matchedInstance ? !!getUserBooking(matchedInstance) : false;
+                      return (
+                        <button
+                          key={entry.id}
+                          onClick={() => matchedInstance && setSelected(matchedInstance)}
+                          disabled={!matchedInstance}
+                          className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors"
+                          style={{
+                            borderBottom: '1px solid rgba(255,255,255,0.03)',
+                            background: 'transparent',
+                            cursor: matchedInstance ? 'pointer' : 'default',
+                          }}
+                          onMouseEnter={e => matchedInstance && ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)')}
+                          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: tc2.color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{entry.title}</p>
+                            <p className="text-xs text-gray-500 truncate">{entry.venue}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0 flex items-center gap-2">
+                            <div>
+                              <p className="text-xs font-bold text-white">{entry.arrivalTime || entry.time}</p>
+                              <p className="text-xs text-gray-600">${entry.pricePerPerson}</p>
+                            </div>
+                            {matchedInstance && (
+                              <div
+                                className="ml-1 rounded-full px-2 py-0.5 text-[9px] font-bold flex-shrink-0"
+                                style={isBooked
+                                  ? { background: 'rgba(224,64,251,0.15)', color: '#E040FB' }
+                                  : { background: 'rgba(14,165,233,0.15)', color: '#0EA5E9' }}
+                              >
+                                {isBooked ? '✓ Booked' : 'Reserve →'}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                  {entries.map(entry => {
-                    const tc2 = TYPE_CONFIG[entry.experienceType];
-                    return (
-                      <div key={entry.id} className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: tc2.color }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{entry.title}</p>
-                          <p className="text-xs text-gray-500 truncate">{entry.venue}</p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-xs font-bold text-white">{entry.arrivalTime || entry.time}</p>
-                          <p className="text-xs text-gray-600">${entry.pricePerPerson}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                );
+              })}
+              {filteredSchedule.every(d => d.entries.length === 0) && (
+                <div className="text-center py-12 text-gray-600">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-xs font-semibold">No schedule entries match your search.</p>
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
 

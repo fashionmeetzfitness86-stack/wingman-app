@@ -163,14 +163,14 @@ const PreviewEventCard: React.FC<{ title: string; date: string; time: string; ty
 interface WelcomePageProps {
   onAccessGranted: () => void;
   onLoginInstead: () => void;
-  onLogin?: (email: string, password: string) => boolean;
+  onLogin?: (email: string, password: string, stayLoggedIn: boolean) => boolean;
 }
 
 // ─── Login Screen ──────────────────────────────────────────────
 
 const LoginScreen: React.FC<{
   onBack: () => void;
-  onLogin: (email: string, password: string) => boolean;
+  onLogin: (email: string, password: string, stayLoggedIn: boolean) => boolean;
   onForgotPassword: () => void;
 }> = ({ onBack, onLogin, onForgotPassword }) => {
   const [email, setEmail] = useState('');
@@ -178,6 +178,7 @@ const LoginScreen: React.FC<{
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [stayLoggedIn, setStayLoggedIn] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,7 +187,7 @@ const LoginScreen: React.FC<{
     if (!password.trim()) { setError('Please enter your password.'); return; }
     setLoading(true);
     setTimeout(() => {
-      const ok = onLogin(email.trim().toLowerCase(), password);
+      const ok = onLogin(email.trim().toLowerCase(), password, stayLoggedIn);
       if (!ok) {
         setError('Email or password not recognised. Please try again.');
       }
@@ -271,6 +272,26 @@ const LoginScreen: React.FC<{
               }}>
               {loading ? 'Signing in…' : 'Log In'}
             </button>
+
+            {/* Stay logged in */}
+            <label
+              className="flex items-center gap-2.5 cursor-pointer mt-3"
+              onClick={() => setStayLoggedIn(s => !s)}
+            >
+              <div
+                className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                style={stayLoggedIn
+                  ? { background: '#fff', border: '1px solid #fff' }
+                  : { background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                {stayLoggedIn && (
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-[11px] text-gray-500 select-none">Stay logged in</span>
+            </label>
           </form>
 
           <button

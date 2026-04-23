@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { hasActivePasscodeSession, grantPasscodeAccess } from './utils/accessControl';
+import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, formatTimeRemaining } from './utils/accessControl';
 import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
@@ -956,16 +956,33 @@ export const App: React.FC = () => {
     const handleLogout = () => {
         localStorage.removeItem('wingman_currentUserId');
         localStorage.removeItem('wingman_realAdminUserId');
-        localStorage.removeItem('wm_access'); // Clear passcode session so gate shows on next visit
+        localStorage.removeItem('wm_access');
+        sessionStorage.removeItem('wingman_currentUserId_session');
         setRealAdminUser(null);
-        
-        // Revoke passcode gate access on logout
         setPasscodeAccessActive(false);
-        setCurrentUser(appUsers[0]); 
+        setCurrentUser(appUsers[0]);
         setIsMenuOpen(false);
         showToast('Logged out', 'success');
     };
-    
+
+    // ── Passcode 24h deadline enforcement ─────────────────────────────────────
+    const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+    const [passcodeTimeRemaining, setPasscodeTimeRemaining] = useState<number>(() => {
+        const session = getAccessSession();
+        return session ? Math.max(0, session.expiresAt - Date.now()) : 0;
+    });
+    useEffect(() => {
+        if (!isPasscodeOnlyUser) return;
+        const interval = setInterval(() => {
+            const session = getAccessSession();
+            if (!session) { handleLogout(); return; }
+            setPasscodeTimeRemaining(Math.max(0, session.expiresAt - Date.now()));
+        }, 30_000);
+        return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isPasscodeOnlyUser]);
+
+
     // --- Push Campaigns ---
     const handleCreatePushCampaign = (campaign: PushCampaign) => {
         setPushCampaigns(prev => [campaign, ...prev]);
@@ -1925,14 +1942,19 @@ export const App: React.FC = () => {
     // This MUST be the first thing unauthenticated users see.
     // It prevents OnboardingModal (z-100) from overlaying the gate.
     if (!isLoggedInUser && !passcodeAccessActive) {
-        const handleLogin = (email: string, _password: string): boolean => {
+        const handleLogin = (email: string, _password: string, stayLoggedIn: boolean = true): boolean => {
             // Match user by email (password check is simulated — replace with real auth when backend is ready)
             const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (found) {
                 setCurrentUser(found);
-                // Persist session to localStorage so refresh doesn't kick them back to the gate
                 grantPasscodeAccess(found.email);
-                localStorage.setItem('wingman_currentUserId', found.id.toString());
+                // Only persist session to localStorage if "Stay logged in" is checked
+                if (stayLoggedIn) {
+                    localStorage.setItem('wingman_currentUserId', found.id.toString());
+                } else {
+                    sessionStorage.setItem('wingman_currentUserId_session', found.id.toString());
+                    localStorage.removeItem('wingman_currentUserId');
+                }
                 setPasscodeAccessActive(true);
                 setCurrentPage('home');
                 return true;
@@ -1951,6 +1973,23 @@ export const App: React.FC = () => {
     return (
         <div className="min-h-screen bg-black text-white font-sans">
             <>
+                    {/* ── Passcode 24h deadline banner ── */}
+                    {isPasscodeOnlyUser && passcodeTimeRemaining > 0 && (
+                        <div
+                            className="fixed top-0 left-0 right-0 z-[9998] flex items-center justify-between gap-2 px-4 py-2 text-[11px]"
+                            style={{ background: 'rgba(14,165,233,0.95)', backdropFilter: 'blur(8px)' }}
+                        >
+                            <span className="text-white font-semibold">
+                                ⏱ {formatTimeRemaining(passcodeTimeRemaining)} · Create your profile to keep access
+                            </span>
+                            <button
+                                onClick={() => handleNavigate('profile')}
+                                className="font-bold text-white underline underline-offset-2 whitespace-nowrap"
+                            >
+                                Create Profile →
+                            </button>
+                        </div>
+                    )}
                     {currentPage !== 'home' && (
                         <Header 
                             title={currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} 
