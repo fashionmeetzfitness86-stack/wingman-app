@@ -622,6 +622,23 @@ export interface PaymentMethod {
     detail?: string; // e.g., email for PayPal, wallet address for Crypto
 }
 
+
+export interface WingmanChat {
+  id: number;
+  userId: number;
+  title: string;
+  status: 'open' | 'closed';
+  createdAt: string;
+}
+
+export interface WingmanChatMessage {
+  id: number;
+  chatId: number;
+  senderId: number | 'wingman';
+  text: string;
+  timestamp: string;
+}
+
 export type Page =
   | 'home'
   | 'directory'
@@ -670,4 +687,5 @@ export type Page =
   | 'friendsZone'
   | 'friendZoneChat' // Added friendZoneChat
   | 'referFriend'
+  | 'profile'
   | 'eventDetail';
