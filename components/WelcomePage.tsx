@@ -719,6 +719,32 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
           Enter Passcode
         </button>
         <p className="text-[10px] text-gray-700 mt-3">Have a passcode? Unlock full access in seconds.</p>
+
+        {/* Instagram link */}
+        <a
+          href="https://www.instagram.com/wingman.miami"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 mt-5 group"
+          aria-label="Follow Wingman on Instagram"
+        >
+          <svg
+            className="w-5 h-5 transition-opacity group-hover:opacity-100 opacity-40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="0.5" fill="white" stroke="none" />
+          </svg>
+          <span className="text-[11px] text-gray-600 group-hover:text-gray-400 transition-colors tracking-wide">
+            @wingman.miami
+          </span>
+        </a>
       </div>
     </div>
   );
