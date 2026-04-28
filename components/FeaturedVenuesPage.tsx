@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Venue, User, EventInstance, InstanceBooking } from '../types';
+import { Venue, User, UserRole, EventInstance, InstanceBooking } from '../types';
 import { venues } from '../data/mockData';
 import {
   generateEventFeed,
@@ -492,7 +492,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
   const isApproved = currentUser.approvalStatus === 'approved';
   const hasActiveSub = currentUser.subscriptionStatus === 'active';
-  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Wingman' || currentUser.role === 'Wingman';
+  const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
   // Generate all upcoming instances
