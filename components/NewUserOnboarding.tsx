@@ -27,7 +27,7 @@ const STEPS = [
   { id: 4, title: 'Your Photo',             subtitle: 'Put a face to the name.' },
 ] as const;
 
-const GENDERS = ['Man', 'Woman', 'Non-binary', 'Prefer not to say'];
+const GENDERS = ['Man', 'Woman'];
 
 function fileToDataURL(file: File): Promise<string> {
   return new Promise((res, rej) => {
