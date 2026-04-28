@@ -10,6 +10,7 @@ export interface OnboardingProfile {
   hometown: string;
   gender: string;
   photoUrl: string;
+  password: string;
 }
 
 interface NewUserOnboardingProps {
@@ -25,9 +26,10 @@ const STEPS = [
   { id: 2, title: 'Contact Info',            subtitle: 'So your Wingman can reach you.' },
   { id: 3, title: 'Where are you from?',    subtitle: 'Your city & identity.' },
   { id: 4, title: 'Your Photo',             subtitle: 'Put a face to the name.' },
+  { id: 5, title: 'Create a Password',      subtitle: 'Secure your account for next time.' },
 ] as const;
 
-const GENDERS = ['Man', 'Woman', 'Non-binary', 'Prefer not to say'];
+const GENDERS = ['Man', 'Woman'];
 
 function fileToDataURL(file: File): Promise<string> {
   return new Promise((res, rej) => {
@@ -102,6 +104,10 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const [photoUrl,  setPhotoUrl]    = useState('');
   const [errors,    setErrors]      = useState<Record<string, string>>({});
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [password,    setPassword]    = useState('');
+  const [confirmPw,   setConfirmPw]   = useState('');
+  const [showPw,      setShowPw]      = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const clearErr = (k: string) => setErrors(p => { const n = { ...p }; delete n[k]; return n; });
@@ -127,6 +133,10 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
     if (step === 4) {
       if (!photoUrl) e.photo = 'Please upload a profile photo.';
     }
+    if (step === 5) {
+      if (password.length < 8)        e.password  = 'Password must be at least 8 characters.';
+      if (password !== confirmPw)      e.confirmPw = 'Passwords do not match.';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -134,8 +144,9 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const next = () => {
     if (!validateStep()) return;
     if (step < STEPS.length) { setStep(s => s + 1); return; }
-    // All done
-    onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl });
+    // All done — save password then call onComplete
+    saveUserPassword(email.trim().toLowerCase(), password);
+    onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password });
   };
 
   const back = () => { setErrors({}); setStep(s => Math.max(1, s - 1)); };
@@ -292,6 +303,72 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
           </div>
         );
 
+      case 5: {
+        const pwStrength = password.length === 0 ? 0
+          : password.length < 8 ? 1
+          : /[A-Z]/.test(password) && /[0-9]/.test(password) ? 3 : 2;
+        const strengthLabel = ['', 'Weak', 'Good', 'Strong'];
+        const strengthColor = ['', '#EF4444', '#F59E0B', '#22C55E'];
+        return (
+          <div className="space-y-4">
+            <Field label="Password" error={errors.password}>
+              <div className="relative">
+                <Input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); clearErr('password'); clearErr('confirmPw'); }}
+                  placeholder="Min. 8 characters"
+                  hasError={!!errors.password}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                >
+                  {showPw ? '🙈' : '👁'}
+                </button>
+              </div>
+              {/* Strength indicator */}
+              {password.length > 0 && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex gap-1 flex-1">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="h-1 flex-1 rounded-full transition-all"
+                        style={{ background: i <= pwStrength ? strengthColor[pwStrength] : 'rgba(255,255,255,0.1)' }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-semibold" style={{ color: strengthColor[pwStrength] }}>
+                    {strengthLabel[pwStrength]}
+                  </span>
+                </div>
+              )}
+            </Field>
+            <Field label="Confirm Password" error={errors.confirmPw}>
+              <div className="relative">
+                <Input
+                  type={showConfirm ? 'text' : 'password'}
+                  value={confirmPw}
+                  onChange={e => { setConfirmPw(e.target.value); clearErr('confirmPw'); }}
+                  placeholder="Repeat your password"
+                  hasError={!!errors.confirmPw}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                >
+                  {showConfirm ? '🙈' : '👁'}
+                </button>
+              </div>
+            </Field>
+            <p className="text-[10px] text-gray-600 leading-relaxed">
+              This password will let you log back in without a passcode next time.
+            </p>
+          </div>
+        );
+      }
+
       default:
         return null;
     }
@@ -410,4 +487,30 @@ export function isOnboardingComplete(): boolean {
 export function markOnboardingComplete(): void {
   try { localStorage.setItem(ONBOARDING_KEY, 'true'); }
   catch {}
+}
+
+// ─── Password storage (keyed by lowercase email) ─────────────────────────────
+
+const PW_STORE_KEY = 'wm_passwords';
+
+export function saveUserPassword(email: string, password: string): void {
+  try {
+    const store: Record<string, string> = JSON.parse(localStorage.getItem(PW_STORE_KEY) ?? '{}');
+    store[email.trim().toLowerCase()] = password;
+    localStorage.setItem(PW_STORE_KEY, JSON.stringify(store));
+  } catch {}
+}
+
+export function verifyUserPassword(email: string, password: string): boolean {
+  try {
+    const store: Record<string, string> = JSON.parse(localStorage.getItem(PW_STORE_KEY) ?? '{}');
+    return store[email.trim().toLowerCase()] === password;
+  } catch { return false; }
+}
+
+export function hasUserPassword(email: string): boolean {
+  try {
+    const store: Record<string, string> = JSON.parse(localStorage.getItem(PW_STORE_KEY) ?? '{}');
+    return !!store[email.trim().toLowerCase()];
+  } catch { return false; }
 }
