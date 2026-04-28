@@ -55,7 +55,7 @@ import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
 import { WelcomePage } from './components/WelcomePage';
-import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, type OnboardingProfile } from './components/NewUserOnboarding';
+import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, verifyUserPassword, hasUserPassword, type OnboardingProfile } from './components/NewUserOnboarding';
 
 // Layout & Modals
 import { Header } from './components/Header';
@@ -2001,24 +2001,27 @@ export const App: React.FC = () => {
     // This MUST be the first thing unauthenticated users see.
     // It prevents OnboardingModal (z-100) from overlaying the gate.
     if (!isLoggedInUser && !passcodeAccessActive) {
-        const handleLogin = (email: string, _password: string, stayLoggedIn: boolean = true): boolean => {
-            // Match user by email (password check is simulated — replace with real auth when backend is ready)
+        const handleLogin = (email: string, password: string, stayLoggedIn: boolean = true): boolean => {
             const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-            if (found) {
-                setCurrentUser(found);
-                grantPasscodeAccess(found.email);
-                // Only persist session to localStorage if "Stay logged in" is checked
-                if (stayLoggedIn) {
-                    localStorage.setItem('wingman_currentUserId', found.id.toString());
-                } else {
-                    sessionStorage.setItem('wingman_currentUserId_session', found.id.toString());
-                    localStorage.removeItem('wingman_currentUserId');
-                }
-                setPasscodeAccessActive(true);
-                setCurrentPage('home');
-                return true;
+            if (!found) return false;
+
+            // If the user has set a password via onboarding, verify it.
+            // Otherwise (legacy mock users) allow login by email match only.
+            if (hasUserPassword(found.email) && !verifyUserPassword(found.email, password)) {
+                return false;
             }
-            return false;
+
+            setCurrentUser(found);
+            grantPasscodeAccess(found.email);
+            if (stayLoggedIn) {
+                localStorage.setItem('wingman_currentUserId', found.id.toString());
+            } else {
+                sessionStorage.setItem('wingman_currentUserId_session', found.id.toString());
+                localStorage.removeItem('wingman_currentUserId');
+            }
+            setPasscodeAccessActive(true);
+            setCurrentPage('home');
+            return true;
         };
         return (
             <WelcomePage
