@@ -382,7 +382,7 @@ const PendingHome: React.FC<{ user: User; onNavigate: (p: Page) => void; onReque
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess }) => {
   const isAdmin   = currentUser.role === UserRole.ADMIN;
-  const isWingman = currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.WINGMAN;
+  const isWingman = currentUser.role === UserRole.WINGMAN;
   const isApproved = currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active';
 
   const handleDashboardShortcut = () => {
