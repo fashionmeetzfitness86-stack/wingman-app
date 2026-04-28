@@ -55,6 +55,7 @@ import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
 import { WelcomePage } from './components/WelcomePage';
+import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, type OnboardingProfile } from './components/NewUserOnboarding';
 
 // Layout & Modals
 import { Header } from './components/Header';
@@ -343,6 +344,10 @@ export const App: React.FC = () => {
 
     const handleAccessGranted = useCallback(() => {
         setPasscodeAccessActive(true);
+        // Show onboarding if they haven't completed it yet
+        if (!isOnboardingComplete()) {
+            setShowOnboarding(true);
+        }
     }, []);
 
     const handleLoginInstead = useCallback(() => {
@@ -982,8 +987,40 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPasscodeOnlyUser]);
 
+    // ── New-user onboarding ───────────────────────────────────────────────────
+    // Show step-by-step profile modal whenever a passcode user hasn't completed onboarding.
+    const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+        // Auto-show if passcode session exists and onboarding not yet done
+        return hasActivePasscodeSession() && !isOnboardingComplete();
+    });
+    // dismissed = user closed it once; we'll re-prompt them at checkout
+    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
-    // --- Push Campaigns ---
+    const handleOnboardingComplete = (profile: OnboardingProfile) => {
+        // Merge the collected profile data into the current user record
+        setCurrentUser(prev => ({
+            ...prev,
+            name: `${profile.firstName} ${profile.lastName}`.trim(),
+            email: profile.email,
+            phoneNumber: profile.phone,
+            city: profile.hometown,
+            profilePhoto: profile.photoUrl || prev.profilePhoto,
+        }));
+        markOnboardingComplete();
+        setShowOnboarding(false);
+        setOnboardingDismissed(false);
+        showToast('Profile created! Welcome to WINGMAN 🎉', 'success');
+    };
+
+    const handleOnboardingDismiss = () => {
+        setShowOnboarding(false);
+        setOnboardingDismissed(true);
+    };
+
+    // Re-show onboarding when user navigates to checkout without completing it
+    const profileRequired = isPasscodeOnlyUser && !isOnboardingComplete();
+
+
     const handleCreatePushCampaign = (campaign: PushCampaign) => {
         setPushCampaigns(prev => [campaign, ...prev]);
         showToast('Push notification campaign started!', 'success');
@@ -1685,6 +1722,28 @@ export const App: React.FC = () => {
                             quantity: 1,
                         };
                     });
+                // Gate checkout if passcode user hasn't built their profile yet
+                if (profileRequired) {
+                    return (
+                        <div className="min-h-screen bg-black flex items-center justify-center p-6">
+                            <div className="w-full max-w-sm space-y-4">
+                                <div className="text-center mb-6">
+                                    <p className="text-4xl mb-3">🔒</p>
+                                    <h2 className="text-xl font-black text-white mb-1">Complete Your Profile First</h2>
+                                    <p className="text-sm text-gray-500">You need a profile before you can confirm a reservation.</p>
+                                </div>
+                                <ProfileGateBanner onSetupProfile={() => setShowOnboarding(true)} />
+                                <button
+                                    onClick={() => handleNavigate('home')}
+                                    className="w-full py-3 rounded-xl text-sm text-gray-500 font-semibold transition-all"
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                >
+                                    ← Back to Experiences
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
                 return <CheckoutPage
                     currentUser={currentUser}
                     watchlist={[...instanceWatchlist, ...watchlist]}
@@ -1983,7 +2042,7 @@ export const App: React.FC = () => {
                                 ⏱ {formatTimeRemaining(passcodeTimeRemaining)} · Create your profile to keep access
                             </span>
                             <button
-                                onClick={() => handleNavigate('profile')}
+                                onClick={() => setShowOnboarding(true)}
                                 className="font-bold text-white underline underline-offset-2 whitespace-nowrap"
                             >
                                 Create Profile →
@@ -2062,6 +2121,15 @@ export const App: React.FC = () => {
                     />
 
                     {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+                    {/* ── New User Onboarding ── z-[300] so it's above everything */}
+                    {showOnboarding && (
+                        <NewUserOnboarding
+                            onComplete={handleOnboardingComplete}
+                            onDismiss={handleOnboardingDismiss}
+                            prefillEmail={getAccessSession()?.email ?? ''}
+                        />
+                    )}
 
 
                     {/* Global Modals */}

@@ -261,11 +261,17 @@ const BookingModal: React.FC<{
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
 
-  // Lock body scroll while modal is open
+  // Lock body scroll + disable bottom nav pointer events while modal is open
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    // Suppress bottom nav clicks while modal is open
+    const nav = document.querySelector('nav[aria-label="Main Navigation"]') as HTMLElement | null;
+    if (nav) nav.style.pointerEvents = 'none';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      if (nav) nav.style.pointerEvents = '';
+    };
   }, []);
 
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
@@ -292,19 +298,17 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-end sm:justify-center"
+      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden"
+        className="w-full max-w-md sm:max-w-lg flex flex-col rounded-t-3xl sm:rounded-3xl"
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '90dvh',
-          overflowY: 'auto',
-          overscrollBehavior: 'contain',
-          boxShadow: '0 -8px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+          maxHeight: '88dvh',
+          boxShadow: '0 -8px 48px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -340,7 +344,8 @@ const BookingModal: React.FC<{
           </div>
         </div>
 
-        <div className="p-4 space-y-3">
+        {/* Scrollable content area */}
+        <div className="p-4 space-y-3 overflow-y-auto flex-1" style={{ overscrollBehavior: 'contain' }}>
           {/* Meta row */}
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
             <span className="flex items-center gap-1">📅 {formatEventDate(instance.date)}</span>
@@ -427,27 +432,6 @@ const BookingModal: React.FC<{
                   {ruleError}
                 </div>
               )}
-
-              <button
-                onClick={handleAddToCart}
-                className="w-full font-bold py-3 rounded-xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
-              >
-                Reserve — ${(partySize * instance.pricePerPerson).toLocaleString()}
-              </button>
-            </div>
-          )}
-
-          {/* ── Not bookable ── */}
-          {!isBooked && !canBook && (
-            <div className="text-center py-2">
-              <p className="text-gray-500 text-[11px]">
-                {instance.status === 'sold-out'
-                  ? 'This event is fully booked.'
-                  : instance.status === 'cancelled'
-                  ? 'This event was cancelled.'
-                  : 'Booking requires an approved active membership.'}
-              </p>
             </div>
           )}
 
@@ -474,6 +458,35 @@ const BookingModal: React.FC<{
             </div>
           )}
         </div>
+
+        {/* ── Sticky CTA footer — always visible ── */}
+        {!isBooked && canBook && (
+          <div
+            className="flex-shrink-0 px-4 pb-6 pt-3 border-t border-gray-800"
+            style={{ background: '#161616' }}
+          >
+            <button
+              onClick={handleAddToCart}
+              className="w-full font-bold py-4 rounded-xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+              style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
+            >
+              Reserve — ${(partySize * instance.pricePerPerson).toLocaleString()}
+            </button>
+          </div>
+        )}
+
+          {/* ── Not bookable ── */}
+          {!isBooked && !canBook && (
+            <div className="text-center py-2">
+              <p className="text-gray-500 text-[11px]">
+                {instance.status === 'sold-out'
+                  ? 'This event is fully booked.'
+                  : instance.status === 'cancelled'
+                  ? 'This event was cancelled.'
+                  : 'Booking requires an approved active membership.'}
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );
