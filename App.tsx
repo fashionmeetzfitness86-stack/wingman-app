@@ -201,6 +201,11 @@ export const App: React.FC = () => {
     const [activeModal, setActiveModal] = useState<ModalState>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [showNotificationsPrompt, setShowNotificationsPrompt] = useState(false);
+    // Onboarding state — must be declared early (used by handleAccessGranted)
+    const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+        return hasActivePasscodeSession() && !isOnboardingComplete();
+    });
+    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
     
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [bookedItems, setBookedItems] = useState<CartItem[]>([]);
@@ -989,14 +994,8 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPasscodeOnlyUser]);
 
-    // ── New-user onboarding ───────────────────────────────────────────────────
-    // Show step-by-step profile modal whenever a passcode user hasn't completed onboarding.
-    const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-        // Auto-show if passcode session exists and onboarding not yet done
-        return hasActivePasscodeSession() && !isOnboardingComplete();
-    });
-    // dismissed = user closed it once; we'll re-prompt them at checkout
-    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+    // ── New-user onboarding (state declared above with other useState hooks to avoid TDZ) ────
+
 
     const handleOnboardingComplete = (profile: OnboardingProfile) => {
         // Merge the collected profile data into the current user record
