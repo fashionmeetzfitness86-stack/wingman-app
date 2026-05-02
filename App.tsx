@@ -335,6 +335,9 @@ export const App: React.FC = () => {
         return hasActivePasscodeSession();
     });
 
+    // Derived early — must be before any useEffect that references it (avoids TDZ crash)
+    const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+
     // Re-validate session every minute (handles expiry while app is open)
     useEffect(() => {
         if (isLoggedInUser) return;
@@ -978,7 +981,7 @@ export const App: React.FC = () => {
     };
 
     // ── Passcode 24h deadline enforcement ─────────────────────────────────────
-    const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+    // isPasscodeOnlyUser is declared at line ~339 to avoid TDZ in useEffects
     const [passcodeTimeRemaining, setPasscodeTimeRemaining] = useState<number>(() => {
         const session = getAccessSession();
         return session ? Math.max(0, session.expiresAt - Date.now()) : 0;
