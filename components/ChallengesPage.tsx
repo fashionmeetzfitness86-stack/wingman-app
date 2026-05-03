@@ -34,7 +34,7 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
         <div
           className="w-24 h-24 rounded-full flex items-center justify-center relative"
           style={{
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+            background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
             boxShadow: '0 0 40px rgba(255,255,255,0.35)',
           }}
         >
@@ -53,7 +53,7 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
       >
         Wingman will make you<br />
         <span style={{
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+          background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',

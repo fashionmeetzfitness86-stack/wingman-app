@@ -37,7 +37,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({ onVe
   };
 
   return (
-    <div className="fixed inset-0 bg-[#50B6FF] z-[100] flex flex-col p-8 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="age-verification-title">
+    <div className="fixed inset-0 bg-[#07070A] z-[100] flex flex-col p-8 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="age-verification-title">
       <style>{`
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(100%) brightness(200%);
@@ -82,7 +82,8 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({ onVe
         </p>
         <button 
           onClick={handleVerify} 
-          className="w-full max-w-xs mx-auto bg-white text-blue-600 font-bold py-4 px-4 rounded-xl transition-transform duration-200 hover:scale-105 shadow-lg shadow-blue-900/30"
+          className="w-full max-w-xs mx-auto text-white font-bold py-4 px-4 rounded-xl transition-transform duration-200 hover:scale-105 shadow-[0_0_20px_rgba(106,79,232,0.4)]"
+          style={{ background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)' }}
         >
             Enter Platform
         </button>
