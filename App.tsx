@@ -1441,7 +1441,16 @@ export const App: React.FC = () => {
                     venues={appVenues} 
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
                 />;
-            case 'adminDashboard':
+            case 'adminDashboard': {
+                // ── ROLE GUARD: router-level enforcement (UI hiding is NOT security) ──
+                if (currentUser.role !== UserRole.ADMIN) {
+                    return <HomeScreen
+                        onNavigate={handleNavigate}
+                        currentUser={currentUser}
+                        onOpenMenu={() => setIsMenuOpen(true)}
+                        onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                    />;
+                }
                 return <AdminDashboard 
                     users={appUsers} 
                     wingmen={appWingmen} 
@@ -1512,8 +1521,18 @@ export const App: React.FC = () => {
                     membershipRequests={membershipRequests}
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
-                />;
+                 />;
+            }
             case 'wingmanDashboard': {
+                // ── ROLE GUARD: only Wingman role may access this dashboard ──
+                if (currentUser.role !== UserRole.WINGMAN && currentUser.role !== UserRole.ADMIN) {
+                    return <HomeScreen
+                        onNavigate={handleNavigate}
+                        currentUser={currentUser}
+                        onOpenMenu={() => setIsMenuOpen(true)}
+                        onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                    />;
+                }
                 const myWingman = appWingmen.find(p => p.id === currentUser.id);
                 if (!myWingman) return <div>Wingman dashboard unavailable.</div>;
                 return <WingmanDashboard 

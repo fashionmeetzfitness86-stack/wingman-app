@@ -33,37 +33,42 @@ interface HeaderProps {
  * Rendered as an inline SVG so it looks crisp at any DPI.
  */
 const WingmanLogo: React.FC = () => (
-  <div className="flex items-center gap-2 select-none">
-    {/* Icon: wing + pin (simplified) */}
-    <svg width="28" height="28" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <div className="flex items-center gap-2.5 select-none">
+    {/* Icon: official wing + pin mark */}
+    <svg width="30" height="36" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
-        <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="50%" stopColor="#738596" />
-          <stop offset="100%" stopColor="#1A252C" />
+        <linearGradient id="hdr-grad-v" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#C724B1" />
+          <stop offset="45%"  stopColor="#6A4FE8" />
+          <stop offset="100%" stopColor="#00C8FF" />
+        </linearGradient>
+        <linearGradient id="hdr-grad-d" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#C724B1" />
+          <stop offset="50%"  stopColor="#6A4FE8" />
+          <stop offset="100%" stopColor="#00C8FF" />
         </linearGradient>
       </defs>
-      {/* Pin shape */}
-      <path d="M24 2C15.163 2 8 9.163 8 18c0 12.444 16 34 16 34s16-21.556 16-34C40 9.163 32.837 2 24 2z"
-        stroke="url(#wg)" strokeWidth="3" fill="none"/>
-      {/* Pin dot */}
-      <circle cx="24" cy="18" r="5" fill="url(#wg)" />
-      {/* Wing (top-left arc) */}
-      <path d="M14 10 C8 4, 2 6, 4 14 C6 18, 12 18, 14 14"
-        stroke="url(#wg)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+      {/* Pin body */}
+      <path d="M32 8C21.5 8 13 16.5 13 27c0 15 19 41 19 41S51 42 51 27C51 16.5 42.5 8 32 8z"
+        stroke="url(#hdr-grad-v)" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="32" cy="27" r="6.5" fill="url(#hdr-grad-v)" />
+      {/* Wing sweep */}
+      <path d="M22 18 C14 8, 2 10, 4 22 C6 30, 16 31, 22 26"
+        stroke="url(#hdr-grad-d)" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 22 C13 15, 6 17, 8 24"
+        stroke="url(#hdr-grad-d)" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7" />
     </svg>
     {/* Wordmark */}
     <span
       className="text-xl font-black tracking-wide hidden sm:block"
-      style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.05em' }}
+      style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.06em' }}
     >
       <span style={{
-        background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
+        background: 'linear-gradient(90deg, #C724B1 0%, #6A4FE8 55%, #00C8FF 100%)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
-      }}>W</span>
-      <span className="text-white">INGMAN</span>
+      }}>WINGMAN</span>
     </span>
   </div>
 );
@@ -151,9 +156,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-0.5">
         {tokenBalance !== undefined && (
           <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full mr-1 ${balanceJustUpdated ? 'animate-flash-blue' : ''}`}
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(106,79,232,0.3)' }}
           >
-            <TokenIcon className="w-4 h-4" style={{ color: '#FFFFFF' } as React.CSSProperties} />
+            <TokenIcon className="w-4 h-4" style={{ color: '#6A4FE8' } as React.CSSProperties} />
             <span className="text-white font-bold text-xs">{tokenBalance.toLocaleString()}</span>
           </div>
         )}
@@ -167,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
           {cartItemCount > 0 && (
             <span
               className="absolute top-0.5 right-0.5 w-4 h-4 text-[#8A8E99] text-[9px] font-black flex items-center justify-center rounded-full border-2 border-[#0F1014]"
-              style={{ background: '#1C1D22' }}
+              style={{ background: 'linear-gradient(135deg, #C724B1, #6A4FE8)', border: '2px solid var(--color-background)' }}
             >
               {cartItemCount > 9 ? '9+' : cartItemCount}
             </span>
@@ -183,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
           {hasNotifications && (
             <span
               className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2 border-black"
-              style={{ background: '#FFFFFF' }}
+              style={{ background: 'linear-gradient(135deg, #6A4FE8, #00C8FF)' }}
             />
           )}
         </button>
