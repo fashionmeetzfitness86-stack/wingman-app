@@ -39,7 +39,7 @@ const MenuItem: React.FC<{
     } ${className}`}
     aria-current={isActive ? 'page' : undefined}
   >
-    <div className={isLogout ? 'text-red-500' : 'text-[#6A4FE8]'}>
+    <div className={isLogout ? 'text-red-500' : 'text-[#50B6FF]'}>
       {icon}
     </div>
     <span className="font-semibold">{label}</span>

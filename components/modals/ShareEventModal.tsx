@@ -63,7 +63,7 @@ export const ShareEventModal: React.FC<ShareEventModalProps> = ({ event, onClose
                             placeholder="Search friends..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#6A4FE8] focus:border-[#6A4FE8]"
+                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#50B6FF] focus:border-[#50B6FF]"
                         />
                     </div>
 
@@ -79,7 +79,7 @@ export const ShareEventModal: React.FC<ShareEventModalProps> = ({ event, onClose
                                     <p className="font-semibold text-white">{user.name}</p>
                                     {user.instagramHandle && <p className="text-xs text-gray-400">@{user.instagramHandle}</p>}
                                 </div>
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${selectedUserIds.includes(user.id) ? 'border-[#6A4FE8]' : 'border-gray-600'}`} style={selectedUserIds.includes(user.id) ? { background: 'linear-gradient(135deg, #C724B1, #6A4FE8)' } : {}}>
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${selectedUserIds.includes(user.id) ? 'bg-[#50B6FF] border-[#50B6FF]' : 'border-gray-600'}`}>
                                     {selectedUserIds.includes(user.id) && <CheckIcon className="w-4 h-4 text-white" />}
                                 </div>
                             </button>
@@ -92,8 +92,7 @@ export const ShareEventModal: React.FC<ShareEventModalProps> = ({ event, onClose
                     <button
                         onClick={handleSend}
                         disabled={selectedUserIds.length === 0}
-                        className="w-full flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#6A4FE8] disabled:bg-gray-600 disabled:cursor-not-allowed disabled:hover:scale-100"
-                        style={selectedUserIds.length > 0 ? { background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)' } : {}}
+                        className="w-full flex items-center justify-center gap-2 bg-[#50B6FF] text-black font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#50B6FF] disabled:bg-gray-600 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                         <SendIcon className="w-5 h-5" />
                         Send Invite{selectedUserIds.length > 1 ? 's' : ''} ({selectedUserIds.length})
