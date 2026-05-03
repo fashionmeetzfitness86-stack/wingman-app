@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, MembershipRequest } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 import { ShieldCheckIcon } from '../icons/ShieldCheckIcon';
+import { useScrollLock } from '../../utils/useScrollLock';
 
 interface MembershipRequestModalProps {
     isOpen: boolean;
@@ -36,6 +37,9 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
 
     if (!isOpen) return null;
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useScrollLock(isOpen);
+
     const handleSubmit = () => {
         if (!message.trim() || message.trim().length < 20) {
             setError('Please write at least 20 characters about why you want access.');
@@ -58,6 +62,7 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
     return (
         <div 
             className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in"
+            data-modal-backdrop
             onClick={onClose}
         >
             <div 

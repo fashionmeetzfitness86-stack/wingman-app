@@ -177,6 +177,20 @@
       }
       .animate-fade-in-up { animation: fade-in-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
+      /* ── MODAL SCROLL LOCK ─────────────────────────────────── */
+      /* Companion to useScrollLock hook — covers all browser edge cases */
+      body.modal-open {
+        overflow: hidden !important;
+        /* iOS Safari: position:fixed is set by the hook, this just reinforces */
+        touch-action: none;
+        -webkit-overflow-scrolling: auto;
+      }
+      /* Backdrops swallow touches so underlying page never scrolls */
+      [data-modal-backdrop] {
+        touch-action: none;
+        overscroll-behavior: none;
+      }
+
     </style>
 <script type="importmap">
 {

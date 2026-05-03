@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useScrollLock } from '../utils/useScrollLock';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -673,9 +674,13 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
 
   const currentStep = STEPS[step - 1];
 
+  // Lock background scroll while the modal is mounted
+  useScrollLock(true);
+
   return (
     // Backdrop
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+      data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
     >
       <div

@@ -16,6 +16,7 @@ import {
   daysUntilLabel,
   computeStatus,
 } from '../utils/eventSchedule';
+import { useScrollLock } from '../utils/useScrollLock';
 
 // ─── PROPS ────────────────────────────────────────────────────
 
@@ -109,14 +110,8 @@ const BookingModal: React.FC<{
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
 
-  // Lock body scroll while modal is open
-  React.useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, []);
+  // Lock body scroll while modal is open (iOS + desktop)
+  useScrollLock(true);
 
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
@@ -140,6 +135,7 @@ const BookingModal: React.FC<{
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
       onClick={onClose}
     >

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { CloseIcon } from '../icons/CloseIcon';
+import { useScrollLock } from '../../utils/useScrollLock';
 
 interface NotificationsModalProps {
   onClose: () => void;
@@ -17,6 +18,8 @@ const PREVIEW_ITEMS = [
 export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose, onEnable, onManagePreferences }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  useScrollLock(true);
+
   // Trap focus inside modal
   useEffect(() => {
     const el = modalRef.current;
@@ -26,6 +29,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 animate-fade-in"
+      data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       role="dialog"
       aria-modal="true"
