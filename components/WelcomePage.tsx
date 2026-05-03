@@ -72,26 +72,19 @@ const IcoShield = () => (
 
 const WingmanWordmark: React.FC = () => (
   <div className="flex flex-col items-center gap-3 select-none">
-    <svg width="44" height="52" viewBox="0 0 64 76" fill="none" aria-hidden="true">
+    <svg width="44" height="52" viewBox="0 0 48 56" fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id="wg2-v" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#C724B1" />
-          <stop offset="45%"  stopColor="#6A4FE8" />
-          <stop offset="100%" stopColor="#00C8FF" />
-        </linearGradient>
-        <linearGradient id="wg2-d" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#C724B1" />
-          <stop offset="50%"  stopColor="#6A4FE8" />
-          <stop offset="100%" stopColor="#00C8FF" />
+        <linearGradient id="wg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="50%" stopColor="#738596" />
+          <stop offset="100%" stopColor="#1A252C" />
         </linearGradient>
       </defs>
-      <path d="M32 8C21.5 8 13 16.5 13 27c0 15 19 41 19 41S51 42 51 27C51 16.5 42.5 8 32 8z"
-        stroke="url(#wg2-v)" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="32" cy="27" r="6.5" fill="url(#wg2-v)" />
-      <path d="M22 18 C14 8, 2 10, 4 22 C6 30, 16 31, 22 26"
-        stroke="url(#wg2-d)" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M20 22 C13 15, 6 17, 8 24"
-        stroke="url(#wg2-d)" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M24 2C15.163 2 8 9.163 8 18c0 12.444 16 34 16 34s16-21.556 16-34C40 9.163 32.837 2 24 2z"
+        stroke="url(#wg2)" strokeWidth="3" fill="none" />
+      <circle cx="24" cy="18" r="5" fill="url(#wg2)" />
+      <path d="M14 10 C8 4, 2 6, 4 14 C6 18, 12 18, 14 14"
+        stroke="url(#wg2)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
     </svg>
     <div className="text-center">
       <span
@@ -99,11 +92,12 @@ const WingmanWordmark: React.FC = () => (
         style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.15em' }}
       >
         <span style={{
-          background: 'linear-gradient(90deg, #C724B1 0%, #6A4FE8 55%, #00C8FF 100%)',
+          background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
-        }}>WINGMAN</span>
+        }}>W</span>
+        <span className="text-white">INGMAN</span>
       </span>
       <p className="text-[10px] tracking-[0.4em] text-gray-500 uppercase mt-1">Miami · Private Access</p>
     </div>
@@ -273,8 +267,8 @@ const LoginScreen: React.FC<{
               disabled={loading}
               className="w-full font-bold py-4 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-60 mt-2"
               style={{
-                background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
-                color: '#fff',
+                background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                color: loading ? '#9CA3AF' : '#000',
               }}>
               {loading ? 'Signing in…' : 'Log In'}
             </button>
@@ -399,8 +393,8 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   disabled={loading}
                   className="w-full font-bold py-4 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-60 mt-2"
                   style={{
-                    background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
-                    color: '#fff',
+                    background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                    color: loading ? '#9CA3AF' : '#000',
                   }}>
                   {loading ? 'Sending…' : 'Send Reset Link'}
                 </button>
@@ -653,8 +647,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
                 style={{
                   background: isSubmitting
                     ? 'rgba(255,255,255,0.08)'
-                    : 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
-                  color: '#fff',
+                    : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                  color: isSubmitting ? '#9CA3AF' : '#000',
                 }}
               >
                 {isSubmitting ? 'Verifying…' : 'Unlock Access'}
@@ -702,7 +696,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         >
           This is not for<br />
           <span style={{
-            background: 'linear-gradient(90deg, #C724B1 0%, #6A4FE8 55%, #00C8FF 100%)',
+            background: 'linear-gradient(90deg, #FFFFFF 0%, #738596 60%, #1A252C 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -718,9 +712,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
           onClick={() => setMode('enter')}
           className="w-full max-w-xs mx-auto block font-bold py-4 rounded-xl text-black text-sm transition-all hover:opacity-90 active:scale-[0.98]"
           style={{
-            background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)',
-            boxShadow: '0 8px 32px rgba(106,79,232,0.4)',
-            color: '#fff',
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%)',
+            boxShadow: '0 8px 32px rgba(255,255,255,0.1)',
           }}
         >
           Enter Passcode

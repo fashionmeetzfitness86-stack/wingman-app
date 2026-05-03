@@ -1,63 +1,22 @@
 
 import React from 'react';
 
-/**
- * WingmanLogo — faithful SVG recreation of the official Wingman logo.
- * Wing feather (magenta top) flowing into a location pin (cyan base).
- * Uses the official brand gradient: #C724B1 → #6A4FE8 → #00C8FF
- */
-export const WingmanLogo: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = 'w-10 h-10', style }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 64 76"
-    fill="none"
-    className={className}
-    style={style}
+export const WingmanLogo: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "w-10 h-10", style }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 100 100" 
+    className={className} style={style}
     aria-hidden="true"
   >
     <defs>
-      {/* Vertical gradient: magenta top → indigo mid → cyan bottom — matches the logo */}
-      <linearGradient id="wm-logo-grad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stopColor="#C724B1" />
-        <stop offset="45%"  stopColor="#6A4FE8" />
-        <stop offset="100%" stopColor="#00C8FF" />
-      </linearGradient>
-      <linearGradient id="wm-logo-grad-h" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%"   stopColor="#C724B1" />
-        <stop offset="50%"  stopColor="#6A4FE8" />
-        <stop offset="100%" stopColor="#00C8FF" />
+      <linearGradient id="wingman-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="100%" stopColor="#8A8E99" />
       </linearGradient>
     </defs>
-
-    {/* ── Location pin body ── */}
     <path
-      d="M32 8C21.5 8 13 16.5 13 27c0 15 19 41 19 41S51 42 51 27C51 16.5 42.5 8 32 8z"
-      stroke="url(#wm-logo-grad)"
-      strokeWidth="3.5"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    {/* ── Pin dot ── */}
-    <circle cx="32" cy="27" r="6.5" fill="url(#wm-logo-grad)" />
-
-    {/* ── Wing: large outer sweep (top-left) ── */}
-    <path
-      d="M22 18 C14 8, 2 10, 4 22 C6 30, 16 31, 22 26"
-      stroke="url(#wm-logo-grad-h)"
-      strokeWidth="3"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    {/* ── Wing: inner feather detail ── */}
-    <path
-      d="M20 22 C13 15, 6 17, 8 24"
-      stroke="url(#wm-logo-grad-h)"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      opacity="0.7"
+      fill="url(#wingman-gradient)"
+      d="M66.4,20.4c-6.2-6.5-14.8-10.4-24.3-10.4c-1,0-2,0.1-3,0.2c-0.2,0-0.4,0-0.6,0.1 C18.9,12.2,4.3,28.6,4.3,49.1c0,10.6,4,20.2,10.7,27.4c0.2,0.2,0.4,0.4,0.6,0.6c0,0,0,0,0,0c0.6,0.5,1.2,1,1.8,1.5 c3.3,2.4,7.1,4.2,11.2,5.2c1.1,0.3,2.2,0.5,3.3,0.6h0c1.7,0.2,3.3,0.3,5,0.3c15.8,0,29.8-9.4,36.5-23.2 C81.9,46,76.7,31.2,66.4,20.4z M50.2,64.2c-8.3,0-15-6.7-15-15s6.7-15,15-15s15,6.7,15,15S58.5,64.2,50.2,64.2z"
     />
   </svg>
-);
+);
