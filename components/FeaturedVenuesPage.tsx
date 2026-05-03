@@ -109,6 +109,15 @@ const BookingModal: React.FC<{
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
 
+  // Lock body scroll while modal is open
+  React.useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
@@ -139,7 +148,7 @@ const BookingModal: React.FC<{
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '85vh', overflowY: 'auto',
+          maxHeight: '85vh', overflowY: 'auto', overscrollBehavior: 'contain',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8)',
         }}
         onClick={e => e.stopPropagation()}

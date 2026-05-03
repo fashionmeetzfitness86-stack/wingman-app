@@ -313,7 +313,7 @@ const BookingModal: React.FC<{
         onClick={e => e.stopPropagation()}
       >
         {/* Cover */}
-        <div className="relative h-32 sm:h-40">
+        <div className="relative h-32 sm:h-40 flex-shrink-0">
           <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
           <button
