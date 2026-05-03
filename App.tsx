@@ -1444,8 +1444,12 @@ export const App: React.FC = () => {
             case 'adminDashboard': {
                 // ── ROLE GUARD: router-level enforcement (UI hiding is NOT security) ──
                 if (currentUser.role !== UserRole.ADMIN) {
-                    handleNavigate('home');
-                    return null;
+                    return <HomeScreen
+                        onNavigate={handleNavigate}
+                        currentUser={currentUser}
+                        onOpenMenu={() => setIsMenuOpen(true)}
+                        onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                    />;
                 }
                 return <AdminDashboard 
                     users={appUsers} 
@@ -1522,8 +1526,12 @@ export const App: React.FC = () => {
             case 'wingmanDashboard': {
                 // ── ROLE GUARD: only Wingman role may access this dashboard ──
                 if (currentUser.role !== UserRole.WINGMAN && currentUser.role !== UserRole.ADMIN) {
-                    handleNavigate('home');
-                    return null;
+                    return <HomeScreen
+                        onNavigate={handleNavigate}
+                        currentUser={currentUser}
+                        onOpenMenu={() => setIsMenuOpen(true)}
+                        onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                    />;
                 }
                 const myWingman = appWingmen.find(p => p.id === currentUser.id);
                 if (!myWingman) return <div>Wingman dashboard unavailable.</div>;

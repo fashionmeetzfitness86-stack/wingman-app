@@ -19,40 +19,45 @@
       @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
       /* ── WINGMAN BRAND TOKENS ──────────────────────────────── */
+      /* Source: Official Wingman logo — magenta → indigo → cyan  */
       :root {
-        /* Gradient: steel → white → muted cyan */
-        --brand-start:  #FFFFFF;
-        --brand-mid:    #738596;
-        --brand-end:    #4A6B7E;
-        --brand-gradient: linear-gradient(135deg, #FFFFFF 0%, #738596 50%, #1A252C 100%);
-        --brand-gradient-text: linear-gradient(90deg, #FFFFFF, #738596, #1A252C);
+        /* Brand gradient — extracted directly from the official logo */
+        --brand-start:    #C724B1;  /* magenta (top of wing)        */
+        --brand-mid:      #6A4FE8;  /* indigo  (wing transition)    */
+        --brand-end:      #00C8FF;  /* cyan    (location pin base)  */
 
-        /* Surfaces */
-        --color-background: #08080A;
-        --color-surface-1:  #0F1014;
-        --color-surface-2:  #15161A;
-        --color-surface-3:  #1C1D22;
-        --color-border:     rgba(255,255,255,0.06);
-        --color-border-strong: rgba(255,255,255,0.12);
+        --brand-gradient:       linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%);
+        --brand-gradient-text:  linear-gradient(90deg,  #C724B1 0%, #6A4FE8 55%, #00C8FF 100%);
+        --brand-gradient-vert:  linear-gradient(180deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%);
+        --brand-glow-color:     rgba(106, 79, 232, 0.35);
+        --brand-glow-color-alt: rgba(0, 200, 255, 0.25);
+
+        /* Surfaces — deep dark for maximum contrast against vibrant brand */
+        --color-background: #07070A;
+        --color-surface-1:  #0E0E14;
+        --color-surface-2:  #141420;
+        --color-surface-3:  #1C1C2A;
+        --color-border:     rgba(255,255,255,0.07);
+        --color-border-strong: rgba(106,79,232,0.25);
 
         /* Text */
         --color-text:       #FFFFFF;
-        --color-text-muted: #8A8E99;
-        --color-text-sub:   #5D616B;
+        --color-text-muted: #8A8EA8;
+        --color-text-sub:   #5D5D7A;
 
-        /* Legacy compat */
-        --color-primary:    #FFFFFF;
-        --color-primary-foreground: #000000;
-        --color-accent:     #4A6B7E;
-        --color-ring:       #738596;
-        --color-card:       #0F1014;
+        /* Semantic colors */
+        --color-primary:    #6A4FE8;
+        --color-primary-foreground: #FFFFFF;
+        --color-accent:     #00C8FF;
+        --color-ring:       #6A4FE8;
+        --color-card:       #0E0E14;
         --color-card-foreground: #FFFFFF;
-        --color-secondary:  #15161A;
+        --color-secondary:  #141420;
         --color-secondary-foreground: #FFFFFF;
-        --color-danger:     #6E1B1B; /* dark red, not bright */
+        --color-danger:     #7B1F1F;
         --color-danger-foreground: #FFFFFF;
-        --color-success:    #1B4A3A; /* muted dark green */
-        --color-overlay:    rgba(0,0,0,0.9);
+        --color-success:    #1A4A35;
+        --color-overlay:    rgba(7,7,10,0.95);
       }
 
 
@@ -165,8 +170,8 @@
       .animate-fade-in { animation: animate-fade-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
       @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 4px rgba(255,255,255,0.05); }
-        50%       { box-shadow: 0 0 16px rgba(115, 133, 150, 0.15); }
+        0%, 100% { box-shadow: 0 0 4px rgba(106,79,232,0.1); }
+        50%       { box-shadow: 0 0 20px rgba(106,79,232,0.4), 0 0 40px rgba(0,200,255,0.15); }
       }
       .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
