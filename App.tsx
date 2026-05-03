@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, formatTimeRemaining } from './utils/accessControl';
-import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking } from './types';
+import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
 
@@ -55,7 +55,7 @@ import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
 import { WelcomePage } from './components/WelcomePage';
-import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, type OnboardingProfile } from './components/NewUserOnboarding';
+import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, verifyUserPassword, hasUserPassword, type OnboardingProfile } from './components/NewUserOnboarding';
 
 // Layout & Modals
 import { Header } from './components/Header';
@@ -201,6 +201,11 @@ export const App: React.FC = () => {
     const [activeModal, setActiveModal] = useState<ModalState>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [showNotificationsPrompt, setShowNotificationsPrompt] = useState(false);
+    // Onboarding state — must be declared early (used by handleAccessGranted)
+    const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+        return hasActivePasscodeSession() && !isOnboardingComplete();
+    });
+    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
     
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [bookedItems, setBookedItems] = useState<CartItem[]>([]);
@@ -330,6 +335,9 @@ export const App: React.FC = () => {
         return hasActivePasscodeSession();
     });
 
+    // Derived early — must be before any useEffect that references it (avoids TDZ crash)
+    const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+
     // Re-validate session every minute (handles expiry while app is open)
     useEffect(() => {
         if (isLoggedInUser) return;
@@ -369,8 +377,10 @@ export const App: React.FC = () => {
         }
     }, [currentUser]);
 
-    // Notification Prompt Effect
+    // Notification Prompt Effect — skip if onboarding is showing or user is in passcode-only session
     useEffect(() => {
+        if (showOnboarding) return; // Don't show while onboarding modal is open
+        if (isPasscodeOnlyUser) return; // Don't badger passcode users during their 24h window
         if (currentUser && !currentUser.notificationsEnabled) {
              const hasSeenPrompt = sessionStorage.getItem('notifications_prompt_seen');
              if (!hasSeenPrompt) {
@@ -378,7 +388,7 @@ export const App: React.FC = () => {
                  return () => clearTimeout(timer);
              }
         }
-    }, [currentUser]);
+    }, [currentUser, showOnboarding, isPasscodeOnlyUser]);
 
     // URL Parsing Effect for Shared Links
     useEffect(() => {
@@ -971,7 +981,7 @@ export const App: React.FC = () => {
     };
 
     // ── Passcode 24h deadline enforcement ─────────────────────────────────────
-    const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+    // isPasscodeOnlyUser is declared at line ~339 to avoid TDZ in useEffects
     const [passcodeTimeRemaining, setPasscodeTimeRemaining] = useState<number>(() => {
         const session = getAccessSession();
         return session ? Math.max(0, session.expiresAt - Date.now()) : 0;
@@ -987,14 +997,8 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPasscodeOnlyUser]);
 
-    // ── New-user onboarding ───────────────────────────────────────────────────
-    // Show step-by-step profile modal whenever a passcode user hasn't completed onboarding.
-    const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-        // Auto-show if passcode session exists and onboarding not yet done
-        return hasActivePasscodeSession() && !isOnboardingComplete();
-    });
-    // dismissed = user closed it once; we'll re-prompt them at checkout
-    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+    // ── New-user onboarding (state declared above with other useState hooks to avoid TDZ) ────
+
 
     const handleOnboardingComplete = (profile: OnboardingProfile) => {
         // Merge the collected profile data into the current user record
@@ -2001,24 +2005,27 @@ export const App: React.FC = () => {
     // This MUST be the first thing unauthenticated users see.
     // It prevents OnboardingModal (z-100) from overlaying the gate.
     if (!isLoggedInUser && !passcodeAccessActive) {
-        const handleLogin = (email: string, _password: string, stayLoggedIn: boolean = true): boolean => {
-            // Match user by email (password check is simulated — replace with real auth when backend is ready)
+        const handleLogin = (email: string, password: string, stayLoggedIn: boolean = true): boolean => {
             const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-            if (found) {
-                setCurrentUser(found);
-                grantPasscodeAccess(found.email);
-                // Only persist session to localStorage if "Stay logged in" is checked
-                if (stayLoggedIn) {
-                    localStorage.setItem('wingman_currentUserId', found.id.toString());
-                } else {
-                    sessionStorage.setItem('wingman_currentUserId_session', found.id.toString());
-                    localStorage.removeItem('wingman_currentUserId');
-                }
-                setPasscodeAccessActive(true);
-                setCurrentPage('home');
-                return true;
+            if (!found) return false;
+
+            // If the user has set a password via onboarding, verify it.
+            // Otherwise (legacy mock users) allow login by email match only.
+            if (hasUserPassword(found.email) && !verifyUserPassword(found.email, password)) {
+                return false;
             }
-            return false;
+
+            setCurrentUser(found);
+            grantPasscodeAccess(found.email);
+            if (stayLoggedIn) {
+                localStorage.setItem('wingman_currentUserId', found.id.toString());
+            } else {
+                sessionStorage.setItem('wingman_currentUserId_session', found.id.toString());
+                localStorage.removeItem('wingman_currentUserId');
+            }
+            setPasscodeAccessActive(true);
+            setCurrentPage('home');
+            return true;
         };
         return (
             <WelcomePage

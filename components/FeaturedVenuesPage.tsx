@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Venue, User, EventInstance, InstanceBooking } from '../types';
+import { Venue, User, UserRole, EventInstance, InstanceBooking } from '../types';
 import { venues } from '../data/mockData';
 import {
   generateEventFeed,
@@ -16,6 +16,7 @@ import {
   daysUntilLabel,
   computeStatus,
 } from '../utils/eventSchedule';
+import { useScrollLock } from '../utils/useScrollLock';
 
 // ─── PROPS ────────────────────────────────────────────────────
 
@@ -109,6 +110,9 @@ const BookingModal: React.FC<{
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
 
+  // Lock body scroll while modal is open (iOS + desktop)
+  useScrollLock(true);
+
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
@@ -130,16 +134,17 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden"
+        className="w-full max-w-md rounded-3xl overflow-hidden"
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '92vh', overflowY: 'auto',
+          maxHeight: '85vh', overflowY: 'auto', overscrollBehavior: 'contain',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8)',
         }}
         onClick={e => e.stopPropagation()}
@@ -492,7 +497,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
   const isApproved = currentUser.approvalStatus === 'approved';
   const hasActiveSub = currentUser.subscriptionStatus === 'active';
-  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Wingman' || currentUser.role === 'Wingman';
+  const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
   // Generate all upcoming instances

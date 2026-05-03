@@ -17,6 +17,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { User, UserRole, EventInstance, InstanceBooking, ExperienceType } from '../types';
 import { generateEventFeed, WEEKLY_SCHEDULE, formatEventDate, daysUntilLabel, computeStatus } from '../utils/eventSchedule';
+import { useScrollLock } from '../utils/useScrollLock';
 
 // ─── ICONS (inline SVG — no new icon files needed) ───────────
 
@@ -262,16 +263,13 @@ const BookingModal: React.FC<{
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
 
   // Lock body scroll + disable bottom nav pointer events while modal is open
+  useScrollLock(true);
+
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     // Suppress bottom nav clicks while modal is open
     const nav = document.querySelector('nav[aria-label="Main Navigation"]') as HTMLElement | null;
     if (nav) nav.style.pointerEvents = 'none';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      if (nav) nav.style.pointerEvents = '';
-    };
+    return () => { if (nav) nav.style.pointerEvents = ''; };
   }, []);
 
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
@@ -298,22 +296,23 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-end sm:justify-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md sm:max-w-lg flex flex-col rounded-t-3xl sm:rounded-3xl"
+        className="w-full max-w-md sm:max-w-lg flex flex-col rounded-3xl"
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '88dvh',
+          maxHeight: '85vh',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Cover */}
-        <div className="relative h-32 sm:h-40">
+        <div className="relative h-32 sm:h-40 flex-shrink-0">
           <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
           <button
