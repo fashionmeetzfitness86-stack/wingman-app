@@ -37,21 +37,21 @@ export const ChangePasswordModal: React.FC<{ isOpen: boolean; onClose: () => voi
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Current Password</label>
-            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#50B6FF] focus:border-[#50B6FF]" />
+            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#6A4FE8] focus:border-[#6A4FE8]" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">New Password</label>
-            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#50B6FF] focus:border-[#50B6FF]" />
+            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#6A4FE8] focus:border-[#6A4FE8]" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Confirm New Password</label>
-            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#50B6FF] focus:border-[#50B6FF]" />
+            <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-[#6A4FE8] focus:border-[#6A4FE8]" />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
         <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
           <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-          <button onClick={handleSave} className="bg-[#50B6FF] text-black font-bold py-2 px-4 rounded-lg">Save Changes</button>
+          <button onClick={handleSave} className="text-white font-bold py-2 px-4 rounded-lg" style={{ background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 50%, #00C8FF 100%)' }}>Save Changes</button>
         </div>
       </div>
     </div>

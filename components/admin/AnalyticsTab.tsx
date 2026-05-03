@@ -85,7 +85,7 @@ const BookingsByVenueChart: React.FC<{ data: { name: string; count: number }[] }
             <span className="text-sm font-semibold text-gray-400 w-28 truncate" title={name}>{name}</span>
             <div className="flex-1 bg-gray-700 rounded-full h-4">
               <div
-                className="bg-gradient-to-r from-[#50B6FF] to-[#60a5fa] h-4 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-[#C724B1] via-[#6A4FE8] to-[#00C8FF] h-4 rounded-full transition-all duration-500"
                 style={{ width: `${(count / maxCount) * 100}%` }}
               />
             </div>

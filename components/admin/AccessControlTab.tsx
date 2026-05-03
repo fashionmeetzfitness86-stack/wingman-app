@@ -272,7 +272,7 @@ export const AccessControlTab: React.FC = () => {
             className="w-full font-bold py-3.5 rounded-xl text-sm transition-all active:scale-[0.98]"
             style={saved
               ? { background: 'rgba(34,197,94,0.1)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.2)' }
-              : { background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 100%)', color: '#000' }
+              : { background: 'linear-gradient(135deg, #C724B1 0%, #6A4FE8 100%)', color: '#fff' }
             }
           >
             {saved ? '✓ Passcode Updated' : 'Set New Passcode'}
