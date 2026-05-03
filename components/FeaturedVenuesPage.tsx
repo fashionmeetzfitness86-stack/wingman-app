@@ -130,16 +130,16 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden"
+        className="w-full max-w-md rounded-3xl overflow-hidden"
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '92vh', overflowY: 'auto',
+          maxHeight: '85vh', overflowY: 'auto',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8)',
         }}
         onClick={e => e.stopPropagation()}

@@ -378,16 +378,16 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
 
   return (
     // Backdrop
-    <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center"
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
     >
       <div
-        className="w-full max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col"
+        className="w-full max-w-md rounded-3xl flex flex-col"
         style={{
           background: '#111',
           border: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 -16px 64px rgba(0,0,0,0.9)',
-          maxHeight: '92dvh',
+          maxHeight: '85vh',
         }}
       >
         {/* Header */}

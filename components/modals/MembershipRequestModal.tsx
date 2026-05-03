@@ -56,15 +56,13 @@ export const MembershipRequestModal: React.FC<MembershipRequestModalProps> = ({
     };
 
     return (
-        <div
-            className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
+        <div 
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in"
             onClick={onClose}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Request platform access"
         >
-            <div
-                className="bg-[#121212] border border-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md mx-0 sm:mx-4 flex flex-col max-h-[90vh]"
+            <div 
+                className="w-full max-w-md bg-[#161616] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative flex flex-col"
+                style={{ maxHeight: '85vh' }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}

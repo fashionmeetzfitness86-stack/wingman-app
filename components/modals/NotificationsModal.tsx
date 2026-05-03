@@ -25,7 +25,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-end sm:justify-center animate-fade-in"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 animate-fade-in"
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       role="dialog"
       aria-modal="true"
@@ -35,10 +35,12 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="w-full max-w-sm mx-auto rounded-t-3xl sm:rounded-3xl overflow-hidden focus:outline-none"
+        className="w-full max-w-sm mx-auto rounded-3xl overflow-hidden focus:outline-none"
         style={{
           background: 'linear-gradient(160deg, #18181B 0%, #0F0F12 100%)',
           border: '1px solid rgba(255,255,255,0.10)',
+          maxHeight: '85vh',
+          overflowY: 'auto',
           boxShadow: '0 -16px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)',
         }}
       >
