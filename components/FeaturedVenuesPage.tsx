@@ -109,129 +109,68 @@ const BookingModal: React.FC<{
 }> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans }) => {
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
-
-  // Lock body scroll while modal is open (iOS + desktop)
   useScrollLock(true);
-
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
   const tc = { color: TYPE_COLORS[instance.experienceType] ?? '#FFFFFF', icon: TYPE_ICONS[instance.experienceType] ?? '✦' };
-
-  const handleAddToCart = () => {
-    const rules = instance.bookingRules;
-    if (rules.maxPerBooking && partySize > rules.maxPerBooking) {
-      setRuleError(`Maximum ${rules.maxPerBooking} people per booking.`); return;
+  const handleReserve = () => {
+    if (instance.bookingRules.maxPerBooking && partySize > instance.bookingRules.maxPerBooking) {
+      setRuleError(`Max ${instance.bookingRules.maxPerBooking} per booking.`); return;
     }
-    if (partySize > spotsLeft) {
-      setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} remaining.`); return;
-    }
-    setRuleError('');
-    onConfirm(partySize);
-    onClose();
+    if (partySize > spotsLeft) { setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left.`); return; }
+    setRuleError(''); onConfirm(partySize); onClose();
     if (onNavigateToPlans) onNavigateToPlans();
   };
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      data-modal-backdrop
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } as React.CSSProperties}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[200]" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties} onClick={onClose}>
       <div
-        className="w-full max-w-md flex flex-col rounded-3xl"
-        style={{
-          background: '#161616',
-          border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '90dvh',
-          boxShadow: '0 -8px 48px rgba(0,0,0,0.8)',
-        }}
+        className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
+        style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none', maxHeight: '82vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -12px 60px rgba(0,0,0,0.9)' }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Cover */}
-        <div className="relative h-48 flex-shrink-0">
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 rounded-full bg-gray-700" /></div>
+        <div className="relative h-32 flex-shrink-0 overflow-hidden">
           <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <IconClose className="w-5 h-5" />
-          </button>
-          <div className="absolute bottom-4 left-4">
-            <div className="text-sm mb-1" style={{ color: tc.color }}>{tc.icon} {instance.experienceType}</div>
-            <h2 className="text-xl font-black text-white leading-tight">{instance.title}</h2>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 60%)' }} />
+          <button onClick={onClose} className="absolute top-2 right-3 p-2 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.6)' }}><IconClose className="w-4 h-4" /></button>
+          <div className="absolute bottom-3 left-4">
+            <div className="text-xs font-bold mb-0.5" style={{ color: tc.color }}>{tc.icon} {instance.experienceType}</div>
+            <h2 className="text-lg font-black text-white leading-tight">{instance.title}</h2>
           </div>
         </div>
-
-        <div
-          className="p-5 space-y-4 flex-1"
-          style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-          onTouchMove={e => e.stopPropagation()}
-        >
-          {/* Meta */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-400">
+        <div className="px-5 py-4 space-y-4" style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', flex: '1 1 auto', minHeight: 0 } as React.CSSProperties} onTouchMove={e => e.stopPropagation()}>
+          <div className="flex flex-wrap gap-3 text-xs text-gray-400">
             <span>📅 {formatEventDate(instance.date)}</span>
             <span>🕐 {instance.arrivalTime || instance.time}</span>
             <span>📍 {instance.venue}</span>
           </div>
-
-          {/* Spots */}
-          <div className="flex items-center justify-between rounded-xl px-4 py-3"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="flex items-center gap-2 text-sm">
               <IconUsers className="w-4 h-4 text-gray-400" />
-              <span className="text-white font-semibold">
-                {spotsLeft <= 0 ? 'Sold out' : spotsLeft === 1 ? '🔴 1 spot left!' : spotsLeft <= 2 ? `⚡ ${spotsLeft} spots left` : `${spotsLeft} spots left`}
-              </span>
+              <span className="text-white font-semibold">{spotsLeft <= 0 ? 'Sold out' : spotsLeft === 1 ? '🔴 1 spot left!' : spotsLeft <= 2 ? `⚡ ${spotsLeft} spots left` : `${spotsLeft} spots left`}</span>
             </div>
             <span className="text-xs font-bold text-white">${instance.pricePerPerson.toLocaleString()}/person</span>
           </div>
-
-          {/* Rules */}
-          {(instance.bookingRules.maxPerBooking) && (
-            <div className="rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="font-semibold text-gray-300 mb-1">Booking Rules</p>
-              {instance.bookingRules.maxPerBooking && <p>• Max {instance.bookingRules.maxPerBooking} people per booking</p>}
-            </div>
-          )}
-
-          {/* Already booked */}
           {isBooked && (
-            <div className="flex flex-col items-center py-4 gap-4 text-center">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(55,65,81,0.15))' }}>
-                <IconCheck className="w-7 h-7" style={{ color: '#FFFFFF' } as React.CSSProperties} />
-              </div>
+            <div className="flex flex-col items-center py-3 gap-3 text-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}><IconCheck className="w-6 h-6" style={{ color: '#FFFFFF' } as React.CSSProperties} /></div>
               <div>
-                <p className="font-bold text-white text-lg mb-1">You're In! 🎉</p>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {existingBooking
-                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} — paid`
-                    : 'Your spot is reserved and in your cart.'}
-                </p>
+                <p className="font-bold text-white text-base">You're In! 🎉</p>
+                <p className="text-xs text-gray-400 mt-0.5">{existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} paid` : 'Your spot is reserved.'}</p>
               </div>
-              {onNavigateToPlans && (
-                <button onClick={() => { onClose(); onNavigateToPlans(); }}
-                  className="w-full font-bold py-3.5 rounded-2xl text-white text-sm transition-all active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.2)' }}>
-                  View in My Plans →
-                </button>
-              )}
-              <button onClick={onClose} className="text-sm font-semibold text-gray-500 hover:text-gray-300">Close</button>
+              {onNavigateToPlans && <button onClick={() => { onClose(); onNavigateToPlans(); }} className="w-full font-bold py-3.5 rounded-2xl text-white text-sm" style={{ background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF,#374151)' }}>View in My Plans →</button>}
+              <button onClick={onClose} className="text-sm font-semibold text-gray-500">Close</button>
             </div>
           )}
-
-          {/* Booking form */}
           {!isBooked && canBook && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-3">Party Size</label>
+                <p className="text-sm font-medium text-gray-400 mb-3">Party Size</p>
                 <div className="flex items-center gap-4">
-                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))}
-                    className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700 transition-colors">−</button>
+                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">−</button>
                   <span className="text-2xl font-black text-white w-8 text-center">{partySize}</span>
-                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))}
-                    className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700 transition-colors">+</button>
+                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">+</button>
                   <span className="text-sm text-gray-500 ml-2">person{partySize !== 1 ? 's' : ''}</span>
                 </div>
               </div>
@@ -239,28 +178,20 @@ const BookingModal: React.FC<{
                 <span className="text-gray-400 text-sm">Total</span>
                 <span className="text-2xl font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
               </div>
-              {ruleError && (
-                <div className="bg-red-900/30 border border-red-700/50 rounded-xl px-4 py-3 text-sm text-red-300">{ruleError}</div>
-              )}
-              <button onClick={handleAddToCart}
-                className="w-full font-bold py-4 rounded-2xl text-white text-base transition-all active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}>
-                Add to Cart — ${(partySize * instance.pricePerPerson).toLocaleString()}
-              </button>
+              {ruleError && <div className="bg-red-900/30 border border-red-700/50 rounded-xl px-4 py-2 text-xs text-red-300">{ruleError}</div>}
             </div>
           )}
-
-          {/* Not bookable */}
           {!isBooked && !canBook && (
-            <div className="text-center py-4">
-              <p className="text-gray-500 text-sm">
-                {instance.status === 'sold-out' ? 'This event is fully booked.' :
-                 instance.status === 'cancelled' ? 'This event was cancelled.' :
-                 'Booking requires an approved account.'}
-              </p>
-            </div>
+            <p className="text-center text-gray-500 text-sm py-3">{instance.status === 'sold-out' ? 'This event is fully booked.' : instance.status === 'cancelled' ? 'This event was cancelled.' : 'Booking requires an approved account.'}</p>
           )}
         </div>
+        {!isBooked && canBook && (
+          <div className="flex-shrink-0 px-5 pb-8 pt-3 border-t border-gray-800" style={{ background: '#161616' }}>
+            <button onClick={handleReserve} className="w-full font-bold py-4 rounded-2xl text-white text-base active:scale-[0.98]" style={{ background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF,#374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.2)' }}>
+              Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
