@@ -140,17 +140,17 @@ const BookingModal: React.FC<{
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-3xl overflow-hidden"
+        className="w-full max-w-md flex flex-col rounded-3xl"
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '85vh', overflowY: 'auto', overscrollBehavior: 'contain',
+          maxHeight: '90dvh',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.8)',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Cover */}
-        <div className="relative h-48">
+        <div className="relative h-48 flex-shrink-0">
           <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
           <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.5)' }}>
@@ -162,7 +162,11 @@ const BookingModal: React.FC<{
           </div>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div
+          className="p-5 space-y-4 flex-1"
+          style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+          onTouchMove={e => e.stopPropagation()}
+        >
           {/* Meta */}
           <div className="flex flex-wrap gap-3 text-sm text-gray-400">
             <span>📅 {formatEventDate(instance.date)}</span>

@@ -306,7 +306,7 @@ const BookingModal: React.FC<{
         style={{
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '85vh',
+          maxHeight: '90dvh',
           boxShadow: '0 -8px 48px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
         }}
         onClick={e => e.stopPropagation()}
@@ -344,7 +344,11 @@ const BookingModal: React.FC<{
         </div>
 
         {/* Scrollable content area */}
-        <div className="p-4 space-y-3 overflow-y-auto flex-1" style={{ overscrollBehavior: 'contain' }}>
+        <div
+          className="p-4 space-y-3 flex-1"
+          style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+          onTouchMove={e => e.stopPropagation()}
+        >
           {/* Meta row */}
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
             <span className="flex items-center gap-1">📅 {formatEventDate(instance.date)}</span>
@@ -474,18 +478,6 @@ const BookingModal: React.FC<{
           </div>
         )}
 
-          {/* ── Not bookable ── */}
-          {!isBooked && !canBook && (
-            <div className="text-center py-2">
-              <p className="text-gray-500 text-[11px]">
-                {instance.status === 'sold-out'
-                  ? 'This event is fully booked.'
-                  : instance.status === 'cancelled'
-                  ? 'This event was cancelled.'
-                  : 'Booking requires an approved active membership.'}
-              </p>
-            </div>
-          )}
       </div>
     </div>
   );
