@@ -296,7 +296,7 @@ const BookingModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-12 sm:pt-16"
       data-modal-backdrop
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' } as React.CSSProperties}
       onClick={onClose}
