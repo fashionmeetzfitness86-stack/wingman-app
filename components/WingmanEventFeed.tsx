@@ -411,9 +411,13 @@ const BookingModal: React.FC<{
 
         {/* Reserve button — always pinned, never scrolls away */}
         {!isBooked && canBook && (
-              style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
+          <div className="flex-shrink-0 px-4 pb-8 pt-3 border-t border-gray-800" style={{ background: '#161616' }}>
+            <button
+              onClick={handleReserve}
+              className="w-full font-bold py-4 rounded-2xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+              style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.35)' }}
             >
-              Reserve — ${(partySize * instance.pricePerPerson).toLocaleString()}
+              Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
             </button>
           </div>
         )}
