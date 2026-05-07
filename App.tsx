@@ -1288,6 +1288,7 @@ export const App: React.FC = () => {
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })}
+                    onViewDetail={(inst) => handleNavigate('eventDetail', { instance: inst })}
                     currentUser={currentUser}
                     wingmen={appWingmen}
                     onJoinGuestlist={(p, v) => handleOpenGuestlistModal({ wingman: p, venue: v })}

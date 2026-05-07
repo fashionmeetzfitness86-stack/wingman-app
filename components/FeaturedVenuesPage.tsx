@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { Venue, User, UserRole, EventInstance, InstanceBooking } from '../types';
 import { venues } from '../data/mockData';
 import {
@@ -26,11 +25,11 @@ interface FeaturedVenuesPageProps {
   favoriteVenueIds?: number[];
   onToggleFavorite?: (venueId: number) => void;
   onViewVenueDetails: (venue: Venue) => void;
+  onViewDetail?: (instance: EventInstance) => void;
   currentUser: User;
   wingmen?: unknown[];
   onJoinGuestlist?: unknown;
   guestlistJoinRequests?: unknown[];
-  // Experience booking (passed from App.tsx)
   bookedMap?: Record<string, number>;
   cancelMap?: Record<string, boolean>;
   instanceBookings?: InstanceBooking[];
@@ -38,7 +37,6 @@ interface FeaturedVenuesPageProps {
   onBook?: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
   onToggleBookmark?: (instanceId: string) => void;
   onNavigateToPlans?: () => void;
-  // Cart-pending reservations: { [instanceId]: partySize }
   pendingCartMap?: Record<string, number>;
 }
 
@@ -97,168 +95,6 @@ const DAYS_SHORT: Record<string, string> = {
 const TYPE_ICONS: Record<string, string> = { Nightclub: '🌙', Dinner: '🍽', Yacht: '⚓' };
 const TYPE_COLORS: Record<string, string> = { Nightclub: '#9CA3AF', Dinner: '#F59E0B', Yacht: '#06B6D4' };
 
-// ─── BOOKING MODAL ────────────────────────────────────────────
-
-const BookingModal: React.FC<{
-  instance: EventInstance;
-  currentUser: User;
-  isBooked: boolean;
-  existingBooking?: InstanceBooking;
-  onClose: () => void;
-  onConfirm: (partySize: number) => void;
-  onNavigateToPlans?: () => void;
-}> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans }) => {
-  const [partySize, setPartySize] = useState(1);
-  const [ruleError, setRuleError] = useState('');
-  useScrollLock(true);
-  const spotsLeft = instance.totalCapacity - instance.spotsBooked;
-  const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
-  const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
-  const tc = { color: TYPE_COLORS[instance.experienceType] ?? '#FFFFFF', icon: TYPE_ICONS[instance.experienceType] ?? '✦' };
-  const handleReserve = () => {
-    if (instance.bookingRules.maxPerBooking && partySize > instance.bookingRules.maxPerBooking) {
-      setRuleError(`Max ${instance.bookingRules.maxPerBooking} per booking.`); return;
-    }
-    if (partySize > spotsLeft) { setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left.`); return; }
-    setRuleError(''); onConfirm(partySize); onClose();
-    if (onNavigateToPlans) onNavigateToPlans();
-  };
-  // Lock body scroll while open
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  const modal = (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.8)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-      } as React.CSSProperties}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          borderRadius: '24px 24px 0 0',
-          background: '#161616',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderBottom: 'none',
-          maxHeight: '82vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 -16px 60px rgba(0,0,0,0.95)',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Drag pill */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#374151' }} />
-        </div>
-
-        {/* Cover image */}
-        <div style={{ position: 'relative', height: 130, flexShrink: 0, overflow: 'hidden' }}>
-          <img src={instance.coverImage} alt={instance.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.1) 60%)' }} />
-          <button onClick={onClose} style={{ position: 'absolute', top: 10, right: 12, padding: 8, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex' }}>
-            <IconClose className="w-4 h-4" />
-          </button>
-          <div style={{ position: 'absolute', bottom: 12, left: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 2, color: tc.color }}>{tc.icon} {instance.experienceType}</div>
-            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.2 }}>{instance.title}</h2>
-          </div>
-        </div>
-
-        {/* Scrollable content */}
-        <div
-          style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 } as React.CSSProperties}
-          onTouchMove={e => e.stopPropagation()}
-        >
-          {/* Meta */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', fontSize: 12, color: '#9CA3AF' }}>
-            <span>📅 {formatEventDate(instance.date)}</span>
-            <span>🕐 {instance.arrivalTime || instance.time}</span>
-            <span>📍 {instance.venue}</span>
-          </div>
-
-          {/* Spots row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '12px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#fff', fontWeight: 600 }}>
-              <IconUsers className="w-4 h-4" style={{ color: '#9CA3AF' } as React.CSSProperties} />
-              {spotsLeft <= 0 ? 'Sold out' : spotsLeft === 1 ? '🔴 1 spot left!' : spotsLeft <= 2 ? `⚡ ${spotsLeft} spots left` : `${spotsLeft} spots left`}
-            </div>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>${instance.pricePerPerson.toLocaleString()}<span style={{ fontWeight: 400, color: '#6B7280' }}>/person</span></span>
-          </div>
-
-          {/* Already booked */}
-          {isBooked && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '12px 0', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconCheck className="w-7 h-7" style={{ color: '#fff' } as React.CSSProperties} />
-              </div>
-              <div>
-                <p style={{ fontWeight: 800, color: '#fff', fontSize: 16, margin: 0 }}>You're In! 🎉</p>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>{existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} paid` : 'Your spot is reserved.'}</p>
-              </div>
-              {onNavigateToPlans && (
-                <button onClick={() => { onClose(); onNavigateToPlans(); }} style={{ width: '100%', padding: '14px 0', borderRadius: 16, fontWeight: 800, fontSize: 14, color: '#fff', background: 'linear-gradient(135deg,#fff,#9CA3AF,#374151)', border: 'none', cursor: 'pointer' }}>View in My Plans →</button>
-              )}
-              <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6B7280', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Close</button>
-            </div>
-          )}
-
-          {/* Party size picker */}
-          {!isBooked && canBook && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#9CA3AF', margin: '0 0 10px' }}>Party Size</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} style={{ width: 42, height: 42, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 22, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                  <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', width: 32, textAlign: 'center' }}>{partySize}</span>
-                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} style={{ width: 42, height: 42, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 22, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                  <span style={{ fontSize: 13, color: '#6B7280', marginLeft: 4 }}>person{partySize !== 1 ? 's' : ''}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, borderTop: '1px solid #1F2937' }}>
-                <span style={{ fontSize: 13, color: '#9CA3AF' }}>Total</span>
-                <span style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>${(partySize * instance.pricePerPerson).toLocaleString()}</span>
-              </div>
-              {ruleError && <div style={{ background: 'rgba(127,29,29,0.4)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '8px 14px', fontSize: 12, color: '#FCA5A5' }}>{ruleError}</div>}
-            </div>
-          )}
-
-          {/* Not bookable */}
-          {!isBooked && !canBook && (
-            <p style={{ textAlign: 'center', color: '#6B7280', fontSize: 14, padding: '12px 0' }}>
-              {instance.status === 'sold-out' ? 'This event is fully booked.' : instance.status === 'cancelled' ? 'This event was cancelled.' : 'Booking requires an approved account.'}
-            </p>
-          )}
-        </div>
-
-        {/* Reserve CTA — always pinned */}
-        {!isBooked && canBook && (
-          <div style={{ flexShrink: 0, padding: '12px 20px 32px', borderTop: '1px solid #1F2937', background: '#161616' }}>
-            <button
-              onClick={handleReserve}
-              style={{ width: '100%', padding: '16px 0', borderRadius: 18, fontWeight: 800, fontSize: 16, color: '#fff', background: 'linear-gradient(135deg,#fff,#9CA3AF,#374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', transition: 'transform 0.1s', }}
-              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.98)')}
-              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  return ReactDOM.createPortal(modal, document.body);
-};
-
-// ─── EXPERIENCE ROW (inside venue card) ──────────────────────
 
 const ExperienceRow: React.FC<{
   instance: EventInstance;
@@ -477,6 +313,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
   favoriteVenueIds = [],
   onToggleFavorite = () => {},
   onViewVenueDetails,
+  onViewDetail,
   currentUser,
   bookedMap = {},
   cancelMap = {},
@@ -489,7 +326,6 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
-  const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
 
   const isApproved = currentUser.approvalStatus === 'approved';
   const hasActiveSub = currentUser.subscriptionStatus === 'active';
@@ -537,18 +373,11 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
   const isBookmarked = (inst: EventInstance) => bookmarkedInstanceIds.includes(inst.instanceId);
 
-  const handleBook = useCallback((partySize: number) => {
-    if (!selectedInstance) return;
-    onBook({
-      instanceId: selectedInstance.instanceId,
-      userId: currentUser.id,
-      partySize,
-      totalPaid: partySize * selectedInstance.pricePerPerson,
-      guestName: currentUser.name,
-      guestEmail: currentUser.email ?? '',
-    });
-    // Don't close here — the modal's own onClose() fires after onNavigateToPlans()
-  }, [selectedInstance, currentUser, onBook]);
+  const handleOpenInstance = useCallback((inst: EventInstance) => {
+    if (onViewDetail) {
+      onViewDetail(inst);
+    }
+  }, [onViewDetail]);
 
   return (
     <div className="min-h-screen animate-fade-in" style={{ background: 'transparent' }}>
@@ -625,7 +454,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
                 isInCart={isInCart}
                 isBookmarked={isBookmarked}
                 canBook={canBook}
-                onOpenBooking={setSelectedInstance}
+                onOpenBooking={handleOpenInstance}
                 onToggleBookmark={onToggleBookmark}
               />
             ))}
@@ -642,18 +471,6 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
         )}
       </div>
 
-      {/* ── Booking Modal ── */}
-      {selectedInstance && (
-        <BookingModal
-          instance={selectedInstance}
-          currentUser={currentUser}
-          isBooked={isBooked(selectedInstance)}
-          existingBooking={instanceBookings.find(b => b.instanceId === selectedInstance.instanceId && b.userId === currentUser.id)}
-          onClose={() => setSelectedInstance(null)}
-          onConfirm={canBook ? handleBook : () => setSelectedInstance(null)}
-          onNavigateToPlans={onNavigateToPlans}
-        />
-      )}
     </div>
   );
 };
