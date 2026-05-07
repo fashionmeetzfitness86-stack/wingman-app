@@ -207,9 +207,15 @@ export const App: React.FC = () => {
     });
     const [onboardingDismissed, setOnboardingDismissed] = useState(false);
     
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [bookedItems, setBookedItems] = useState<CartItem[]>([]);
-    const [watchlist, setWatchlist] = useState<CartItem[]>([]);
+    const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_cart') || '[]'); } catch { return []; }
+    });
+    const [bookedItems, setBookedItems] = useState<CartItem[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_booked') || '[]'); } catch { return []; }
+    });
+    const [watchlist, setWatchlist] = useState<CartItem[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_watchlist') || '[]'); } catch { return []; }
+    });
     const [notifications, setNotifications] = useState<AppNotification[]>(mockNotifications);
     const [userTokenBalance, setUserTokenBalance] = useState(2500); // Mock balance
     const [appAccessGroups, setAppAccessGroups] = useState<AccessGroup[]>(accessGroups);
@@ -365,6 +371,9 @@ export const App: React.FC = () => {
     }, []);
 
     // Persistence Effects
+    useEffect(() => { localStorage.setItem('wingman_cart', JSON.stringify(cartItems)); }, [cartItems]);
+    useEffect(() => { localStorage.setItem('wingman_booked', JSON.stringify(bookedItems)); }, [bookedItems]);
+    useEffect(() => { localStorage.setItem('wingman_watchlist', JSON.stringify(watchlist)); }, [watchlist]);
     useEffect(() => { localStorage.setItem('wingman_users', JSON.stringify(appUsers)); }, [appUsers]);
     useEffect(() => { localStorage.setItem('wingman_wingmen', JSON.stringify(appWingmen)); }, [appWingmen]);
     useEffect(() => { localStorage.setItem('wingman_events', JSON.stringify(appEvents)); }, [appEvents]);
@@ -464,7 +473,7 @@ export const App: React.FC = () => {
         showToast("Moved to Cart", "success");
     };
 
-    const handleConfirmCheckout = (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
+    const finalizeBooking = (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
         const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
         const timestamp = Date.now();
 
@@ -472,13 +481,12 @@ export const App: React.FC = () => {
             ...item,
             bookedTimestamp: timestamp,
             isPlaceholder: false,
-            paymentMethod: paymentMethod
+            paymentMethod,
         }));
 
         setBookedItems(prev => [...prev, ...newBookedItems]);
         setCartItems(prev => prev.filter(i => !itemIds.includes(i.id)));
 
-        // Convert any pending instance cart items to confirmed InstanceBookings
         const newInstanceBookings: InstanceBooking[] = [];
         for (const id of itemIds) {
             const meta = cartInstanceMeta[id];
@@ -493,7 +501,6 @@ export const App: React.FC = () => {
                     guestName: currentUser.name,
                     guestEmail: currentUser.email ?? '',
                 });
-                // Release the pending reservation (now confirmed)
                 setPendingCartReservations(prev => {
                     const n = { ...prev }; delete n[meta.instanceId]; return n;
                 });
@@ -502,14 +509,12 @@ export const App: React.FC = () => {
         if (newInstanceBookings.length > 0) {
             setInstanceBookings(prev => [...prev, ...newInstanceBookings]);
         }
-        // Clear meta for paid items
         setCartInstanceMeta(prev => {
             const n = { ...prev };
             itemIds.forEach(id => delete n[id]);
             return n;
         });
 
-        // Ensure items are removed from watchlist if they were also bookmarked
         setWatchlist(prev => prev.filter(w => !itemsToBook.some(b =>
             (b.type === 'event' && w.type === 'event' && b.eventDetails?.event.id === w.eventDetails?.event.id) ||
             (b.type === 'experience' && w.type === 'experience' && b.experienceDetails?.experience.id === w.experienceDetails?.experience.id) ||
@@ -519,6 +524,96 @@ export const App: React.FC = () => {
         handleNavigate('bookingConfirmed', { items: newBookedItems });
     };
 
+    const handleConfirmCheckout = async (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
+        if (paymentMethod === 'usd') {
+            const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
+            if (itemsToBook.length === 0) return;
+
+            const stripeItems = itemsToBook.map(item => {
+                const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+                return {
+                    id: item.id,
+                    name: item.name,
+                    amount: price,
+                    quantity: item.quantity || 1,
+                    image: item.image,
+                };
+            });
+
+            try {
+                localStorage.setItem('wingman_pending_checkout', JSON.stringify({ itemIds, paymentMethod }));
+                const res = await fetch('/.netlify/functions/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: stripeItems,
+                        userEmail: currentUser.email,
+                        userId: String(currentUser.id),
+                    }),
+                });
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                    return;
+                }
+                throw new Error(data.error || 'Checkout failed');
+            } catch (err: any) {
+                localStorage.removeItem('wingman_pending_checkout');
+                showToast(err.message || 'Checkout failed', 'error');
+                return;
+            }
+        }
+
+        finalizeBooking(paymentMethod, itemIds);
+    };
+
+    // Stripe return handler — runs once on mount when we land back from Stripe
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const paymentStatus = params.get('payment');
+        const sessionId = params.get('session_id');
+
+        if (!paymentStatus) return;
+
+        const cleanUrl = () => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('payment');
+            url.searchParams.delete('session_id');
+            window.history.replaceState({}, '', url.toString());
+        };
+
+        if (paymentStatus === 'cancelled') {
+            localStorage.removeItem('wingman_pending_checkout');
+            showToast('Payment cancelled.', 'error');
+            cleanUrl();
+            return;
+        }
+
+        if (paymentStatus === 'success' && sessionId) {
+            (async () => {
+                try {
+                    const res = await fetch(`/.netlify/functions/verify-session?session_id=${encodeURIComponent(sessionId)}`);
+                    const data = await res.json();
+                    if (!data.paid) {
+                        showToast('Payment not confirmed by Stripe.', 'error');
+                        cleanUrl();
+                        return;
+                    }
+                    const pending = JSON.parse(localStorage.getItem('wingman_pending_checkout') || 'null');
+                    if (pending?.itemIds?.length) {
+                        finalizeBooking('usd', pending.itemIds);
+                        showToast('Payment confirmed!', 'success');
+                    }
+                    localStorage.removeItem('wingman_pending_checkout');
+                } catch (err: any) {
+                    showToast(err.message || 'Could not verify payment.', 'error');
+                } finally {
+                    cleanUrl();
+                }
+            })();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSendWingmanMessage = (chatId: number | undefined, text: string) => {
         let actualChatId = chatId;
