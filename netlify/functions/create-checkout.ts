@@ -71,6 +71,7 @@ export default async (req: Request) => {
       mode: 'payment',
       payment_method_types: ['card'],
       customer_email: userEmail || undefined,
+      adaptive_pricing: { enabled: false },
       metadata: {
         userId: userId || '',
         cart_context: cartContext.length < 500 ? cartContext : '',
