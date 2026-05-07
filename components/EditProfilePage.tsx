@@ -312,9 +312,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
             setProfilePhotoPreview(croppedImageUrl);
         } else if (uploadTarget === 'gallery') {
             setGalleryImages(prev => [...prev, croppedImageUrl]);
-            if (galleryImages.length + 1 >= 3) {
-                setErrors(prev => ({...prev, galleryImages: undefined}));
-            }
         }
         setImageToCrop(null);
         setUploadTarget(null);
@@ -444,7 +441,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
                     <span className="w-1 h-6 bg-gray-200 text-black hover:bg-white rounded-full"></span>
                     My Gallery
                 </h2>
-                <span className="text-sm text-gray-400">{galleryImages.length}/10 (Min 3)</span>
+                <span className="text-sm text-gray-400">{galleryImages.length}/10</span>
             </div>
             
             {errors.galleryImages && <p className="text-red-400 text-sm mb-4 bg-red-900/30 p-3 rounded-lg border border-red-900/50">{errors.galleryImages}</p>}
