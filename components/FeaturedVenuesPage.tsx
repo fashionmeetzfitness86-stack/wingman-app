@@ -17,6 +17,7 @@ import {
   computeStatus,
 } from '../utils/eventSchedule';
 import { useScrollLock } from '../utils/useScrollLock';
+import { ReserveSpotModal } from './ReserveSpotModal';
 
 // ─── PROPS ────────────────────────────────────────────────────
 
@@ -373,11 +374,12 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
   const isBookmarked = (inst: EventInstance) => bookmarkedInstanceIds.includes(inst.instanceId);
 
+  // ── Modal state ──
+  const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
+
   const handleOpenInstance = useCallback((inst: EventInstance) => {
-    if (onViewDetail) {
-      onViewDetail(inst);
-    }
-  }, [onViewDetail]);
+    setSelectedInstance(inst);
+  }, []);
 
   return (
     <div className="min-h-screen animate-fade-in" style={{ background: 'transparent' }}>
@@ -471,6 +473,27 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
         )}
       </div>
 
+      {/* ── Reserve Spot Modal ── */}
+      <ReserveSpotModal
+        event={selectedInstance!}
+        isOpen={!!selectedInstance}
+        onClose={() => setSelectedInstance(null)}
+        onConfirm={(booking) => {
+          onBook(booking);
+        }}
+        currentUser={currentUser}
+        canBook={canBook}
+        existingBooking={selectedInstance
+          ? instanceBookings.find(b => b.instanceId === selectedInstance.instanceId && b.userId === currentUser.id)
+          : undefined
+        }
+        onNavigateToPlans={onNavigateToPlans}
+        onViewFullDetail={selectedInstance && onViewDetail
+          ? () => { setSelectedInstance(null); onViewDetail(selectedInstance); }
+          : undefined
+        }
+      />
+
     </div>
   );
-};
+};

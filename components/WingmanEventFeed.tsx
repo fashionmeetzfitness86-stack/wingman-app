@@ -18,6 +18,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { User, UserRole, EventInstance, InstanceBooking, ExperienceType } from '../types';
 import { generateEventFeed, WEEKLY_SCHEDULE, formatEventDate, daysUntilLabel, computeStatus } from '../utils/eventSchedule';
 import { useScrollLock } from '../utils/useScrollLock';
+import { ReserveSpotModal } from './ReserveSpotModal';
 
 // ─── ICONS (inline SVG — no new icon files needed) ───────────
 
@@ -273,6 +274,9 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const [page, setPage] = useState(1);
   const loaderRef = useRef<HTMLDivElement>(null);
 
+  // ── Modal state ──
+  const [selected, setSelected] = useState<EventInstance | null>(null);
+
   // ── Generate feed ──
   const allInstances = useMemo(
     () => generateEventFeed(bookedMap, cancelMap, 4),
@@ -352,6 +356,10 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
   const getUserBooking = (instance: EventInstance) =>
     instanceBookings.find(b => b.instanceId === instance.instanceId && b.userId === currentUser.id);
+
+  const handleConfirmBooking = useCallback((booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
+    onBook(booking);
+  }, [onBook]);
 
 
   return (
@@ -475,7 +483,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
               <EventCard
                 key={instance.instanceId}
                 instance={instance}
-                onOpen={() => onViewDetail && onViewDetail(instance)}
+                onOpen={() => setSelected(instance)}
                 isBooked={!!getUserBooking(instance)}
                 isBookmarked={bookmarkedInstanceIds.includes(instance.instanceId)}
                 onToggleBookmark={() => onToggleBookmark(instance.instanceId)}
@@ -527,7 +535,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
                       return (
                         <button
                           key={entry.id}
-                          onClick={() => matchedInstance && onViewDetail && onViewDetail(matchedInstance)}
+                          onClick={() => matchedInstance && setSelected(matchedInstance)}
                           disabled={!matchedInstance}
                           className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors"
                           style={{
@@ -577,6 +585,45 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
       </div>
 
+      {/* ── Reserve Spot Modal ── */}
+      <ReserveSpotModal
+        event={selected!}
+        isOpen={!!selected}
+        onClose={() => setSelected(null)}
+        onConfirm={handleConfirmBooking}
+        currentUser={currentUser}
+        canBook={canBook}
+        existingBooking={selected ? getUserBooking(selected) : undefined}
+        onNavigateToPlans={onNavigateToPlans}
+        onViewFullDetail={selected && onViewDetail ? () => { setSelected(null); onViewDetail(selected); } : undefined}
+      />
+
+      {/* ── Admin quick-actions (shown in modal footer via separate overlay, handled via toolbar) ── */}
+      {isAdmin && selected && (
+        <div
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            zIndex: 1020, /* above modal */
+            display: 'flex', justifyContent: 'flex-end', gap: 8,
+            padding: '8px 16px 10px',
+            background: 'rgba(0,0,0,0.0)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
+            {selected.status !== 'sold-out' && onAdminForceSoldOut && (
+              <button
+                onClick={() => { onAdminForceSoldOut(selected.instanceId); setSelected(null); }}
+                style={{ fontSize: 10, color: '#F472B6', border: '1px solid rgba(236,72,153,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}
+              >Mark Sold Out</button>
+            )}
+            {selected.status !== 'cancelled'
+              ? <button onClick={() => { onAdminCancel && onAdminCancel(selected.instanceId); setSelected(null); }} style={{ fontSize: 10, color: '#F87171', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}>Cancel Event</button>
+              : <button onClick={() => { onAdminRestore && onAdminRestore(selected.instanceId); setSelected(null); }} style={{ fontSize: 10, color: '#4ADE80', border: '1px solid rgba(74,222,128,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}>Restore Event</button>
+            }
+          </div>
+        </div>
+      )}
     </div>
   );
 };
