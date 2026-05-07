@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { User, UserRole, EventInstance, InstanceBooking, ExperienceType } from '../types';
 import { generateEventFeed, WEEKLY_SCHEDULE, formatEventDate, daysUntilLabel, computeStatus } from '../utils/eventSchedule';
 import { useScrollLock } from '../utils/useScrollLock';
@@ -262,12 +263,16 @@ const BookingModal: React.FC<{
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
 
-  useScrollLock(true);
-
+  // Direct body scroll lock — more reliable than useScrollLock on all browsers
   useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const nav = document.querySelector('nav[aria-label="Main Navigation"]') as HTMLElement | null;
     if (nav) nav.style.pointerEvents = 'none';
-    return () => { if (nav) nav.style.pointerEvents = ''; };
+    return () => {
+      document.body.style.overflow = prev;
+      if (nav) nav.style.pointerEvents = '';
+    };
   }, []);
 
   const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
@@ -286,145 +291,144 @@ const BookingModal: React.FC<{
     if (onNavigateToPlans) onNavigateToPlans();
   };
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-[200]"
-      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.82)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      } as React.CSSProperties}
       onClick={onClose}
     >
-      {/* Bottom sheet — fixed to bottom, max 80vh, no flex tricks */}
       <div
-        className="absolute bottom-0 left-0 right-0 rounded-t-3xl overflow-hidden"
         style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          borderRadius: '24px 24px 0 0',
           background: '#161616',
           border: '1px solid rgba(255,255,255,0.1)',
           borderBottom: 'none',
-          maxHeight: '80vh',
+          maxHeight: '82vh',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 -12px 60px rgba(0,0,0,0.9)',
+          boxShadow: '0 -16px 60px rgba(0,0,0,0.95)',
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-700" />
+        {/* Drag pill */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#374151' }} />
         </div>
 
         {/* Cover */}
-        <div className="relative h-28 flex-shrink-0">
-          <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 60%)' }} />
-          <button onClick={onClose} className="absolute top-2 right-3 p-1.5 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.6)' }}>
+        <div style={{ position: 'relative', height: 120, flexShrink: 0, overflow: 'hidden' }}>
+          <img src={instance.coverImage} alt={instance.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.1) 60%)' }} />
+          <button onClick={onClose} style={{ position: 'absolute', top: 10, right: 12, padding: 8, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex' }}>
             <IconClose className="w-4 h-4" />
           </button>
           {onViewDetail && (
-            <button onClick={() => { onClose(); onViewDetail(); }} className="absolute top-2 left-3 text-[10px] font-bold text-white/80" style={{ background: 'rgba(0,0,0,0.6)', borderRadius: '999px', padding: '4px 8px' }}>
+            <button onClick={() => { onClose(); onViewDetail(); }} style={{ position: 'absolute', top: 10, left: 12, padding: '4px 10px', borderRadius: 99, background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.8)', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
               Details →
             </button>
           )}
-          <div className="absolute bottom-2 left-4">
-            <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold mb-0.5" style={{ background: tc.bg, color: tc.color }}>
-              {tc.icon} {tc.label}
-            </div>
-            <h2 className="text-base font-black text-white leading-tight">{instance.title}</h2>
+          <div style={{ position: 'absolute', bottom: 10, left: 16 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, borderRadius: 99, padding: '2px 8px', fontSize: 10, fontWeight: 700, marginBottom: 3, background: tc.bg, color: tc.color }}>{tc.icon} {tc.label}</div>
+            <h2 style={{ fontSize: 17, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.2 }}>{instance.title}</h2>
           </div>
         </div>
 
-        {/* Scrollable body — this div does the scrolling */}
+        {/* Scrollable body */}
         <div
-          className="px-4 py-3 space-y-3"
-          style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', flex: '1 1 auto', minHeight: 0 } as React.CSSProperties}
+          style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 } as React.CSSProperties}
           onTouchMove={e => e.stopPropagation()}
         >
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', fontSize: 11, color: '#9CA3AF' }}>
             <span>📅 {formatEventDate(instance.date)}</span>
             <span>🕐 {instance.arrivalTime || instance.time}</span>
             <span>📍 {instance.venue}</span>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex items-center gap-2 text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
-              <span className="font-semibold text-white">{sc.label}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: sc.dot, display: 'inline-block' }} />
+              <span style={{ color: '#fff', fontWeight: 600 }}>{sc.label}</span>
             </div>
-            <span className="text-[11px] text-gray-400">{spotsLeft} spots left</span>
+            <span style={{ fontSize: 11, color: '#9CA3AF' }}>{spotsLeft} spots left</span>
           </div>
 
           {isBooked && (
-            <div className="flex flex-col items-center py-2 gap-3 text-center">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(224,64,251,0.12)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '10px 0', textAlign: 'center' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(224,64,251,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <IconCheck className="w-6 h-6" style={{ color: '#E040FB' } as React.CSSProperties} />
               </div>
               <div>
-                <p className="font-bold text-white text-sm">You're In! 🎉</p>
-                <p className="text-[11px] text-gray-400">
-                  {existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()}` : 'Your spot is reserved.'}
-                </p>
+                <p style={{ fontWeight: 800, color: '#fff', fontSize: 15, margin: 0 }}>You're In! 🎉</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()}` : 'Your spot is reserved.'}</p>
               </div>
               {onNavigateToPlans && (
-                <button onClick={() => { onClose(); onNavigateToPlans(); }} className="w-full font-bold py-3 rounded-xl text-white text-xs" style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)' }}>
-                  View My Plans →
-                </button>
+                <button onClick={() => { onClose(); onNavigateToPlans(); }} style={{ width: '100%', padding: '12px 0', borderRadius: 14, fontWeight: 800, fontSize: 13, color: '#fff', background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', border: 'none', cursor: 'pointer' }}>View My Plans →</button>
               )}
             </div>
           )}
 
           {!isBooked && canBook && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <p className="text-[11px] font-medium text-gray-400 mb-2">Party Size</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} className="w-9 h-9 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">−</button>
-                  <span className="text-2xl font-black text-white w-8 text-center">{partySize}</span>
-                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} className="w-9 h-9 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">+</button>
-                  <span className="text-xs text-gray-500 ml-1">person{partySize !== 1 ? 's' : ''}</span>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', margin: '0 0 8px' }}>Party Size</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} style={{ width: 38, height: 38, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 20, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                  <span style={{ fontSize: 26, fontWeight: 900, color: '#fff', width: 28, textAlign: 'center' }}>{partySize}</span>
+                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} style={{ width: 38, height: 38, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 20, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  <span style={{ fontSize: 12, color: '#6B7280', marginLeft: 2 }}>person{partySize !== 1 ? 's' : ''}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between py-2 border-t border-gray-800">
-                <span className="text-gray-400 text-xs">Total</span>
-                <span className="text-xl font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid #1F2937' }}>
+                <span style={{ fontSize: 12, color: '#9CA3AF' }}>Total</span>
+                <span style={{ fontSize: 24, fontWeight: 900, color: '#fff' }}>${(partySize * instance.pricePerPerson).toLocaleString()}</span>
               </div>
-              {ruleError && <div className="bg-red-900/30 border border-red-700/50 rounded-lg px-3 py-2 text-[11px] text-red-300">{ruleError}</div>}
+              {ruleError && <div style={{ background: 'rgba(127,29,29,0.4)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 10, padding: '6px 12px', fontSize: 11, color: '#FCA5A5' }}>{ruleError}</div>}
             </div>
           )}
 
           {!isBooked && !canBook && (
-            <p className="text-center text-gray-500 text-[11px] py-2">
+            <p style={{ textAlign: 'center', color: '#6B7280', fontSize: 13, padding: '10px 0' }}>
               {instance.status === 'sold-out' ? 'This event is fully booked.' : instance.status === 'cancelled' ? 'This event was cancelled.' : 'Booking requires an approved active membership.'}
             </p>
           )}
 
           {isAdmin && (
-            <div className="pt-2 border-t border-gray-800 flex items-center gap-2">
-              <span className="text-[9px] text-gray-600 flex-1">Admin</span>
+            <div style={{ paddingTop: 10, borderTop: '1px solid #1F2937', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 9, color: '#4B5563', flex: 1 }}>Admin</span>
               {instance.status !== 'sold-out' && onAdminForceSoldOut && (
-                <button onClick={() => { onAdminForceSoldOut(); onClose(); }} className="text-[9px] text-pink-400 border border-pink-900/50 rounded px-1.5 py-1">Sold Out</button>
+                <button onClick={() => { onAdminForceSoldOut(); onClose(); }} style={{ fontSize: 10, color: '#F472B6', border: '1px solid rgba(236,72,153,0.3)', borderRadius: 6, padding: '3px 8px', background: 'none', cursor: 'pointer' }}>Sold Out</button>
               )}
               {instance.status !== 'cancelled'
-                ? <button onClick={() => { if(onAdminCancel) onAdminCancel(); onClose(); }} className="text-[9px] text-red-400 border border-red-900/50 rounded px-1.5 py-1">Cancel</button>
-                : <button onClick={() => { if(onAdminRestore) onAdminRestore(); onClose(); }} className="text-[9px] text-green-400 border border-green-900/50 rounded px-1.5 py-1">Restore</button>
+                ? <button onClick={() => { if(onAdminCancel) onAdminCancel(); onClose(); }} style={{ fontSize: 10, color: '#F87171', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, padding: '3px 8px', background: 'none', cursor: 'pointer' }}>Cancel</button>
+                : <button onClick={() => { if(onAdminRestore) onAdminRestore(); onClose(); }} style={{ fontSize: 10, color: '#4ADE80', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 6, padding: '3px 8px', background: 'none', cursor: 'pointer' }}>Restore</button>
               }
             </div>
           )}
         </div>
 
-        {/* Reserve button — always pinned, never scrolls away */}
+        {/* Reserve CTA — always pinned */}
         {!isBooked && canBook && (
-          <div className="flex-shrink-0 px-4 pb-8 pt-3 border-t border-gray-800" style={{ background: '#161616' }}>
+          <div style={{ flexShrink: 0, padding: '12px 16px 28px', borderTop: '1px solid #1F2937', background: '#161616' }}>
             <button
               onClick={handleReserve}
-              className="w-full font-bold py-4 rounded-2xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.35)' }}
+              style={{ width: '100%', padding: '16px 0', borderRadius: 18, fontWeight: 800, fontSize: 16, color: '#fff', background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.35)', border: 'none', cursor: 'pointer' }}
+              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.97)')}
+              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
             >
               Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
             </button>
           </div>
         )}
-
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(modal, document.body);
 };
 
 // ─── MAIN FEED ────────────────────────────────────────────────

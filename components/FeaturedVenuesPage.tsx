@@ -7,7 +7,8 @@
  * spot counts and a "Reserve Spot" CTA that opens the booking modal.
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Venue, User, UserRole, EventInstance, InstanceBooking } from '../types';
 import { venues } from '../data/mockData';
 import {
@@ -122,72 +123,130 @@ const BookingModal: React.FC<{
     setRuleError(''); onConfirm(partySize); onClose();
     if (onNavigateToPlans) onNavigateToPlans();
   };
-  return (
-    <div className="fixed inset-0 z-[200]" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties} onClick={onClose}>
+  // Lock body scroll while open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const modal = (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.8)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      } as React.CSSProperties}
+      onClick={onClose}
+    >
       <div
-        className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
-        style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none', maxHeight: '82vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -12px 60px rgba(0,0,0,0.9)' }}
+        style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          borderRadius: '24px 24px 0 0',
+          background: '#161616',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: 'none',
+          maxHeight: '82vh',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 -16px 60px rgba(0,0,0,0.95)',
+        }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 rounded-full bg-gray-700" /></div>
-        <div className="relative h-32 flex-shrink-0 overflow-hidden">
-          <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 60%)' }} />
-          <button onClick={onClose} className="absolute top-2 right-3 p-2 rounded-full text-white" style={{ background: 'rgba(0,0,0,0.6)' }}><IconClose className="w-4 h-4" /></button>
-          <div className="absolute bottom-3 left-4">
-            <div className="text-xs font-bold mb-0.5" style={{ color: tc.color }}>{tc.icon} {instance.experienceType}</div>
-            <h2 className="text-lg font-black text-white leading-tight">{instance.title}</h2>
+        {/* Drag pill */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#374151' }} />
+        </div>
+
+        {/* Cover image */}
+        <div style={{ position: 'relative', height: 130, flexShrink: 0, overflow: 'hidden' }}>
+          <img src={instance.coverImage} alt={instance.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.1) 60%)' }} />
+          <button onClick={onClose} style={{ position: 'absolute', top: 10, right: 12, padding: 8, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex' }}>
+            <IconClose className="w-4 h-4" />
+          </button>
+          <div style={{ position: 'absolute', bottom: 12, left: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 2, color: tc.color }}>{tc.icon} {instance.experienceType}</div>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.2 }}>{instance.title}</h2>
           </div>
         </div>
-        <div className="px-5 py-4 space-y-4" style={{ overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', flex: '1 1 auto', minHeight: 0 } as React.CSSProperties} onTouchMove={e => e.stopPropagation()}>
-          <div className="flex flex-wrap gap-3 text-xs text-gray-400">
+
+        {/* Scrollable content */}
+        <div
+          style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 } as React.CSSProperties}
+          onTouchMove={e => e.stopPropagation()}
+        >
+          {/* Meta */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', fontSize: 12, color: '#9CA3AF' }}>
             <span>📅 {formatEventDate(instance.date)}</span>
             <span>🕐 {instance.arrivalTime || instance.time}</span>
             <span>📍 {instance.venue}</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex items-center gap-2 text-sm">
-              <IconUsers className="w-4 h-4 text-gray-400" />
-              <span className="text-white font-semibold">{spotsLeft <= 0 ? 'Sold out' : spotsLeft === 1 ? '🔴 1 spot left!' : spotsLeft <= 2 ? `⚡ ${spotsLeft} spots left` : `${spotsLeft} spots left`}</span>
+
+          {/* Spots row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '12px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#fff', fontWeight: 600 }}>
+              <IconUsers className="w-4 h-4" style={{ color: '#9CA3AF' } as React.CSSProperties} />
+              {spotsLeft <= 0 ? 'Sold out' : spotsLeft === 1 ? '🔴 1 spot left!' : spotsLeft <= 2 ? `⚡ ${spotsLeft} spots left` : `${spotsLeft} spots left`}
             </div>
-            <span className="text-xs font-bold text-white">${instance.pricePerPerson.toLocaleString()}/person</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>${instance.pricePerPerson.toLocaleString()}<span style={{ fontWeight: 400, color: '#6B7280' }}>/person</span></span>
           </div>
+
+          {/* Already booked */}
           {isBooked && (
-            <div className="flex flex-col items-center py-3 gap-3 text-center">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}><IconCheck className="w-6 h-6" style={{ color: '#FFFFFF' } as React.CSSProperties} /></div>
-              <div>
-                <p className="font-bold text-white text-base">You're In! 🎉</p>
-                <p className="text-xs text-gray-400 mt-0.5">{existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} paid` : 'Your spot is reserved.'}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '12px 0', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <IconCheck className="w-7 h-7" style={{ color: '#fff' } as React.CSSProperties} />
               </div>
-              {onNavigateToPlans && <button onClick={() => { onClose(); onNavigateToPlans(); }} className="w-full font-bold py-3.5 rounded-2xl text-white text-sm" style={{ background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF,#374151)' }}>View in My Plans →</button>}
-              <button onClick={onClose} className="text-sm font-semibold text-gray-500">Close</button>
+              <div>
+                <p style={{ fontWeight: 800, color: '#fff', fontSize: 16, margin: 0 }}>You're In! 🎉</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>{existingBooking ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()} paid` : 'Your spot is reserved.'}</p>
+              </div>
+              {onNavigateToPlans && (
+                <button onClick={() => { onClose(); onNavigateToPlans(); }} style={{ width: '100%', padding: '14px 0', borderRadius: 16, fontWeight: 800, fontSize: 14, color: '#fff', background: 'linear-gradient(135deg,#fff,#9CA3AF,#374151)', border: 'none', cursor: 'pointer' }}>View in My Plans →</button>
+              )}
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6B7280', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Close</button>
             </div>
           )}
+
+          {/* Party size picker */}
           {!isBooked && canBook && (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <p className="text-sm font-medium text-gray-400 mb-3">Party Size</p>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">−</button>
-                  <span className="text-2xl font-black text-white w-8 text-center">{partySize}</span>
-                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} className="w-10 h-10 rounded-full bg-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-700">+</button>
-                  <span className="text-sm text-gray-500 ml-2">person{partySize !== 1 ? 's' : ''}</span>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#9CA3AF', margin: '0 0 10px' }}>Party Size</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <button onClick={() => setPartySize(p => Math.max(1, p - 1))} style={{ width: 42, height: 42, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 22, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                  <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', width: 32, textAlign: 'center' }}>{partySize}</span>
+                  <button onClick={() => setPartySize(p => Math.min(maxParty, p + 1))} style={{ width: 42, height: 42, borderRadius: '50%', background: '#1F2937', color: '#fff', fontSize: 22, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  <span style={{ fontSize: 13, color: '#6B7280', marginLeft: 4 }}>person{partySize !== 1 ? 's' : ''}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between py-3 border-t border-gray-800">
-                <span className="text-gray-400 text-sm">Total</span>
-                <span className="text-2xl font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, borderTop: '1px solid #1F2937' }}>
+                <span style={{ fontSize: 13, color: '#9CA3AF' }}>Total</span>
+                <span style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>${(partySize * instance.pricePerPerson).toLocaleString()}</span>
               </div>
-              {ruleError && <div className="bg-red-900/30 border border-red-700/50 rounded-xl px-4 py-2 text-xs text-red-300">{ruleError}</div>}
+              {ruleError && <div style={{ background: 'rgba(127,29,29,0.4)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '8px 14px', fontSize: 12, color: '#FCA5A5' }}>{ruleError}</div>}
             </div>
           )}
+
+          {/* Not bookable */}
           {!isBooked && !canBook && (
-            <p className="text-center text-gray-500 text-sm py-3">{instance.status === 'sold-out' ? 'This event is fully booked.' : instance.status === 'cancelled' ? 'This event was cancelled.' : 'Booking requires an approved account.'}</p>
+            <p style={{ textAlign: 'center', color: '#6B7280', fontSize: 14, padding: '12px 0' }}>
+              {instance.status === 'sold-out' ? 'This event is fully booked.' : instance.status === 'cancelled' ? 'This event was cancelled.' : 'Booking requires an approved account.'}
+            </p>
           )}
         </div>
+
+        {/* Reserve CTA — always pinned */}
         {!isBooked && canBook && (
-          <div className="flex-shrink-0 px-5 pb-8 pt-3 border-t border-gray-800" style={{ background: '#161616' }}>
-            <button onClick={handleReserve} className="w-full font-bold py-4 rounded-2xl text-white text-base active:scale-[0.98]" style={{ background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF,#374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.2)' }}>
+          <div style={{ flexShrink: 0, padding: '12px 20px 32px', borderTop: '1px solid #1F2937', background: '#161616' }}>
+            <button
+              onClick={handleReserve}
+              style={{ width: '100%', padding: '16px 0', borderRadius: 18, fontWeight: 800, fontSize: 16, color: '#fff', background: 'linear-gradient(135deg,#fff,#9CA3AF,#374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', transition: 'transform 0.1s', }}
+              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.98)')}
+              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+            >
               Reserve Spot — ${(partySize * instance.pricePerPerson).toLocaleString()}
             </button>
           </div>
@@ -195,6 +254,8 @@ const BookingModal: React.FC<{
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(modal, document.body);
 };
 
 // ─── EXPERIENCE ROW (inside venue card) ──────────────────────
