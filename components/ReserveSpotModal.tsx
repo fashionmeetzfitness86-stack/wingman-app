@@ -2,23 +2,25 @@
 /**
  * ReserveSpotModal.tsx
  * ─────────────────────────────────────────────────────────────
- * Reusable booking modal for WingmanEventFeed and FeaturedVenuesPage.
+ * Reusable Reserve Spot modal — P0 launch blocker fix.
  *
- * Behaviour:
- *  - Desktop/tablet : centered (items-center)
- *  - Mobile         : bottom-sheet (items-end)
- *  - max-h-[90vh] with internal overflow-y-auto
- *  - Sticky "Reserve Spot" CTA — always reachable
- *  - Hides bottom nav + FAB while open (z-index + pointer-events)
- *  - ESC key, backdrop click, and X button all close reliably
- *  - Body scroll locked while open — unlocked on close
- *  - Rendered via ReactDOM.createPortal at document.body
+ * Key design decisions:
+ *  1. event prop is `EventInstance | null` so callers can pass
+ *     `selectedInstance` directly without a non-null assertion.
+ *     The component returns null when event is null, avoiding the
+ *     "Cannot read properties of null (reading 'totalCapacity')" crash.
+ *  2. All hooks run unconditionally (React rules). The null guard is
+ *     placed AFTER useState/useEffect/useCallback, but the hooks
+ *     themselves guard internally with `if (!isOpen || !event) return`.
+ *  3. Portal-rendered at document.body — immune to CSS transform ancestors.
+ *  4. Hides bottom nav + FAB while open via visibility:hidden.
+ *  5. ESC, backdrop click, X button all close the modal.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { EventInstance, InstanceBooking, User, UserRole } from '../types';
-import { formatEventDate, daysUntilLabel } from '../utils/eventSchedule';
+import { formatEventDate } from '../utils/eventSchedule';
 
 // ─── ICONS ────────────────────────────────────────────────────
 
@@ -43,25 +45,26 @@ const IcoLock = () => (
   </svg>
 );
 
-// ─── TYPE / STATUS CONFIGS ─────────────────────────────────────
+// ─── CONFIGS ──────────────────────────────────────────────────
 
 const TYPE_CFG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
-  Nightclub: { label: 'Nightclub',       icon: '🌙', color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)' },
-  Dinner:    { label: 'Private Dinner',  icon: '🍽️', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)'  },
-  Yacht:     { label: 'Yacht',           icon: '⚓',  color: '#06B6D4', bg: 'rgba(6,182,212,0.15)'   },
+  Nightclub: { label: 'Nightclub',      icon: '🌙', color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)' },
+  Dinner:    { label: 'Private Dinner', icon: '🍽️', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)'  },
+  Yacht:     { label: 'Yacht',          icon: '⚓',  color: '#06B6D4', bg: 'rgba(6,182,212,0.15)'   },
 };
 
 const STATUS_CFG: Record<string, { label: string; dot: string }> = {
-  available: { label: 'Available', dot: '#22C55E' },
-  limited:   { label: 'Limited',   dot: '#FFFFFF' },
-  'sold-out':{ label: 'Sold Out',  dot: '#EF4444' },
-  cancelled: { label: 'Cancelled', dot: '#6B7280' },
+  available:  { label: 'Available', dot: '#22C55E' },
+  limited:    { label: 'Limited',   dot: '#FFFFFF' },
+  'sold-out': { label: 'Sold Out',  dot: '#EF4444' },
+  cancelled:  { label: 'Cancelled', dot: '#6B7280' },
 };
 
 // ─── PROPS ────────────────────────────────────────────────────
 
 export interface ReserveSpotModalProps {
-  event: EventInstance;
+  /** Pass selectedInstance directly — can be null when no card is selected */
+  event: EventInstance | null;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => void;
@@ -85,43 +88,35 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
   onNavigateToPlans,
   onViewFullDetail,
 }) => {
+  // ── All hooks MUST be unconditional (React rules) ─────────────
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
-  const spotsLeft = event.totalCapacity - event.spotsBooked;
-  const maxParty  = Math.min(event.bookingRules?.maxPerBooking ?? spotsLeft, Math.max(spotsLeft, 1));
-  const isBooked  = !!existingBooking || confirmed;
-  const tc = TYPE_CFG[event.experienceType] ?? { label: event.experienceType, icon: '✦', color: '#fff', bg: 'rgba(255,255,255,0.1)' };
-  const sc = STATUS_CFG[event.status] ?? { label: event.status, dot: '#6B7280' };
-
-  // ── Body scroll lock ──────────────────────────────────────────
+  // Body scroll lock + nav hide
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !event) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
-    // Hide bottom nav and FAB while modal is open
     const nav = document.querySelector<HTMLElement>('nav[aria-label="Wingman Navigation"]');
     if (nav) {
-      nav.dataset.prevZ = nav.style.zIndex;
-      nav.style.zIndex = '-1';
+      nav.dataset.prevZ    = nav.style.zIndex;
+      nav.style.zIndex     = '-1';
       nav.style.pointerEvents = 'none';
       nav.style.visibility = 'hidden';
     }
-
     return () => {
       document.body.style.overflow = prev;
       if (nav) {
-        nav.style.zIndex    = nav.dataset.prevZ ?? '';
+        nav.style.zIndex        = nav.dataset.prevZ ?? '';
         nav.style.pointerEvents = '';
         nav.style.visibility    = '';
         delete nav.dataset.prevZ;
       }
     };
-  }, [isOpen]);
+  }, [isOpen, event]);
 
-  // ── ESC key ───────────────────────────────────────────────────
+  // ESC key
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -129,13 +124,15 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  // ── Reset state when a new event is opened ────────────────────
+  // Reset form state each time a new event opens
   useEffect(() => {
-    if (isOpen) { setPartySize(1); setRuleError(''); setConfirmed(false); }
-  }, [isOpen, event.instanceId]);
+    if (isOpen && event) { setPartySize(1); setRuleError(''); setConfirmed(false); }
+  }, [isOpen, event?.instanceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Reserve handler ───────────────────────────────────────────
+  // Reserve action
   const handleReserve = useCallback(() => {
+    if (!event) return;
+    const spotsLeft = event.totalCapacity - event.spotsBooked;
     if (event.bookingRules?.maxPerBooking && partySize > event.bookingRules.maxPerBooking) {
       setRuleError(`Max ${event.bookingRules.maxPerBooking} per booking.`); return;
     }
@@ -152,46 +149,50 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
       guestName:  currentUser.name,
       guestEmail: currentUser.email ?? '',
     });
-  }, [event, partySize, spotsLeft, currentUser, onConfirm]);
+  }, [event, partySize, currentUser, onConfirm]);
 
-  if (!isOpen) return null;
+  // ── NULL GUARD — after all hooks ──────────────────────────────
+  // event is null when no card is selected → render nothing
+  if (!isOpen || !event) return null;
 
+  // ── Derived values (event is guaranteed non-null here) ────────
+  const spotsLeft = event.totalCapacity - event.spotsBooked;
+  const maxParty  = Math.min(event.bookingRules?.maxPerBooking ?? spotsLeft, Math.max(spotsLeft, 1));
+  const isBooked  = !!existingBooking || confirmed;
+  const tc = TYPE_CFG[event.experienceType]  ?? { label: event.experienceType, icon: '✦', color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+  const sc = STATUS_CFG[event.status] ?? { label: event.status, dot: '#6B7280' };
+  const total = partySize * event.pricePerPerson;
+
+  // ─────────────────────────────────────────────────────────────
   const modal = (
     <>
-      {/* ── Backdrop ─────────────────────────────────────────── */}
+      {/* Backdrop */}
       <div
         aria-hidden="true"
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0,
-          zIndex: 1000,
+          position: 'fixed', inset: 0, zIndex: 1000,
           background: 'rgba(0,0,0,0.75)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
         } as React.CSSProperties}
       />
 
-      {/* ── Sheet container ──────────────────────────────────── */}
-      {/*
-          Mobile  → items-end  : slides up from bottom (bottom-sheet)
-          Desktop → items-center: centered in viewport
-          We use an outer flex wrapper for alignment.
-      */}
+      {/* Sheet wrapper — flex-end on mobile, center on sm+ */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`Reserve spot for ${event.title}`}
         style={{
-          position: 'fixed', inset: 0,
-          zIndex: 1010,
+          position: 'fixed', inset: 0, zIndex: 1010,
           display: 'flex',
-          alignItems: 'flex-end',     /* mobile default: bottom-sheet */
+          alignItems: 'flex-end',
           justifyContent: 'center',
-          padding: '0',
-          pointerEvents: 'none',      /* let clicks fall through to backdrop */
+          pointerEvents: 'none',
         } as React.CSSProperties}
         className="sm:items-center sm:p-4"
       >
+        {/* Sheet card */}
         <div
           onClick={e => e.stopPropagation()}
           style={{
@@ -206,33 +207,26 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
             display: 'flex',
             flexDirection: 'column',
             boxShadow: '0 -20px 80px rgba(0,0,0,0.9)',
-            overflow: 'hidden',   /* clips child, scrolling is on inner div */
+            overflow: 'hidden',
           } as React.CSSProperties}
           className="sm:rounded-2xl sm:border-b"
         >
-          {/* ── Drag handle (mobile only) ─────────────────── */}
+          {/* Drag handle — mobile only */}
           <div className="flex justify-center pt-3 pb-1 flex-shrink-0 sm:hidden">
             <div style={{ width: 36, height: 4, borderRadius: 99, background: '#374151' }} />
           </div>
 
-          {/* ── Cover image ──────────────────────────────── */}
+          {/* Cover image */}
           <div className="relative flex-shrink-0" style={{ height: 130, overflow: 'hidden' }}>
-            <img
-              src={event.coverImage}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.1) 60%)' }}
-            />
+            <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.1) 60%)' }} />
 
-            {/* Close button */}
+            {/* Close */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 flex items-center justify-center rounded-full text-white transition-all hover:bg-white/20"
-              style={{ width: 34, height: 34, background: 'rgba(0,0,0,0.65)', border: 'none', cursor: 'pointer' }}
-              aria-label="Close"
+              className="absolute top-3 right-3 flex items-center justify-center rounded-full text-white"
+              style={{ width: 34, height: 34, background: 'rgba(0,0,0,0.7)', border: 'none', cursor: 'pointer' }}
+              aria-label="Close modal"
             >
               <IcoClose />
             </button>
@@ -242,13 +236,13 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
               <button
                 onClick={() => { onClose(); onViewFullDetail(); }}
                 className="absolute top-3 left-3 text-xs font-bold text-white/80 px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(0,0,0,0.65)', border: 'none', cursor: 'pointer' }}
+                style={{ background: 'rgba(0,0,0,0.7)', border: 'none', cursor: 'pointer' }}
               >
                 Details →
               </button>
             )}
 
-            {/* Type badge + title */}
+            {/* Title area */}
             <div className="absolute bottom-3 left-4">
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold mb-1"
@@ -256,13 +250,11 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
               >
                 {tc.icon} {tc.label}
               </span>
-              <h2 className="text-lg font-black text-white leading-tight m-0">
-                {event.title}
-              </h2>
+              <h2 className="text-lg font-black text-white leading-tight m-0">{event.title}</h2>
             </div>
           </div>
 
-          {/* ── Scrollable body ───────────────────────────── */}
+          {/* Scrollable content */}
           <div
             className="flex-1 overflow-y-auto overscroll-contain"
             style={{ minHeight: 0, WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
@@ -270,23 +262,20 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
           >
             <div className="px-5 py-4 flex flex-col gap-4">
 
-              {/* Meta row */}
+              {/* Meta */}
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
                 <span>📅 {formatEventDate(event.date)}</span>
                 <span>🕐 {event.arrivalTime || event.time}</span>
                 <span>📍 {event.venue}</span>
               </div>
 
-              {/* Availability pill */}
+              {/* Status + price pill */}
               <div
                 className="flex items-center justify-between rounded-xl px-4 py-3"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 <div className="flex items-center gap-2 text-sm">
-                  <span
-                    className="inline-block rounded-full"
-                    style={{ width: 8, height: 8, background: sc.dot, flexShrink: 0 }}
-                  />
+                  <span className="inline-block rounded-full" style={{ width: 8, height: 8, background: sc.dot, flexShrink: 0 }} />
                   <span className="text-white font-semibold">{sc.label}</span>
                 </div>
                 <span className="text-sm font-black text-white">
@@ -295,7 +284,7 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
                 </span>
               </div>
 
-              {/* Spots count */}
+              {/* Spots remaining */}
               <div className="flex items-center gap-2 text-sm">
                 <IcoUsers />
                 <span style={{
@@ -315,10 +304,7 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
               {/* ── ALREADY BOOKED ── */}
               {isBooked && (
                 <div className="flex flex-col items-center gap-3 py-3 text-center">
-                  <div
-                    className="w-14 h-14 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(34,197,94,0.15)' }}
-                  >
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.15)' }}>
                     <span style={{ color: '#22C55E' }}><IcoCheck /></span>
                   </div>
                   <div>
@@ -332,17 +318,13 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
                   {onNavigateToPlans && (
                     <button
                       onClick={() => { onClose(); onNavigateToPlans(); }}
-                      className="w-full py-3.5 rounded-2xl font-black text-white text-sm transition-all hover:opacity-90"
+                      className="w-full py-3.5 rounded-2xl font-black text-white text-sm"
                       style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', border: 'none', cursor: 'pointer' }}
                     >
                       View My Plans →
                     </button>
                   )}
-                  <button
-                    onClick={onClose}
-                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
+                  <button onClick={onClose} className="text-sm text-gray-500" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                     Close
                   </button>
                 </div>
@@ -371,85 +353,62 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
               {!isBooked && canBook && event.status !== 'sold-out' && event.status !== 'cancelled' && (
                 <div className="flex flex-col gap-4">
 
-                  {/* Party size stepper */}
+                  {/* Party size */}
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wide">
-                      Party Size
-                    </p>
+                    <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wide">Party Size</p>
                     <div className="flex items-center gap-5">
                       <button
                         onClick={() => setPartySize(p => Math.max(1, p - 1))}
-                        className="w-11 h-11 rounded-full font-bold text-white text-xl flex items-center justify-center transition-colors hover:bg-gray-700"
+                        className="w-11 h-11 rounded-full font-bold text-white text-xl flex items-center justify-center"
                         style={{ background: '#1F2937', border: 'none', cursor: 'pointer' }}
-                        aria-label="Decrease party size"
-                      >
-                        −
-                      </button>
-                      <span className="text-3xl font-black text-white w-10 text-center">
-                        {partySize}
-                      </span>
+                        aria-label="Decrease"
+                      >−</button>
+                      <span className="text-3xl font-black text-white w-10 text-center">{partySize}</span>
                       <button
                         onClick={() => setPartySize(p => Math.min(maxParty, p + 1))}
-                        className="w-11 h-11 rounded-full font-bold text-white text-xl flex items-center justify-center transition-colors hover:bg-gray-700"
+                        className="w-11 h-11 rounded-full font-bold text-white text-xl flex items-center justify-center"
                         style={{ background: '#1F2937', border: 'none', cursor: 'pointer' }}
-                        aria-label="Increase party size"
-                      >
-                        +
-                      </button>
-                      <span className="text-sm text-gray-500">
-                        person{partySize !== 1 ? 's' : ''}
-                      </span>
+                        aria-label="Increase"
+                      >+</button>
+                      <span className="text-sm text-gray-500">person{partySize !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
 
                   {/* Total */}
-                  <div
-                    className="flex items-center justify-between py-3"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-                  >
+                  <div className="flex items-center justify-between py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                     <span className="text-sm text-gray-400">Total</span>
-                    <span className="text-2xl font-black text-white">
-                      ${(partySize * event.pricePerPerson).toLocaleString()}
-                    </span>
+                    <span className="text-2xl font-black text-white">${total.toLocaleString()}</span>
                   </div>
 
-                  {/* Validation error */}
+                  {/* Error */}
                   {ruleError && (
-                    <div
-                      className="rounded-xl px-4 py-2 text-xs text-red-300"
-                      style={{ background: 'rgba(127,29,29,0.35)', border: '1px solid rgba(239,68,68,0.35)' }}
-                    >
+                    <div className="rounded-xl px-4 py-2 text-xs text-red-300" style={{ background: 'rgba(127,29,29,0.35)', border: '1px solid rgba(239,68,68,0.35)' }}>
                       {ruleError}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Bottom padding so sticky CTA doesn't cover last content */}
               <div className="h-2" />
             </div>
           </div>
 
-          {/* ── Sticky CTA ────────────────────────────────── */}
+          {/* Sticky Reserve CTA */}
           {!isBooked && canBook && event.status !== 'sold-out' && event.status !== 'cancelled' && (
             <div
               className="flex-shrink-0 px-5 pt-3 pb-8"
-              style={{
-                background: '#141414',
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-              }}
+              style={{ background: '#141414', borderTop: '1px solid rgba(255,255,255,0.07)' }}
             >
               <button
                 onClick={handleReserve}
-                className="w-full py-4 rounded-2xl font-black text-white text-base transition-all hover:opacity-90 active:scale-[0.98]"
+                className="w-full py-4 rounded-2xl font-black text-white text-base active:scale-[0.98]"
                 style={{
                   background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
                   boxShadow: '0 8px 28px rgba(224,64,251,0.35)',
-                  border: 'none',
-                  cursor: 'pointer',
+                  border: 'none', cursor: 'pointer',
                 }}
               >
-                Reserve Spot — ${(partySize * event.pricePerPerson).toLocaleString()}
+                Reserve Spot — ${total.toLocaleString()}
               </button>
               <p className="text-center text-xs text-gray-600 mt-2">
                 {spotsLeft <= 3 && spotsLeft > 0

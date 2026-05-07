@@ -475,7 +475,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
 
       {/* ── Reserve Spot Modal ── */}
       <ReserveSpotModal
-        event={selectedInstance!}
+        event={selectedInstance}
         isOpen={!!selectedInstance}
         onClose={() => setSelectedInstance(null)}
         onConfirm={(booking) => {

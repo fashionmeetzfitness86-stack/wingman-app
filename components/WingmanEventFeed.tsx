@@ -587,7 +587,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
       {/* ── Reserve Spot Modal ── */}
       <ReserveSpotModal
-        event={selected!}
+        event={selected}
         isOpen={!!selected}
         onClose={() => setSelected(null)}
         onConfirm={handleConfirmBooking}
