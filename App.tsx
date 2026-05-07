@@ -2171,8 +2171,8 @@ export const App: React.FC = () => {
                         </div>
                     )}
                     {currentPage !== 'home' && (
-                        <Header 
-                            title={currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} 
+                        <Header
+                            title={currentPage.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim()}
                             onOpenMenu={() => setIsMenuOpen(true)} 
                             onOpenNotifications={() => setIsNotificationsOpen(true)} 
                             onOpenGroupChat={() => handleNavigate('accessGroups')} 
