@@ -207,6 +207,7 @@ export const App: React.FC = () => {
     });
     const [onboardingDismissed, setOnboardingDismissed] = useState(false);
     
+    const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
         try { return JSON.parse(localStorage.getItem('wingman_cart') || '[]'); } catch { return []; }
     });
@@ -524,22 +525,37 @@ export const App: React.FC = () => {
         handleNavigate('bookingConfirmed', { items: newBookedItems });
     };
 
+    const priceForItem = (item: CartItem): number => {
+        if (item.type === 'storeItem' && item.storeItemDetails) {
+            return item.storeItemDetails.item.price;
+        }
+        return item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+    };
+
     const handleConfirmCheckout = async (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
         if (paymentMethod === 'usd') {
             const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
-            if (itemsToBook.length === 0) return;
+            if (itemsToBook.length === 0) {
+                showToast('No items selected.', 'error');
+                return;
+            }
 
-            const stripeItems = itemsToBook.map(item => {
-                const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
-                return {
+            const stripeItems = itemsToBook
+                .map(item => ({
                     id: item.id,
                     name: item.name,
-                    amount: price,
+                    amount: priceForItem(item),
                     quantity: item.quantity || 1,
                     image: item.image,
-                };
-            });
+                }))
+                .filter(i => i.amount > 0);
 
+            if (stripeItems.length === 0) {
+                showToast('Cart total is $0 — nothing to charge.', 'error');
+                return;
+            }
+
+            setIsCheckoutLoading(true);
             try {
                 localStorage.setItem('wingman_pending_checkout', JSON.stringify({ itemIds, paymentMethod }));
                 const res = await fetch('/.netlify/functions/create-checkout', {
@@ -556,9 +572,10 @@ export const App: React.FC = () => {
                     window.location.href = data.url;
                     return;
                 }
-                throw new Error(data.error || 'Checkout failed');
+                throw new Error(data.error || 'Could not start checkout. Please try again.');
             } catch (err: any) {
                 localStorage.removeItem('wingman_pending_checkout');
+                setIsCheckoutLoading(false);
                 showToast(err.message || 'Checkout failed', 'error');
                 return;
             }
@@ -1856,6 +1873,7 @@ export const App: React.FC = () => {
                     }}
                     onUpdatePaymentOption={(id, opt) => setCartItems(prev => prev.map(i => i.id === id ? { ...i, paymentOption: opt } : i))}
                     onConfirmCheckout={handleConfirmCheckout}
+                    isCheckoutLoading={isCheckoutLoading}
                     onMoveToCart={handleMoveToCart}
                     onViewReceipt={(item) => handleNavigate('bookingConfirmed', { items: [item] })}
                     userTokenBalance={userTokenBalance}

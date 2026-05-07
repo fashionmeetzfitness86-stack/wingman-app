@@ -156,8 +156,11 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                         ))}
                         {cards.length === 0 && (
                             <div className="text-center p-8 border-2 border-dashed border-gray-800 rounded-xl">
-                                <p className="text-gray-500 mb-4">No cards added yet.</p>
-                                <button onClick={handleOpenAdd} className="text-amber-400 font-bold text-sm hover:underline">Add your first card</button>
+                                <CreditCardIcon className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                                <p className="text-white font-semibold mb-1">No saved cards in-app</p>
+                                <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                                    Cards are securely handled by Stripe at checkout. You'll enter card details on Stripe's hosted page when you confirm a booking.
+                                </p>
                             </div>
                         )}
                     </div>
@@ -219,17 +222,6 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                 </div>
             </div>
             
-            <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4 z-10">
-                <div className="container mx-auto max-w-5xl">
-                    <button 
-                        onClick={handleOpenAdd}
-                        className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
-                    >
-                        <PlusIcon className="w-5 h-5"/>
-                        Add Payment Method
-                    </button>
-                </div>
-            </div>
 
             <AddPaymentMethodModal 
                 isOpen={isModalOpen} 

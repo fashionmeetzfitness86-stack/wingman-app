@@ -17,6 +17,7 @@ interface CheckoutPageProps {
   onRemoveItem: (itemId: string) => void;
   onUpdatePaymentOption: (itemId: string, option: 'deposit' | 'full') => void;
   onConfirmCheckout: (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => void;
+  isCheckoutLoading?: boolean;
   onMoveToCart: (item: CartItem) => void;
   onViewReceipt: (item: CartItem) => void;
   userTokenBalance: number;
@@ -44,7 +45,7 @@ const EmptyState: React.FC<{ icon: React.ReactNode; title: string; subtitle: str
 
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   currentUser, watchlist, cartItems = [], bookedItems, venues,
-  onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, onMoveToCart,
+  onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, isCheckoutLoading = false, onMoveToCart,
   onViewReceipt, userTokenBalance, onStartChat, onCancelRsvp,
   initialTab = 'cart', onNavigate
 }) => {
@@ -228,7 +229,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <span className="text-sm font-bold text-white">{totalTokensCost.toLocaleString()}</span>
                     </button>
 
-                    {/* Card */}
+                    {/* Card via Stripe */}
                     <button
                       onClick={() => setPaymentMethod('usd')}
                       className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
@@ -238,38 +239,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     >
                       <CreditCardIcon className="w-5 h-5 flex-shrink-0 text-gray-300" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">Card</p>
-                        <p className="text-xs text-gray-500">Visa ···· 4567</p>
-                      </div>
-                      <span className="text-sm font-bold text-white">${totalCostUSD.toFixed(2)}</span>
-                    </button>
-
-                    {/* Cash App */}
-                    <button
-                      onClick={() => setPaymentMethod('cashapp')}
-                      className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"
-                      style={paymentMethod === 'cashapp'
-                        ? { background: 'rgba(255,255,255,0.1)', borderColor: '#FFFFFF' }
-                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
-                    >
-                      <div className="w-6 h-6 bg-green-500 rounded-md flex items-center justify-center flex-shrink-0">
-                        <CurrencyDollarIcon className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">Cash App</p>
-                        <p className="text-xs text-gray-500">Pay with balance</p>
+                        <p className="text-sm font-bold text-white">Pay with Card</p>
+                        <p className="text-xs text-gray-500">Secure checkout via Stripe</p>
                       </div>
                       <span className="text-sm font-bold text-white">${totalCostUSD.toFixed(2)}</span>
                     </button>
                   </div>
-
-                  <button
-                    onClick={() => onNavigate('paymentMethods')}
-                    className="w-full mt-3 text-center text-xs font-semibold hover:underline transition-colors"
-                    style={{ color: '#374151' }}
-                  >
-                    + Add a new card
-                  </button>
                 </div>
 
                 {/* Order Summary */}
@@ -302,12 +277,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-                    disabled={selectedItemIds.length === 0}
+                    disabled={selectedItemIds.length === 0 || isCheckoutLoading}
                     className="mt-4 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
                   >
-                    <CreditCardIcon className="w-5 h-5" />
-                    Confirm &amp; Pay ({selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''})
+                    {isCheckoutLoading ? (
+                      <>
+                        <span className="inline-block w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        Redirecting to Stripe...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCardIcon className="w-5 h-5" />
+                        Confirm &amp; Pay ({selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''})
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -393,12 +377,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </p>
             <button
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-              disabled={selectedItemIds.length === 0}
+              disabled={selectedItemIds.length === 0 || isCheckoutLoading}
               className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
             >
-              <CreditCardIcon className="w-5 h-5" />
-              Confirm &amp; Pay
+              {isCheckoutLoading ? (
+                <>
+                  <span className="inline-block w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Redirecting to Stripe...
+                </>
+              ) : (
+                <>
+                  <CreditCardIcon className="w-5 h-5" />
+                  Confirm &amp; Pay
+                </>
+              )}
             </button>
           </div>
         </div>
