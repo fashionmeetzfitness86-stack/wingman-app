@@ -338,7 +338,7 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
                       className="w-full py-3.5 rounded-2xl font-black text-white text-sm transition-all hover:opacity-90"
                       style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', border: 'none', cursor: 'pointer' }}
                     >
-                      View My Plans →
+                      Go to Checkout →
                     </button>
                   )}
                   <button

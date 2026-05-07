@@ -1893,7 +1893,6 @@ export const App: React.FC = () => {
                     isCheckoutLoading={isCheckoutLoading}
                     onMoveToCart={handleMoveToCart}
                     onViewReceipt={(item) => handleNavigate('bookingConfirmed', { items: [item] })}
-                    userTokenBalance={userTokenBalance}
                     onStartChat={handleStartBookingChat}
                     onCancelRsvp={(item) => {
                         // Remove from instanceBookings if it was a confirmed event

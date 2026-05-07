@@ -153,9 +153,6 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
         if (tiktok && !/^[a-zA-Z0-9._]+$/.test(tiktok)) {
             newErrors.tiktok = "Invalid TikTok handle format.";
         }
-        if (galleryImages.length < 3) {
-            newErrors.galleryImages = 'A minimum of 3 images is required for better visibility.';
-        }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
