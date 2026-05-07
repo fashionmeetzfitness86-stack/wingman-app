@@ -106,6 +106,7 @@ const ExperienceRow: React.FC<{
   onOpenModal: () => void;
   onToggleBookmark: (e: React.MouseEvent) => void;
 }> = ({ instance, isBooked, isInCart, isBookmarked, canBook, onOpenModal, onToggleBookmark }) => {
+  if (!instance || instance.totalCapacity == null) return null;
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
   const color = TYPE_COLORS[instance.experienceType] ?? '#FFFFFF';
   const icon = TYPE_ICONS[instance.experienceType] ?? '✦';
@@ -333,8 +334,13 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const canBook = isAdmin || (isApproved && hasActiveSub);
 
-  // Generate all upcoming instances
-  const allInstances = useMemo(() => generateEventFeed(bookedMap, cancelMap, 4), [bookedMap, cancelMap]);
+  // Generate all upcoming instances — filter out any that are malformed (stale localStorage)
+  const allInstances = useMemo(
+    () => generateEventFeed(bookedMap, cancelMap, 4).filter(
+      (inst): inst is EventInstance => !!inst && inst.totalCapacity != null && !!inst.instanceId
+    ),
+    [bookedMap, cancelMap]
+  );
 
   // Filter venues
   const filteredVenues = useMemo(() => {

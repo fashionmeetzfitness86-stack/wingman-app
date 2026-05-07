@@ -161,6 +161,24 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
   const [ruleError, setRuleError] = useState('');
   const [booked, setBooked] = useState(false);
 
+  // Null guard — malformed navigation state should never crash the app
+  if (!instance || instance.totalCapacity == null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-center p-8" style={{ background: '#0a0a0a' }}>
+        <div>
+          <p className="text-gray-400 text-sm mb-4">Event details unavailable.</p>
+          <button
+            onClick={() => onNavigate('home')}
+            className="text-white text-sm underline"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            ← Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const tc = TYPE_CFG[instance.experienceType];
   const sc = STATUS_CFG[instance.status];
 
