@@ -4,7 +4,6 @@ import { MenuIcon } from './icons/MenuIcon';
 import { BellIcon } from './icons/BellIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { QrIcon } from './icons/QrIcon';
-import { TokenIcon } from './icons/TokenIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { User, UserRole } from '../types';
 import { CartIcon } from './icons/CartIcon';
@@ -20,12 +19,11 @@ interface HeaderProps {
   showQrScanner?: boolean;
   onOpenScanner?: () => void;
   hasNotifications?: boolean;
-  tokenBalance?: number;
-  balanceJustUpdated?: boolean;
   currentUser: User;
   onOpenCart: () => void;
   cartItemCount: number;
   showMenu?: boolean;
+  onLogoClick?: () => void;
 }
 
 /**
@@ -79,12 +77,11 @@ export const Header: React.FC<HeaderProps> = ({
   showQrScanner,
   onOpenScanner,
   hasNotifications,
-  tokenBalance,
-  balanceJustUpdated,
   currentUser,
   onOpenCart,
   cartItemCount,
   showMenu = true,
+  onLogoClick,
 }) => {
   const isHome = title.toLowerCase() === 'home';
 
@@ -132,31 +129,40 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* ── Centre: Logo on Home, title on other pages ── */}
-      <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none max-w-[calc(100%-9rem)]">
+      <div className="absolute left-1/2 -translate-x-1/2 text-center max-w-[calc(100%-9rem)]">
         {isHome ? (
-          <WingmanLogo />
+          onLogoClick ? (
+            <button onClick={onLogoClick} aria-label="Home" className="cursor-pointer">
+              <WingmanLogo />
+            </button>
+          ) : (
+            <WingmanLogo />
+          )
         ) : subtitle ? (
-          <>
+          <button
+            onClick={onLogoClick}
+            disabled={!onLogoClick}
+            className={onLogoClick ? 'cursor-pointer' : 'pointer-events-none'}
+          >
             <p className="text-[11px] text-gray-500 truncate leading-none mb-0.5">{subtitle}</p>
             <p className="text-white font-bold text-base truncate leading-tight">{title}</p>
-          </>
+          </button>
         ) : (
-          <h1 className="text-white font-bold text-base truncate tracking-wide" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            {title}
-          </h1>
+          <button
+            onClick={onLogoClick}
+            disabled={!onLogoClick}
+            className={onLogoClick ? 'cursor-pointer' : 'pointer-events-none'}
+            aria-label="Home"
+          >
+            <h1 className="text-white font-bold text-base truncate tracking-wide" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              {title}
+            </h1>
+          </button>
         )}
       </div>
 
       {/* ── Right ── */}
       <div className="flex items-center gap-0.5">
-        {tokenBalance !== undefined && (
-          <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full mr-1 ${balanceJustUpdated ? 'animate-flash-blue' : ''}`}
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
-            <TokenIcon className="w-4 h-4" style={{ color: '#FFFFFF' } as React.CSSProperties} />
-            <span className="text-white font-bold text-xs">{tokenBalance.toLocaleString()}</span>
-          </div>
-        )}
 
         <button
           onClick={onOpenCart}

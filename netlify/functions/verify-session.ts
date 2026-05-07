@@ -12,8 +12,9 @@ export default async (req: Request) => {
   }
 
   try {
-    if (!process.env.STRIPE_API_KEY) {
-      throw new Error('STRIPE_API_KEY missing in Netlify environment variables.');
+    const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_KEY;
+    if (!apiKey) {
+      throw new Error('Stripe secret key missing. Set STRIPE_API_KEY (or STRIPE_SECRET_KEY) in Netlify and redeploy.');
     }
 
     const url = new URL(req.url);
@@ -22,7 +23,7 @@ export default async (req: Request) => {
       return new Response(JSON.stringify({ error: 'session_id required' }), { status: 400 });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_API_KEY, { apiVersion: '2026-02-25.clover' as any });
+    const stripe = new Stripe(apiKey, { apiVersion: '2026-02-25.clover' as any });
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     return new Response(

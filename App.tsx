@@ -375,6 +375,23 @@ export const App: React.FC = () => {
     useEffect(() => { localStorage.setItem('wingman_cart', JSON.stringify(cartItems)); }, [cartItems]);
     useEffect(() => { localStorage.setItem('wingman_booked', JSON.stringify(bookedItems)); }, [bookedItems]);
     useEffect(() => { localStorage.setItem('wingman_watchlist', JSON.stringify(watchlist)); }, [watchlist]);
+
+    // Defensive scroll-lock cleanup: if a modal closed badly and left body in
+    // position:fixed (iOS Safari scroll-lock technique), reset it on every nav.
+    useEffect(() => {
+        const body = document.body;
+        const html = document.documentElement;
+        const hasLiveModal = !!document.querySelector('[data-modal-backdrop]');
+        if (!hasLiveModal) {
+            if (body.style.position === 'fixed') body.style.position = '';
+            if (body.style.top) body.style.top = '';
+            if (body.style.left) body.style.left = '';
+            if (body.style.right) body.style.right = '';
+            if (body.style.overflow === 'hidden') body.style.overflow = '';
+            if (html.style.overflow === 'hidden') html.style.overflow = '';
+            body.classList.remove('modal-open');
+        }
+    }, [currentPage]);
     useEffect(() => { localStorage.setItem('wingman_users', JSON.stringify(appUsers)); }, [appUsers]);
     useEffect(() => { localStorage.setItem('wingman_wingmen', JSON.stringify(appWingmen)); }, [appWingmen]);
     useEffect(() => { localStorage.setItem('wingman_events', JSON.stringify(appEvents)); }, [appEvents]);
@@ -2178,9 +2195,8 @@ export const App: React.FC = () => {
                             onOpenGroupChat={() => handleNavigate('accessGroups')} 
                             currentUser={currentUser} 
                             onOpenCart={() => setIsCartOpen(true)} 
-                            cartItemCount={cartItems.length} 
-                            tokenBalance={userTokenBalance} 
-                            balanceJustUpdated={false}
+                            cartItemCount={cartItems.length}
+                            onLogoClick={() => handleNavigate('home')}
                             showMenu={true}
                         />
                     )}

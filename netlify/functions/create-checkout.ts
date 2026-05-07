@@ -24,11 +24,12 @@ export default async (req: Request) => {
   }
 
   try {
-    if (!process.env.STRIPE_API_KEY) {
-      throw new Error('STRIPE_API_KEY missing in Netlify environment variables.');
+    const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_KEY;
+    if (!apiKey) {
+      throw new Error('Stripe secret key missing. Set STRIPE_API_KEY (or STRIPE_SECRET_KEY) in Netlify environment variables and redeploy.');
     }
 
-    const stripe = new Stripe(process.env.STRIPE_API_KEY, { apiVersion: '2026-02-25.clover' as any });
+    const stripe = new Stripe(apiKey, { apiVersion: '2026-02-25.clover' as any });
 
     const body = await req.json();
     const { items, userEmail, userId, successUrl, cancelUrl } = body as {
