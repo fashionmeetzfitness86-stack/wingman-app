@@ -112,6 +112,7 @@ const EventCard: React.FC<{
   isBookmarked: boolean;
   onToggleBookmark: (e: React.MouseEvent) => void;
 }> = ({ instance, onOpen, isBooked, isBookmarked, onToggleBookmark }) => {
+  if (!instance || instance.totalCapacity == null) return null;
   const tc = TYPE_CONFIG[instance.experienceType];
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
@@ -277,9 +278,11 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   // ── Modal state ──
   const [selected, setSelected] = useState<EventInstance | null>(null);
 
-  // ── Generate feed ──
+  // ── Generate feed — filter malformed instances from stale localStorage ──
   const allInstances = useMemo(
-    () => generateEventFeed(bookedMap, cancelMap, 4),
+    () => generateEventFeed(bookedMap, cancelMap, 4).filter(
+      (inst): inst is EventInstance => !!inst && inst.totalCapacity != null && !!inst.instanceId
+    ),
     [bookedMap, cancelMap],
   );
 

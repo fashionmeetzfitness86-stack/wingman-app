@@ -85,23 +85,16 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
   onNavigateToPlans,
   onViewFullDetail,
 }) => {
+  // ── Hooks — MUST be called unconditionally (React rules) ─────
   const [partySize, setPartySize] = useState(1);
   const [ruleError, setRuleError] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
-  const spotsLeft = event.totalCapacity - event.spotsBooked;
-  const maxParty  = Math.min(event.bookingRules?.maxPerBooking ?? spotsLeft, Math.max(spotsLeft, 1));
-  const isBooked  = !!existingBooking || confirmed;
-  const tc = TYPE_CFG[event.experienceType] ?? { label: event.experienceType, icon: '✦', color: '#fff', bg: 'rgba(255,255,255,0.1)' };
-  const sc = STATUS_CFG[event.status] ?? { label: event.status, dot: '#6B7280' };
-
-  // ── Body scroll lock ──────────────────────────────────────────
+  // Body scroll lock + hide bottom nav
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !event) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
-    // Hide bottom nav and FAB while modal is open
     const nav = document.querySelector<HTMLElement>('nav[aria-label="Wingman Navigation"]');
     if (nav) {
       nav.dataset.prevZ = nav.style.zIndex;
@@ -109,19 +102,18 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
       nav.style.pointerEvents = 'none';
       nav.style.visibility = 'hidden';
     }
-
     return () => {
       document.body.style.overflow = prev;
       if (nav) {
-        nav.style.zIndex    = nav.dataset.prevZ ?? '';
+        nav.style.zIndex        = nav.dataset.prevZ ?? '';
         nav.style.pointerEvents = '';
         nav.style.visibility    = '';
         delete nav.dataset.prevZ;
       }
     };
-  }, [isOpen]);
+  }, [isOpen, event]);
 
-  // ── ESC key ───────────────────────────────────────────────────
+  // ESC key
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -129,18 +121,20 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  // ── Reset state when a new event is opened ────────────────────
+  // Reset form when a new event opens
   useEffect(() => {
-    if (isOpen) { setPartySize(1); setRuleError(''); setConfirmed(false); }
-  }, [isOpen, event.instanceId]);
+    if (isOpen && event) { setPartySize(1); setRuleError(''); setConfirmed(false); }
+  }, [isOpen, event?.instanceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Reserve handler ───────────────────────────────────────────
+  // Reserve action — reads event at call-time, safe after guard
   const handleReserve = useCallback(() => {
+    if (!event) return;
+    const sl = event.totalCapacity - event.spotsBooked;
     if (event.bookingRules?.maxPerBooking && partySize > event.bookingRules.maxPerBooking) {
       setRuleError(`Max ${event.bookingRules.maxPerBooking} per booking.`); return;
     }
-    if (partySize > spotsLeft) {
-      setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left.`); return;
+    if (partySize > sl) {
+      setRuleError(`Only ${sl} spot${sl !== 1 ? 's' : ''} left.`); return;
     }
     setRuleError('');
     setConfirmed(true);
@@ -152,9 +146,18 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
       guestName:  currentUser.name,
       guestEmail: currentUser.email ?? '',
     });
-  }, [event, partySize, spotsLeft, currentUser, onConfirm]);
+  }, [event, partySize, currentUser, onConfirm]);
 
-  if (!isOpen) return null;
+  // ── NULL GUARD — after all hooks, before any event.xxx access ─
+  if (!isOpen || !event) return null;
+
+  // ── Derived values — event is guaranteed non-null here ────────
+  const spotsLeft = event.totalCapacity - event.spotsBooked;
+  const maxParty  = Math.min(event.bookingRules?.maxPerBooking ?? spotsLeft, Math.max(spotsLeft, 1));
+  const isBooked  = !!existingBooking || confirmed;
+  const tc = TYPE_CFG[event.experienceType]  ?? { label: event.experienceType, icon: '✦', color: '#fff', bg: 'rgba(255,255,255,0.1)' };
+  const sc = STATUS_CFG[event.status] ?? { label: event.status, dot: '#6B7280' };
+  const total = partySize * event.pricePerPerson;
 
   const modal = (
     <>
