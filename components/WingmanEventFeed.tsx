@@ -18,6 +18,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { User, UserRole, EventInstance, InstanceBooking, ExperienceType } from '../types';
 import { generateEventFeed, WEEKLY_SCHEDULE, formatEventDate, daysUntilLabel, computeStatus } from '../utils/eventSchedule';
 import { useScrollLock } from '../utils/useScrollLock';
+import { ReserveSpotModal } from './ReserveSpotModal';
 
 // ─── ICONS (inline SVG — no new icon files needed) ───────────
 
@@ -111,6 +112,7 @@ const EventCard: React.FC<{
   isBookmarked: boolean;
   onToggleBookmark: (e: React.MouseEvent) => void;
 }> = ({ instance, onOpen, isBooked, isBookmarked, onToggleBookmark }) => {
+  if (!instance || instance.totalCapacity == null) return null;
   const tc = TYPE_CONFIG[instance.experienceType];
   const sc = STATUS_CONFIG[instance.status];
   const spotsLeft = instance.totalCapacity - instance.spotsBooked;
@@ -242,255 +244,6 @@ const EventCard: React.FC<{
 
 // ─── BOOKING MODAL ────────────────────────────────────────────
 
-const BookingModal: React.FC<{
-  instance: EventInstance;
-  currentUser: User;
-  isBooked: boolean;
-  existingBooking?: InstanceBooking;
-  onClose: () => void;
-  onConfirm: (partySize: number) => void;
-  onNavigateToPlans?: () => void;
-  onViewDetail?: () => void;
-  isAdmin: boolean;
-  onAdminCancel?: () => void;
-  onAdminRestore?: () => void;
-  onAdminForceSoldOut?: () => void;
-}> = ({ instance, isBooked, existingBooking, onClose, onConfirm, onNavigateToPlans, onViewDetail, isAdmin, onAdminCancel, onAdminRestore, onAdminForceSoldOut }) => {
-  const [partySize, setPartySize] = useState(1);
-  const [ruleError, setRuleError] = useState('');
-  const tc = TYPE_CONFIG[instance.experienceType];
-  const sc = STATUS_CONFIG[instance.status];
-  const spotsLeft = instance.totalCapacity - instance.spotsBooked;
-
-  // Lock body scroll + disable bottom nav pointer events while modal is open
-  useScrollLock(true);
-
-  useEffect(() => {
-    // Suppress bottom nav clicks while modal is open
-    const nav = document.querySelector('nav[aria-label="Main Navigation"]') as HTMLElement | null;
-    if (nav) nav.style.pointerEvents = 'none';
-    return () => { if (nav) nav.style.pointerEvents = ''; };
-  }, []);
-
-  const canBook = !isBooked && instance.status !== 'sold-out' && instance.status !== 'cancelled';
-  const maxParty = Math.min(
-    instance.bookingRules.maxPerBooking ?? spotsLeft,
-    spotsLeft
-  );
-
-  const handleAddToCart = () => {
-    const rules = instance.bookingRules;
-    if (rules.maxPerBooking && partySize > rules.maxPerBooking) {
-      setRuleError(`Maximum ${rules.maxPerBooking} people per booking for this event.`);
-      return;
-    }
-    if (partySize > spotsLeft) {
-      setRuleError(`Only ${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} remaining.`);
-      return;
-    }
-    setRuleError('');
-    onConfirm(partySize);
-    onClose();
-    if (onNavigateToPlans) onNavigateToPlans();
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      data-modal-backdrop
-      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' } as React.CSSProperties}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md sm:max-w-lg flex flex-col rounded-3xl"
-        style={{
-          background: '#161616',
-          border: '1px solid rgba(255,255,255,0.12)',
-          maxHeight: '85vh',
-          boxShadow: '0 -8px 48px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Cover */}
-        <div className="relative h-32 sm:h-40 flex-shrink-0">
-          <img src={instance.coverImage} alt={instance.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-full text-white"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
-          >
-            <IconClose className="w-4 h-4" />
-          </button>
-          {/* Full Details link */}
-          {onViewDetail && (
-            <button
-              onClick={() => { onClose(); onViewDetail(); }}
-              className="absolute top-3 left-3 text-[10px] font-bold text-white/70 hover:text-white flex items-center gap-1 transition-colors"
-              style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '999px', padding: '4px 8px' }}
-            >
-              Details →
-            </button>
-          )}
-          <div className="absolute bottom-3 left-4">
-            <div
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold mb-1"
-              style={{ background: tc.bg, color: tc.color }}
-            >
-              {tc.icon} {tc.label}
-            </div>
-            <h2 className="text-lg font-black text-white leading-tight">{instance.title}</h2>
-          </div>
-        </div>
-
-        {/* Scrollable content area */}
-        <div className="p-4 space-y-3 overflow-y-auto flex-1" style={{ overscrollBehavior: 'contain' }}>
-          {/* Meta row */}
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
-            <span className="flex items-center gap-1">📅 {formatEventDate(instance.date)}</span>
-            <span className="flex items-center gap-1">🕐 {instance.arrivalTime || instance.time}</span>
-            <span className="flex items-center gap-1">📍 {instance.venue}</span>
-          </div>
-
-          {/* Status + spots */}
-          <div
-            className="flex items-center justify-between rounded-xl px-3 py-2"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <div className="flex items-center gap-2 text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
-              <span className="font-semibold text-white">{sc.label}</span>
-            </div>
-            <span className="text-[11px] text-gray-400">
-              {spotsLeft} left
-            </span>
-          </div>
-
-          {/* Booking Rules */}
-          {(instance.bookingRules.maxPerBooking) && (
-            <div className="rounded-xl px-3 py-2 text-[10px] text-gray-400"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="font-semibold text-gray-300">Max {instance.bookingRules.maxPerBooking} per booking</p>
-            </div>
-          )}
-
-          {/* ── Already booked ── */}
-          {isBooked && (
-            <div className="flex flex-col items-center py-2 gap-3 text-center">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(224,64,251,0.12)' }}>
-                <div style={{ color: '#E040FB' }}>
-                  <IconCheck className="w-6 h-6" />
-                </div>
-              </div>
-              <div>
-                <p className="font-bold text-white text-sm mb-0.5">You're In! 🎉</p>
-                <p className="text-[11px] text-gray-400">
-                  {existingBooking
-                    ? `${existingBooking.partySize} spot${existingBooking.partySize !== 1 ? 's' : ''} · $${existingBooking.totalPaid.toLocaleString()}`
-                    : 'Your spot is reserved.'}
-                </p>
-              </div>
-              {onNavigateToPlans && (
-                <button
-                  onClick={() => { onClose(); onNavigateToPlans(); }}
-                  className="w-full font-bold py-3 rounded-xl text-white text-xs transition-all active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.25)' }}
-                >
-                  View My Plans →
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* ── Booking form ── */}
-          {!isBooked && canBook && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-medium text-gray-400 mb-2">Party Size</label>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setPartySize(p => Math.max(1, p - 1))}
-                    className="w-8 h-8 rounded-full bg-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
-                  >−</button>
-                  <span className="text-xl font-black text-white w-6 text-center">{partySize}</span>
-                  <button
-                    onClick={() => setPartySize(p => Math.min(maxParty, p + 1))}
-                    className="w-8 h-8 rounded-full bg-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-700 transition-colors"
-                  >+</button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between py-2 border-t border-gray-800">
-                <span className="text-gray-400 text-[11px]">Total</span>
-                <span className="text-lg font-black text-white">${(partySize * instance.pricePerPerson).toLocaleString()}</span>
-              </div>
-
-              {ruleError && (
-                <div className="bg-red-900/30 border border-red-700/50 rounded-lg px-3 py-2 text-[11px] text-red-300">
-                  {ruleError}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Admin controls */}
-          {isAdmin && (
-            <div className="pt-2 border-t border-gray-800 flex items-center gap-2">
-              <span className="text-[9px] text-gray-600 flex-1">Admin</span>
-              {instance.status !== 'sold-out' && onAdminForceSoldOut && (
-                  <button onClick={() => { onAdminForceSoldOut(); onClose(); }} className="text-[9px] text-pink-400 border border-pink-900/50 rounded px-1.5 py-1 hover:bg-pink-900/20 transition-colors">
-                    Sold Out
-                  </button>
-              )}
-              {instance.status !== 'cancelled' ? (
-                <button onClick={() => { if(onAdminCancel) onAdminCancel(); onClose(); }}
-                  className="text-[9px] text-red-400 border border-red-900/50 rounded px-1.5 py-1 hover:bg-red-900/20 transition-colors">
-                  Cancel
-                </button>
-              ) : (
-                <button onClick={() => { if(onAdminRestore) onAdminRestore(); onClose(); }}
-                  className="text-[9px] text-green-400 border border-green-900/50 rounded px-1.5 py-1 hover:bg-green-900/20 transition-colors">
-                  Restore
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── Sticky CTA footer — always visible ── */}
-        {!isBooked && canBook && (
-          <div
-            className="flex-shrink-0 px-4 pb-6 pt-3 border-t border-gray-800"
-            style={{ background: '#161616' }}
-          >
-            <button
-              onClick={handleAddToCart}
-              className="w-full font-bold py-4 rounded-xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
-            >
-              Reserve — ${(partySize * instance.pricePerPerson).toLocaleString()}
-            </button>
-          </div>
-        )}
-
-          {/* ── Not bookable ── */}
-          {!isBooked && !canBook && (
-            <div className="text-center py-2">
-              <p className="text-gray-500 text-[11px]">
-                {instance.status === 'sold-out'
-                  ? 'This event is fully booked.'
-                  : instance.status === 'cancelled'
-                  ? 'This event was cancelled.'
-                  : 'Booking requires an approved active membership.'}
-              </p>
-            </div>
-          )}
-      </div>
-    </div>
-  );
-};
-
 // ─── MAIN FEED ────────────────────────────────────────────────
 
 export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
@@ -522,12 +275,14 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   const [page, setPage] = useState(1);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // ── Modal ──
+  // ── Modal state ──
   const [selected, setSelected] = useState<EventInstance | null>(null);
 
-  // ── Generate feed ──
+  // ── Generate feed — filter malformed instances from stale localStorage ──
   const allInstances = useMemo(
-    () => generateEventFeed(bookedMap, cancelMap, 4),
+    () => generateEventFeed(bookedMap, cancelMap, 4).filter(
+      (inst): inst is EventInstance => !!inst && inst.totalCapacity != null && !!inst.instanceId
+    ),
     [bookedMap, cancelMap],
   );
 
@@ -602,21 +357,12 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
     }));
   }, [scheduleByDay, searchQuery]);
 
-  // ── Booking handler — called by modal, modal handles close + navigation ──
-  const handleBook = useCallback((partySize: number) => {
-    if (!selected) return;
-    onBook({
-      instanceId: selected.instanceId,
-      userId: currentUser.id,
-      partySize,
-      totalPaid: partySize * selected.pricePerPerson,
-      guestName: currentUser.name,
-      guestEmail: currentUser.email,
-    });
-  }, [selected, currentUser, onBook]);
-
   const getUserBooking = (instance: EventInstance) =>
     instanceBookings.find(b => b.instanceId === instance.instanceId && b.userId === currentUser.id);
+
+  const handleConfirmBooking = useCallback((booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
+    onBook(booking);
+  }, [onBook]);
 
 
   return (
@@ -842,22 +588,44 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
       </div>
 
-      {/* ── Booking Modal ── */}
-      {selected && (
-        <BookingModal
-          instance={selected}
-          currentUser={currentUser}
-          isBooked={!!getUserBooking(selected)}
-          existingBooking={getUserBooking(selected)}
-          onClose={() => setSelected(null)}
-          onConfirm={canBook ? handleBook : () => {}}
-          onNavigateToPlans={onNavigateToPlans}
-          onViewDetail={onViewDetail ? () => onViewDetail(selected) : undefined}
-          isAdmin={isAdmin}
-          onAdminCancel={onAdminCancel ? () => { onAdminCancel(selected.instanceId); setSelected(null); } : undefined}
-          onAdminRestore={onAdminRestore ? () => { onAdminRestore(selected.instanceId); setSelected(null); } : undefined}
-          onAdminForceSoldOut={onAdminForceSoldOut ? () => { onAdminForceSoldOut(selected.instanceId); setSelected(null); } : undefined}
-        />
+      {/* ── Reserve Spot Modal ── */}
+      <ReserveSpotModal
+        event={selected!}
+        isOpen={!!selected}
+        onClose={() => setSelected(null)}
+        onConfirm={handleConfirmBooking}
+        currentUser={currentUser}
+        canBook={canBook}
+        existingBooking={selected ? getUserBooking(selected) : undefined}
+        onNavigateToPlans={onNavigateToPlans}
+        onViewFullDetail={selected && onViewDetail ? () => { setSelected(null); onViewDetail(selected); } : undefined}
+      />
+
+      {/* ── Admin quick-actions (shown in modal footer via separate overlay, handled via toolbar) ── */}
+      {isAdmin && selected && (
+        <div
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            zIndex: 1020, /* above modal */
+            display: 'flex', justifyContent: 'flex-end', gap: 8,
+            padding: '8px 16px 10px',
+            background: 'rgba(0,0,0,0.0)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
+            {selected.status !== 'sold-out' && onAdminForceSoldOut && (
+              <button
+                onClick={() => { onAdminForceSoldOut(selected.instanceId); setSelected(null); }}
+                style={{ fontSize: 10, color: '#F472B6', border: '1px solid rgba(236,72,153,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}
+              >Mark Sold Out</button>
+            )}
+            {selected.status !== 'cancelled'
+              ? <button onClick={() => { onAdminCancel && onAdminCancel(selected.instanceId); setSelected(null); }} style={{ fontSize: 10, color: '#F87171', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}>Cancel Event</button>
+              : <button onClick={() => { onAdminRestore && onAdminRestore(selected.instanceId); setSelected(null); }} style={{ fontSize: 10, color: '#4ADE80', border: '1px solid rgba(74,222,128,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}>Restore Event</button>
+            }
+          </div>
+        </div>
       )}
     </div>
   );

@@ -268,7 +268,6 @@ const ApprovedMemberHome: React.FC<{ user: User; onNavigate: (p: Page) => void }
       <div className="grid grid-cols-2 gap-3">
         <QuickCard id="member-plans-btn" icon={<BookIcon className="w-5 h-5" />} label="My Plans" sub="Upcoming events" accent="#60a5fa" onClick={() => onNavigate('checkout')} />
         <QuickCard id="member-venues-btn" icon={<StarIcon className="w-5 h-5" />} label="Venues" sub="Curated spots" accent="#34d399" onClick={() => onNavigate('featuredVenues')} />
-        <QuickCard id="member-wallet-btn" icon={<TokenIcon className="w-5 h-5" />} label="Token Wallet" sub="Rewards & credits" accent="#fb923c" onClick={() => onNavigate('tokenWallet')} />
         <QuickCard id="member-itineraries-btn" icon={<CalendarIcon className="w-5 h-5" />} label="Itineraries" sub="Plan your nights" accent="#f472b6" onClick={() => onNavigate('myItineraries')} />
       </div>
 

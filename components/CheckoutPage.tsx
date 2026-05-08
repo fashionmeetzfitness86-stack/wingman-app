@@ -1,7 +1,8 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { CartItem, Venue, User, Page } from '../types';
+import { CartItem, EventInstance, Venue, User, Page } from '../types';
 import { CartItemCard } from './CartItemCard';
+import { ReserveSpotModal } from './ReserveSpotModal';
 import { CreditCardIcon } from './icons/CreditCardIcon';
 import { TokenIcon } from './icons/TokenIcon';
 import { CartIcon } from './icons/CartIcon';
@@ -24,6 +25,10 @@ interface CheckoutPageProps {
   onCancelRsvp: (item: CartItem) => void;
   initialTab?: 'cart' | 'watchlist' | 'purchased';
   onNavigate: (page: Page) => void;
+  /** All live EventInstances — used to resolve instanceId on watchlist cards */
+  allInstances?: EventInstance[];
+  currentUserCanBook?: boolean;
+  isCheckoutLoading?: boolean;
 }
 
 const USD_TO_TMKC_RATE = 100;
@@ -46,11 +51,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   currentUser, watchlist, cartItems = [], bookedItems, venues,
   onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, onMoveToCart,
   onViewReceipt, userTokenBalance, onStartChat, onCancelRsvp,
-  initialTab = 'cart', onNavigate
+  initialTab = 'cart', onNavigate, allInstances = [], currentUserCanBook = true
 }) => {
   const [activeTab, setActiveTab] = useState<'cart' | 'watchlist' | 'purchased'>(initialTab);
   const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'usd' | 'cashapp'>('usd');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -319,16 +325,35 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         {activeTab === 'watchlist' && (
           watchlistItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {watchlistItems.map(item => (
-                <CartItemCard
-                  key={item.id}
-                  item={item}
-                  venues={venues}
-                  onRemove={onRemoveItem}
-                  onUpdatePaymentOption={onUpdatePaymentOption}
-                  onMoveToCart={onMoveToCart}
-                />
-              ))}
+              {watchlistItems.map(item => {
+                // Resolve full EventInstance if we have the instanceId
+                const instId = (item as CartItem & { instanceId?: string }).instanceId;
+                const resolvedInstance = instId ? allInstances.find(i => i.instanceId === instId) ?? null : null;
+                return (
+                  <div
+                    key={item.id}
+                    className="relative group cursor-pointer"
+                    onClick={() => resolvedInstance && setSelectedInstance(resolvedInstance)}
+                  >
+                    {/* Clickable overlay hint */}
+                    {resolvedInstance && (
+                      <div
+                        className="absolute top-3 right-10 z-10 text-[10px] font-bold text-white/70 px-2 py-0.5 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: 'rgba(0,0,0,0.6)' }}
+                      >
+                        Tap to Reserve
+                      </div>
+                    )}
+                    <CartItemCard
+                      item={item}
+                      venues={venues}
+                      onRemove={onRemoveItem}
+                      onUpdatePaymentOption={onUpdatePaymentOption}
+                      onMoveToCart={onMoveToCart}
+                    />
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <EmptyState
@@ -403,6 +428,16 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           </div>
         </div>
       )}
+
+      {/* ── Reserve Spot Modal — opens when a watchlist card is tapped ── */}
+      <ReserveSpotModal
+        event={selectedInstance}
+        isOpen={!!selectedInstance}
+        onClose={() => setSelectedInstance(null)}
+        onConfirm={() => { /* booking handled upstream */ }}
+        currentUser={currentUser}
+        canBook={currentUserCanBook}
+      />
     </div>
   );
 };

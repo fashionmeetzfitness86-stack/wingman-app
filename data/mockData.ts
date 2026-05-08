@@ -505,12 +505,5 @@ export const storeItems: StoreItem[] = [
     },
 ];
 
-// Mock Payment Methods
-export const mockPaymentMethods: PaymentMethod[] = [
-    { id: '1', category: 'cards', type: 'Visa', last4: '4567', expiry: '03/2026', isDefault: true, cardholderName: 'John Doe' },
-    { id: '2', category: 'cards', type: 'Mastercard', last4: '1234', expiry: '01/2025', isDefault: false, cardholderName: 'John Doe' },
-    { id: '3', category: 'cards', type: 'American Express', last4: '7890', expiry: '05/2027', isDefault: false, cardholderName: 'John Doe' },
-    { id: '4', category: 'other', type: 'PayPal', icon: 'https://picsum.photos/seed/paypal/40/40', isDefault: false },
-    { id: '5', category: 'other', type: 'Cash App', icon: 'https://picsum.photos/seed/cashapp/40/40', isDefault: false },
-    { id: '6', category: 'other', type: 'Crypto Wallet', icon: 'https://picsum.photos/seed/crypto/40/40', isDefault: false },
-];
+// Payment methods are managed by Stripe at checkout — no saved cards in-app yet.
+export const mockPaymentMethods: PaymentMethod[] = [];
