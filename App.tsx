@@ -1911,6 +1911,7 @@ export const App: React.FC = () => {
                     initialTab={pageParams.initialTab ?? 'cart'}
                     onNavigate={handleNavigate}
                     allInstances={allInstances}
+                    userTokenBalance={userTokenBalance}
                     currentUserCanBook={
                         currentUser.role === UserRole.ADMIN ||
                         currentUser.role === UserRole.WINGMAN ||

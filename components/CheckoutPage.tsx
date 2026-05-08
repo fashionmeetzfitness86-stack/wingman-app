@@ -28,6 +28,7 @@ interface CheckoutPageProps {
   /** All live EventInstances — used to resolve instanceId on watchlist cards */
   allInstances?: EventInstance[];
   currentUserCanBook?: boolean;
+  isCheckoutLoading?: boolean;
 }
 
 const USD_TO_TMKC_RATE = 100;
