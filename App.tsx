@@ -1707,7 +1707,8 @@ export const App: React.FC = () => {
                         paymentOption: 'full' as const,
                         bookedTimestamp: 0,
                         quantity: 1,
-                    }));
+                        instanceId: inst!.instanceId,   // stored so CheckoutPage can open modal
+                    } as CartItem & { instanceId: string }));
                 // Build purchased list from InstanceBookings + existing bookedItems
                 const instancePurchased: CartItem[] = instanceBookings
                     .filter(b => b.userId === currentUser.id)
@@ -1758,6 +1759,11 @@ export const App: React.FC = () => {
                     onRemoveItem={(id) => {
                         setCartItems(prev => prev.filter(i => i.id !== id));
                         setWatchlist(prev => prev.filter(i => i.id !== id));
+                        // Also remove from bookmarkedInstanceIds if it was a watchlist instance
+                        if (id.startsWith('wl-')) {
+                            const instanceId = id.replace(/^wl-/, '');
+                            setBookmarkedInstanceIds(prev => prev.filter(bid => bid !== instanceId));
+                        }
                     }}
                     onUpdatePaymentOption={(id, opt) => setCartItems(prev => prev.map(i => i.id === id ? { ...i, paymentOption: opt } : i))}
                     onConfirmCheckout={handleConfirmCheckout}
@@ -1766,8 +1772,6 @@ export const App: React.FC = () => {
                     userTokenBalance={userTokenBalance}
                     onStartChat={handleStartBookingChat}
                     onCancelRsvp={(item) => {
-                        // Remove from instanceBookings if it was a confirmed event
-                        const meta = Object.entries(cartInstanceMeta).find(([cId]) => cId === item.id || item.id.startsWith('ib-'));
                         if (item.id.startsWith('ib-')) {
                             setInstanceBookings(prev => prev.filter(b => b.id !== item.id));
                         } else {
@@ -1777,7 +1781,14 @@ export const App: React.FC = () => {
                     }}
                     initialTab={pageParams.initialTab ?? 'cart'}
                     onNavigate={handleNavigate}
-                />;}
+                    allInstances={allInstances}
+                    currentUserCanBook={
+                        currentUser.role === UserRole.ADMIN ||
+                        currentUser.role === UserRole.WINGMAN ||
+                        (currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active')
+                    }
+                />;
+            }
             case 'eventChatsList':
                 return <EventChatsListPage 
                     currentUser={currentUser} 
