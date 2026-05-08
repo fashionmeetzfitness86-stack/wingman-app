@@ -94,7 +94,6 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
     };
 
     const cards = paymentMethods.filter(m => m.category === 'cards');
-    const otherMethods = paymentMethods.filter(m => m.category === 'other');
 
     return (
         <div className="p-4 md:p-6 animate-fade-in text-white pb-24">
@@ -156,80 +155,18 @@ export const PaymentMethodsPage: React.FC<PaymentMethodsPageProps> = ({ onNaviga
                         ))}
                         {cards.length === 0 && (
                             <div className="text-center p-8 border-2 border-dashed border-gray-800 rounded-xl">
-                                <p className="text-gray-500 mb-4">No cards added yet.</p>
-                                <button onClick={handleOpenAdd} className="text-amber-400 font-bold text-sm hover:underline">Add your first card</button>
+                                <CreditCardIcon className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                                <p className="text-white font-semibold mb-1">No saved cards in-app</p>
+                                <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                                    Cards are securely handled by Stripe at checkout. You'll enter card details on Stripe's hosted page when you confirm a booking.
+                                </p>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Other Methods Section (PayPal, Crypto) */}
-                <div>
-                    <h2 className="text-lg font-semibold text-white/80 mb-4 uppercase tracking-wider text-xs">Other Methods</h2>
-                    <div className="space-y-3">
-                            {otherMethods.map((method) => (
-                            <div key={method.id} className={`bg-gray-900 p-4 rounded-xl flex items-center gap-4 border border-gray-800 ${method.isDefault ? 'ring-2 ring-[#FFFFFF] ring-offset-2 ring-offset-[#121212]' : ''}`}>
-                                <div className="bg-gray-800 w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden border border-gray-700 text-white">
-                                    {method.type === 'Crypto Wallet' ? 
-                                        <TokenIcon className="w-6 h-6 text-amber-400" /> :
-                                        <span className="font-bold text-xl text-blue-500 italic">P</span>
-                                    }
-                                </div>
-                                <div className="flex-grow">
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-bold text-white">{method.type}</p>
-                                        {method.isDefault && <span className="text-[10px] bg-white text-black hover:bg-gray-200 text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
-                                    </div>
-                                    {method.detail && (
-                                        <p className="text-sm text-gray-400 truncate max-w-[200px]">{method.detail}</p>
-                                    )}
-                                    {method.cardholderName && method.type === 'Crypto Wallet' && (
-                                         <p className="text-xs text-gray-500">{method.cardholderName}</p>
-                                    )}
-                                </div>
-                                <div className="relative">
-                                    <button onClick={() => setActiveMenuId(activeMenuId === method.id ? null : method.id)} className="text-gray-500 hover:text-white p-2">
-                                        <ThreeDotsIcon />
-                                    </button>
-                                        {activeMenuId === method.id && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)}></div>
-                                            <div className="absolute right-0 mt-2 w-48 bg-[#1C1C1E] rounded-xl shadow-2xl z-20 border border-gray-700 overflow-hidden animate-fade-in-down">
-                                                {!method.isDefault && (
-                                                    <button onClick={() => handleSetDefault(method.id)} className="w-full text-left px-4 py-3 text-sm text-white hover:bg-white/10 flex items-center gap-2 transition-colors border-b border-gray-800">
-                                                        <CheckCircleIcon className="w-4 h-4" /> Set as Default
-                                                    </button>
-                                                )}
-                                                <button onClick={() => handleEdit(method)} className="w-full text-left px-4 py-3 text-sm text-white hover:bg-white/10 flex items-center gap-2 transition-colors border-b border-gray-800">
-                                                    <PencilIcon className="w-4 h-4" /> Edit
-                                                </button>
-                                                <button onClick={() => handleRemoveClick(method)} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-900/20 flex items-center gap-2 transition-colors">
-                                                    <TrashIcon className="w-4 h-4" /> Remove
-                                                </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                         {otherMethods.length === 0 && (
-                             <p className="text-gray-500 text-sm italic">No other payment methods added.</p>
-                         )}
-                    </div>
-                </div>
             </div>
             
-            <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4 z-10">
-                <div className="container mx-auto max-w-5xl">
-                    <button 
-                        onClick={handleOpenAdd}
-                        className="w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-[1.02] shadow-lg shadow-pink-900/20"
-                    >
-                        <PlusIcon className="w-5 h-5"/>
-                        Add Payment Method
-                    </button>
-                </div>
-            </div>
 
             <AddPaymentMethodModal 
                 isOpen={isModalOpen} 

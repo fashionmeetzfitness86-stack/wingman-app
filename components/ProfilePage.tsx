@@ -313,12 +313,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUse
 
                         {/* Quick Links Menu */}
                         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-800">
-                             <button onClick={() => onNavigate('tokenWallet')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-amber-400"><WalletIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">My Wallet</span>
-                                <span className="text-gray-400 text-xs font-mono mr-2">{tokenBalance.toLocaleString()} TMKC</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
                              {currentUser.role === UserRole.WINGMAN && (
                                 <button onClick={() => onNavigate('wingmanDashboard')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
                                     <div className="p-2 bg-gray-800 rounded-full text-gray-300"><ChartPieIcon className="w-4 h-4" /></div>
