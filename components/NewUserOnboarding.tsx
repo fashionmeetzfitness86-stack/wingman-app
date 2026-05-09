@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useScrollLock } from '../utils/useScrollLock';
+import { supabase } from '../lib/supabase';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -377,6 +378,7 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const [confirmPw,   setConfirmPw]   = useState('');
   const [showPw,      setShowPw]      = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const clearErr = (k: string) => setErrors(p => { const n = { ...p }; delete n[k]; return n; });
@@ -410,12 +412,42 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
+  const next = async () => {
     if (!validateStep()) return;
     if (step < STEPS.length) { setStep(s => s + 1); return; }
-    // All done — save password then call onComplete
-    saveUserPassword(email.trim().toLowerCase(), password);
-    onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password });
+
+    // Final step — register the account in Supabase Auth.
+    const normalizedEmail = email.trim().toLowerCase();
+    setIsSubmitting(true);
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          data: { firstName, lastName, phone, hometown, gender },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (signUpError) {
+        const msg = signUpError.message?.toLowerCase() ?? '';
+        // If the email is already registered, surface a friendly hint and stop.
+        if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
+          setErrors({ email: 'This email is already registered. Try logging in instead.' });
+          setStep(2);
+        } else {
+          setErrors({ password: signUpError.message || 'Could not create account.' });
+        }
+        return;
+      }
+
+      // Keep the legacy localStorage password store in sync so existing
+      // login fallback paths still recognise this user.
+      saveUserPassword(normalizedEmail, password);
+      onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const back = () => { setErrors({}); setStep(s => Math.max(1, s - 1)); };
@@ -741,10 +773,13 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
           )}
           <button
             onClick={next}
-            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98]"
+            disabled={isSubmitting}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
           >
-            {step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
+            {isSubmitting
+              ? 'Creating account…'
+              : step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
           </button>
         </div>
       </div>

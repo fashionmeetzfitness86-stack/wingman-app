@@ -17,6 +17,7 @@ import {
   ACCESS_DURATION_MS,
 } from '../utils/accessControl';
 import { generateEventFeed } from '../utils/eventSchedule';
+import { supabase } from '../lib/supabase';
 
 // ─── Icons ────────────────────────────────────────────────────
 
@@ -163,14 +164,14 @@ const PreviewEventCard: React.FC<{ title: string; date: string; time: string; ty
 interface WelcomePageProps {
   onAccessGranted: () => void;
   onLoginInstead: () => void;
-  onLogin?: (email: string, password: string, stayLoggedIn: boolean) => boolean;
+  onLogin?: (email: string, password: string, stayLoggedIn: boolean) => Promise<boolean>;
 }
 
 // ─── Login Screen ──────────────────────────────────────────────
 
 const LoginScreen: React.FC<{
   onBack: () => void;
-  onLogin: (email: string, password: string, stayLoggedIn: boolean) => boolean;
+  onLogin: (email: string, password: string, stayLoggedIn: boolean) => Promise<boolean>;
   onForgotPassword: () => void;
 }> = ({ onBack, onLogin, onForgotPassword }) => {
   const [email, setEmail] = useState('');
@@ -180,19 +181,20 @@ const LoginScreen: React.FC<{
   const [loading, setLoading] = useState(false);
   const [stayLoggedIn, setStayLoggedIn] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email.trim()) { setError('Please enter your email.'); return; }
     if (!password.trim()) { setError('Please enter your password.'); return; }
     setLoading(true);
-    setTimeout(() => {
-      const ok = onLogin(email.trim().toLowerCase(), password, stayLoggedIn);
-      if (!ok) {
-        setError('Email or password not recognised. Please try again.');
-      }
+    try {
+      const ok = await onLogin(email.trim().toLowerCase(), password, stayLoggedIn);
+      if (!ok) setError('Email or password not recognised. Please try again.');
+    } catch {
+      setError('Could not sign in. Please try again.');
+    } finally {
       setLoading(false);
-    }, 900);
+    }
   };
 
   return (
@@ -313,14 +315,23 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email.trim()) { setError('Please enter your email address.'); return; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) { setError('Please enter a valid email address.'); return; }
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSent(true); }, 1000);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo: `${window.location.origin}/reset-password` }
+    );
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message || 'Could not send reset email. Please try again.');
+      return;
+    }
+    setSent(true);
   };
 
   return (
@@ -479,7 +490,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     return (
       <LoginScreen
         onBack={() => setMode(prevMode)}
-        onLogin={onLogin ?? (() => false)}
+        onLogin={onLogin ?? (async () => false)}
         onForgotPassword={() => setMode('forgotPassword')}
       />
     );

@@ -55,6 +55,8 @@ import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
 import { WelcomePage } from './components/WelcomePage';
+import { ResetPasswordScreen } from './components/ResetPasswordScreen';
+import { supabase } from './lib/supabase';
 import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, verifyUserPassword, hasUserPassword, type OnboardingProfile } from './components/NewUserOnboarding';
 
 // Layout & Modals
@@ -2141,21 +2143,36 @@ export const App: React.FC = () => {
         }
     };
 
+    // ── Password Recovery Route ──────────────────────────────────
+    // Supabase password reset emails redirect here. Show the reset UI
+    // before any auth gates so users with no session can complete it.
+    if (typeof window !== 'undefined' && window.location.pathname === '/reset-password') {
+        return (
+            <ResetPasswordScreen
+                onDone={() => { window.location.replace('/'); }}
+            />
+        );
+    }
+
     if (!currentUser) return null; // Render guard
 
     // ── Gated Access Gate ────────────────────────────────────────
     // This MUST be the first thing unauthenticated users see.
     // It prevents OnboardingModal (z-100) from overlaying the gate.
     if (!isLoggedInUser && !passcodeAccessActive) {
-        const handleLogin = (email: string, password: string, stayLoggedIn: boolean = true): boolean => {
-            const found = appUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-            if (!found) return false;
+        const handleLogin = async (email: string, password: string, stayLoggedIn: boolean = true): Promise<boolean> => {
+            const normalizedEmail = email.toLowerCase();
+            const found = appUsers.find(u => u.email.toLowerCase() === normalizedEmail);
 
-            // If the user has set a password via onboarding, verify it.
-            // Otherwise (legacy mock users) allow login by email match only.
-            if (hasUserPassword(found.email) && !verifyUserPassword(found.email, password)) {
-                return false;
-            }
+            // Try Supabase Auth first — this is the source of truth for credentials.
+            const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+            const supabaseOk = !error && !!data?.session;
+
+            // Fallback: legacy localStorage password store, for users who haven't been migrated yet.
+            const legacyOk = !supabaseOk && !!found && hasUserPassword(found.email) && verifyUserPassword(found.email, password);
+
+            if (!supabaseOk && !legacyOk) return false;
+            if (!found) return false;
 
             setCurrentUser(found);
             grantPasscodeAccess(found.email);
