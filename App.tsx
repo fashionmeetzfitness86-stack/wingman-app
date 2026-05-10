@@ -2186,11 +2186,16 @@ export const App: React.FC = () => {
             setCurrentPage('home');
             return true;
         };
+        const handleCreateAccount = () => {
+            setPasscodeAccessActive(true);
+            setShowOnboarding(true);
+        };
         return (
             <WelcomePage
                 onAccessGranted={handleAccessGranted}
                 onLoginInstead={handleLoginInstead}
                 onLogin={handleLogin}
+                onCreateAccount={handleCreateAccount}
             />
         );
     }

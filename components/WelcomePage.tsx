@@ -165,6 +165,7 @@ interface WelcomePageProps {
   onAccessGranted: () => void;
   onLoginInstead: () => void;
   onLogin?: (email: string, password: string, stayLoggedIn: boolean) => Promise<boolean>;
+  onCreateAccount?: () => void;
 }
 
 // ─── Login Screen ──────────────────────────────────────────────
@@ -173,7 +174,8 @@ const LoginScreen: React.FC<{
   onBack: () => void;
   onLogin: (email: string, password: string, stayLoggedIn: boolean) => Promise<boolean>;
   onForgotPassword: () => void;
-}> = ({ onBack, onLogin, onForgotPassword }) => {
+  onCreateAccount: () => void;
+}> = ({ onBack, onLogin, onForgotPassword, onCreateAccount }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -301,6 +303,17 @@ const LoginScreen: React.FC<{
             className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-5">
             Forgot your password?
           </button>
+
+          <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-center text-[11px] text-gray-600 mb-3">Don't have an account?</p>
+            <button
+              type="button"
+              onClick={onCreateAccount}
+              className="w-full font-bold py-3.5 rounded-xl text-sm transition-all active:scale-[0.98]"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff' }}>
+              Create an account
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -420,7 +433,7 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 
-export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin }) => {
+export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin, onCreateAccount }) => {
   const [mode, setMode] = useState<'browse' | 'enter' | 'login' | 'forgotPassword' | 'success'>('browse');
   const [prevMode, setPrevMode] = useState<'browse' | 'enter'>('browse');
   const [email, setEmail] = useState('');
@@ -492,6 +505,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         onBack={() => setMode(prevMode)}
         onLogin={onLogin ?? (async () => false)}
         onForgotPassword={() => setMode('forgotPassword')}
+        onCreateAccount={onCreateAccount ?? (() => {})}
       />
     );
   }
