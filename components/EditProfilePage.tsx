@@ -11,6 +11,8 @@ import { ImageCropModal } from './modals/ImageCropModal';
 import { CloudArrowUpIcon } from './icons/CloudArrowUpIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { supabase } from '../lib/supabase';
+import { saveUserPassword } from './NewUserOnboarding';
 
 interface EditProfilePageProps {
   currentUser: User;
@@ -111,6 +113,53 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
     const galleryFileInputRef = useRef<HTMLInputElement>(null);
     const [uploadTarget, setUploadTarget] = useState<'profile' | 'gallery' | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Password change state
+    const [currentPw, setCurrentPw] = useState('');
+    const [newPw, setNewPw] = useState('');
+    const [confirmPw, setConfirmPw] = useState('');
+    const [showPw, setShowPw] = useState(false);
+    const [pwErrors, setPwErrors] = useState<Record<string, string>>({});
+    const [isUpdatingPw, setIsUpdatingPw] = useState(false);
+
+    const handleChangePassword = async () => {
+        const errs: Record<string, string> = {};
+        if (!currentPw) errs.currentPw = 'Enter your current password.';
+        if (newPw.length < 8) errs.newPw = 'New password must be at least 8 characters.';
+        if (newPw !== confirmPw) errs.confirmPw = 'Passwords do not match.';
+        if (currentPw && newPw && currentPw === newPw) errs.newPw = 'New password must differ from current.';
+        if (Object.keys(errs).length > 0) { setPwErrors(errs); return; }
+
+        setPwErrors({});
+        setIsUpdatingPw(true);
+        try {
+            // Verify current password by signing in.
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: currentUser.email,
+                password: currentPw,
+            });
+            if (signInError) {
+                setPwErrors({ currentPw: 'Current password is incorrect.' });
+                return;
+            }
+
+            const { error: updateError } = await supabase.auth.updateUser({ password: newPw });
+            if (updateError) {
+                setPwErrors({ newPw: updateError.message || 'Could not update password.' });
+                return;
+            }
+
+            // Keep legacy localStorage password store in sync.
+            saveUserPassword(currentUser.email, newPw);
+
+            setCurrentPw('');
+            setNewPw('');
+            setConfirmPw('');
+            showToast('Password updated successfully.', 'success');
+        } finally {
+            setIsUpdatingPw(false);
+        }
+    };
 
     const completeness = useMemo(() => {
         let score = 0;
@@ -534,8 +583,69 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
                 </div>
             </div>
         </div>
+        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="w-1 h-6 bg-amber-400 rounded-full"></span>
+                    Change Password
+                </h2>
+                <button
+                    type="button"
+                    onClick={() => setShowPw(s => !s)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+                    aria-label={showPw ? 'Hide passwords' : 'Show passwords'}
+                >
+                    {showPw ? (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88" />
+                        </svg>
+                    ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    )}
+                    {showPw ? 'Hide' : 'Show'}
+                </button>
+            </div>
+            <div className="space-y-5">
+                <InfoInput
+                    label="Current Password"
+                    value={currentPw}
+                    onChange={(e) => { setCurrentPw(e.target.value); setPwErrors(p => ({ ...p, currentPw: '' })); }}
+                    type={showPw ? 'text' : 'password'}
+                    error={pwErrors.currentPw}
+                    required
+                />
+                <InfoInput
+                    label="New Password"
+                    value={newPw}
+                    onChange={(e) => { setNewPw(e.target.value); setPwErrors(p => ({ ...p, newPw: '' })); }}
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="At least 8 characters"
+                    error={pwErrors.newPw}
+                    required
+                />
+                <InfoInput
+                    label="Confirm New Password"
+                    value={confirmPw}
+                    onChange={(e) => { setConfirmPw(e.target.value); setPwErrors(p => ({ ...p, confirmPw: '' })); }}
+                    type={showPw ? 'text' : 'password'}
+                    error={pwErrors.confirmPw}
+                    required
+                />
+                <button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={isUpdatingPw}
+                    className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    {isUpdatingPw ? 'Updating…' : 'Update Password'}
+                </button>
+            </div>
+        </div>
       </div>
-      
+
       <div className="mt-12 flex justify-center">
         <button onClick={handleSaveChanges} disabled={isUploading} className="w-full max-w-md bg-gradient-to-r from-amber-400 to-amber-500 text-black font-bold py-4 px-8 rounded-xl text-lg transition-transform duration-200 hover:scale-105 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
             {isUploading ? 'Uploading Images...' : 'Save Profile Changes'}
