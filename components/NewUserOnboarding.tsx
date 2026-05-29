@@ -781,6 +781,11 @@ export const ProfileGateBanner: React.FC<{ onSetupProfile: () => void }> = ({ on
 
 export const ONBOARDING_KEY = 'wm_onboarding_complete';
 
+// Session-storage key set when user dismisses the onboarding modal without
+// completing it — prevents the modal from reappearing during the same browser
+// session while still leaving onboarding available on the next visit.
+export const ONBOARDING_DISMISSED_KEY = 'wm_onboarding_dismissed_session';
+
 export function isOnboardingComplete(): boolean {
   try { return localStorage.getItem(ONBOARDING_KEY) === 'true'; }
   catch { return false; }
