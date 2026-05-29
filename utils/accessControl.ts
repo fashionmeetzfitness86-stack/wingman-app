@@ -78,6 +78,8 @@ export function grantPasscodeAccess(email: string): AccessSession {
     expiresAt: Date.now() + ACCESS_DURATION_MS,
   };
   localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(session));
+  // Always record the email as a permanent lead for outreach
+  recordPasscodeLead(email);
   return session;
 }
 
@@ -107,4 +109,37 @@ export function formatTimeRemaining(ms: number): string {
   const m = Math.floor((ms % 3_600_000) / 60_000);
   if (h > 0) return `${h}h ${m}m remaining`;
   return `${m}m remaining`;
+}
+
+// ─── Persistent Lead Capture ──────────────────────────────────
+// Emails entered at the passcode gate are stored permanently —
+// independent of the 24-hour access session — so they can be
+// used for follow-up outreach after session expiry.
+
+export const LEADS_STORE_KEY = 'wm_passcode_leads';
+
+export interface PasscodeLead {
+  email: string;
+  capturedAt: number; // ms timestamp
+}
+
+export function recordPasscodeLead(email: string): void {
+  try {
+    const normalized = email.trim().toLowerCase();
+    const existing: PasscodeLead[] = JSON.parse(
+      localStorage.getItem(LEADS_STORE_KEY) ?? '[]'
+    );
+    // Deduplicate — update capturedAt if email already exists
+    const filtered = existing.filter(l => l.email !== normalized);
+    filtered.push({ email: normalized, capturedAt: Date.now() });
+    localStorage.setItem(LEADS_STORE_KEY, JSON.stringify(filtered));
+  } catch {}
+}
+
+export function getPasscodeLeads(): PasscodeLead[] {
+  try {
+    return JSON.parse(localStorage.getItem(LEADS_STORE_KEY) ?? '[]');
+  } catch {
+    return [];
+  }
 }

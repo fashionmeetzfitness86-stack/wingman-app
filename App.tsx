@@ -57,7 +57,7 @@ import { ReferFriendPage } from './components/ReferFriendPage';
 import { WelcomePage } from './components/WelcomePage';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { supabase } from './lib/supabase';
-import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, verifyUserPassword, hasUserPassword, type OnboardingProfile } from './components/NewUserOnboarding';
+import { NewUserOnboarding, ProfileGateBanner, isOnboardingComplete, markOnboardingComplete, verifyUserPassword, hasUserPassword, ONBOARDING_DISMISSED_KEY, type OnboardingProfile } from './components/NewUserOnboarding';
 
 // Layout & Modals
 import { Header } from './components/Header';
@@ -205,9 +205,15 @@ export const App: React.FC = () => {
     const [showNotificationsPrompt, setShowNotificationsPrompt] = useState(false);
     // Onboarding state — must be declared early (used by handleAccessGranted)
     const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-        return hasActivePasscodeSession() && !isOnboardingComplete();
+        // Don't show if: session complete, onboarding already done, or dismissed this session
+        if (!hasActivePasscodeSession()) return false;
+        if (isOnboardingComplete()) return false;
+        if (sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') return false;
+        return true;
     });
-    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+    const [onboardingDismissed, setOnboardingDismissed] = useState(
+        sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
+    );
     
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -361,8 +367,8 @@ export const App: React.FC = () => {
 
     const handleAccessGranted = useCallback(() => {
         setPasscodeAccessActive(true);
-        // Show onboarding if they haven't completed it yet
-        if (!isOnboardingComplete()) {
+        // Show onboarding only if not already completed AND not dismissed this session
+        if (!isOnboardingComplete() && sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) !== 'true') {
             setShowOnboarding(true);
         }
     }, []);
@@ -1133,14 +1139,21 @@ export const App: React.FC = () => {
 
     const handleOnboardingComplete = (profile: OnboardingProfile) => {
         // Merge the collected profile data into the current user record
-        setCurrentUser(prev => ({
-            ...prev,
+        const updatedUser = {
+            ...currentUser,
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: profile.email,
             phoneNumber: profile.phone,
             city: profile.hometown,
-            profilePhoto: profile.photoUrl || prev.profilePhoto,
-        }));
+            profilePhoto: profile.photoUrl || currentUser.profilePhoto,
+        };
+        setCurrentUser(updatedUser);
+        // Auto-login: persist the user ID so isLoggedInUser becomes true.
+        // From this point on the user bypasses the passcode gate entirely
+        // and can log back in with their email + password.
+        localStorage.setItem('wingman_currentUserId', updatedUser.id.toString());
+        // Clear the session-dismissed flag — no longer needed
+        sessionStorage.removeItem(ONBOARDING_DISMISSED_KEY);
         markOnboardingComplete();
         setShowOnboarding(false);
         setOnboardingDismissed(false);
@@ -1148,6 +1161,10 @@ export const App: React.FC = () => {
     };
 
     const handleOnboardingDismiss = () => {
+        // Mark as dismissed for this browser session only.
+        // The modal won't reappear until the user opens a new session
+        // (new tab / after closing the browser), keeping their 24h window intact.
+        sessionStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
         setShowOnboarding(false);
         setOnboardingDismissed(true);
     };
