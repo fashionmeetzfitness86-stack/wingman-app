@@ -694,7 +694,7 @@ export const App: React.FC = () => {
                 id: newMessage.id + 1,
                 chatId: actualChatId!,
                 senderId: 'wingman',
-                text: 'A Wingman concierge will be with you shortly. How can we elevate your experience?',
+                text: 'Thank you for contacting Wingman.\n\nFor immediate assistance, reservations, questions, information, or any concerns, please contact our concierge team directly at:\n\n📞 (305) 764-2406\n\nA member of our team will be happy to assist you with bookings, event details, VIP experiences, membership inquiries, and support.\n\nWe look forward to helping elevate your experience.',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setWingmanChatMessages(prev => [...prev, replyMessage]);
