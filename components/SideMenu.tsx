@@ -200,12 +200,14 @@ export const SideMenu: React.FC<SideMenuProps> = ({
                 onClick={() => handleNavigation('adminDashboard')}
               />
             )}
-            <MenuItem
-              icon={<AskGabyIcon className="w-5 h-5" />}
-              label="Ask Gaby"
-              isActive={currentPage === 'chatbot' || currentPage === 'liveChat'}
-              onClick={() => handleNavigation('chatbot')}
-            />
+            {currentUser.role === UserRole.ADMIN && (
+              <MenuItem
+                icon={<AskGabyIcon className="w-5 h-5" />}
+                label="Ask Gaby"
+                isActive={currentPage === 'chatbot' || currentPage === 'liveChat'}
+                onClick={() => handleNavigation('chatbot')}
+              />
+            )}
           </nav>
 
           {/* Logout */}
