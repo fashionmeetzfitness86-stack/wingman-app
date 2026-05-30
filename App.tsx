@@ -147,7 +147,12 @@ export const App: React.FC = () => {
     const [appVenues, setAppVenues] = useState<Venue[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_venues');
-            return saved ? JSON.parse(saved) : venues;
+            if (!saved) return venues;
+            const parsed: Venue[] = JSON.parse(saved);
+            // Merge: ensure all seed venues exist (by id), then append admin-created ones
+            const seedIds = new Set(venues.map(v => v.id));
+            const savedNonSeed = parsed.filter(v => !seedIds.has(v.id));
+            return [...venues, ...savedNonSeed];
         } catch (e) {
             return venues;
         }
@@ -1432,6 +1437,7 @@ export const App: React.FC = () => {
             }
             case 'featuredVenues':
                 return <FeaturedVenuesPage 
+                    venues={appVenues}
                     onBookVenue={handleBookVenue} 
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 

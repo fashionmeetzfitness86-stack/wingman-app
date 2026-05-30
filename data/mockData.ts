@@ -202,6 +202,24 @@ export const venues: Venue[] = [
     averageRating: 4.8,
     totalReviews: 450,
     tableOptions: []
+  },
+  {
+    id: 4,
+    name: 'Mr. Jones',
+    category: 'Nightclub',
+    location: '320 Lincoln Rd, Miami Beach, FL 33139',
+    musicType: 'Hip Hop / Top 40',
+    vibe: 'Trendy',
+    coverImage: 'https://images.unsplash.com/photo-1571265209853-8cf0b7a2c39b?w=800&q=80',
+    operatingDays: ['Tuesday', 'Friday', 'Saturday'],
+    capacity: 600,
+    averageRating: 4.6,
+    totalReviews: 180,
+    isGuestlistAvailable: true,
+    tableOptions: [
+      { id: 'mj-t1', name: 'Main Floor Table', area: 'Main Room', minSpend: 3000, description: 'Center of the action on the main floor', capacityHint: 'Small Groups' },
+      { id: 'mj-t2', name: 'VIP Booth', area: 'VIP Section', minSpend: 5000, description: 'Elevated VIP section with bottle service', capacityHint: 'Large Groups' }
+    ]
   }
 ];
 
