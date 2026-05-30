@@ -57,6 +57,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'usd' | 'cashapp'>('usd');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
+  const [agreedToDisclosure, setAgreedToDisclosure] = useState(false);
+  const [disclosureExpanded, setDisclosureExpanded] = useState(false);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -302,13 +304,101 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
 
-                  <p className="text-[10px] text-gray-500 text-center mt-4 mb-3 px-2 leading-tight">
-                    By confirming, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a>, <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>, <a href="#" className="underline hover:text-white transition-colors">Liability Waiver</a>, and <a href="#" className="underline hover:text-white transition-colors">Refund Policy</a>.
-                  </p>
+                  {/* ── Experience Disclosure ───────────────────── */}
+                  <div
+                    className="rounded-xl overflow-hidden mt-4"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}
+                  >
+                    {/* Accordion header */}
+                    <button
+                      onClick={() => setDisclosureExpanded(v => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#B89B4D' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        <span className="text-[11px] font-bold text-white">Experience Disclosure & Agreement</span>
+                      </div>
+                      <svg className={`w-3.5 h-3.5 text-gray-500 transition-transform flex-shrink-0 ${disclosureExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" /></svg>
+                    </button>
+
+                    {/* Full agreement text */}
+                    {disclosureExpanded && (
+                      <div className="px-4 pb-4 space-y-4 text-[11px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                        <p className="pt-3 font-bold text-white/70 text-[10px] uppercase tracking-widest">Important — Please Read Carefully Before Proceeding With Payment.</p>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">1. EXPERIENCE PURCHASE</p>
+                          <p>Wingman provides access to curated social, hospitality, nightlife, dining, yacht, entertainment, and lifestyle EXPERIENCES. You are purchasing access to a Wingman-hosted experience and concierge service.</p>
+                          <p className="mt-1.5 font-semibold text-white/60">You are NOT purchasing:</p>
+                          <ul className="mt-1 space-y-0.5 pl-3">
+                            {['Ownership of a VIP table','Ownership of a yacht charter','Ownership of a restaurant reservation','Ownership of a nightclub reservation','Ownership of any venue, hospitality, transportation, or entertainment service'].map(item => (
+                              <li key={item}>· {item}</li>
+                            ))}
+                          </ul>
+                          <p className="mt-1.5">Wingman acts as a host, coordinator, and concierge platform that facilitates access to curated experiences.</p>
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">2. EXPERIENCE AVAILABILITY</p>
+                          <p>All experiences are subject to venue availability, capacity limitations, weather conditions, operational changes, local regulations, and safety considerations. Wingman reserves the right to modify, relocate, reschedule, or substitute an experience when necessary.</p>
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">3. NO GUARANTEE OF SPECIFIC OUTCOMES</p>
+                          <p>Wingman does not guarantee specific seating, guests, social interactions, entertainment, or individuals being present. Every experience is unique and may vary.</p>
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">4. REFUND POLICY</p>
+                          <p>All purchases are final. No refunds will be issued for missed experiences, late arrivals, personal scheduling conflicts, or changes of preference. If an experience becomes unavailable due to circumstances within Wingman's control, Wingman may, at its sole discretion, issue account credit, transfer the booking, offer a replacement, or issue a refund.</p>
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">5. USER CONDUCT</p>
+                          <p>Wingman reserves the right to refuse service, remove participants, cancel bookings, or suspend accounts for behavior deemed inappropriate, disruptive, unsafe, illegal, or harmful to other guests, hosts, venues, or staff.</p>
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-white/80 mb-1">6. LIABILITY</p>
+                          <p>Participation in any Wingman experience is voluntary. Users assume all personal responsibility for their conduct, decisions, transportation, purchases, and participation during any experience.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Single required checkbox */}
+                    <label
+                      className="flex items-start gap-3 px-4 py-3 cursor-pointer"
+                      style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                    >
+                      <div className="relative flex-shrink-0 mt-0.5">
+                        <input
+                          type="checkbox"
+                          id="disclosure-agree-desktop"
+                          checked={agreedToDisclosure}
+                          onChange={e => setAgreedToDisclosure(e.target.checked)}
+                          className="sr-only"
+                        />
+                        <div
+                          className="w-5 h-5 rounded-md flex items-center justify-center transition-all"
+                          style={agreedToDisclosure
+                            ? { background: '#FFFFFF', border: '2px solid #FFFFFF' }
+                            : { background: 'transparent', border: '2px solid rgba(255,255,255,0.25)' }
+                          }
+                        >
+                          {agreedToDisclosure && (
+                            <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-[11px] leading-relaxed" style={{ color: agreedToDisclosure ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)' }}>
+                        I have read and agree to the <span className="font-bold text-white/70">Wingman Experience Disclosure & User Agreement</span>. I understand I am purchasing an experience, not a specific table, yacht, or reservation.
+                      </p>
+                    </label>
+                  </div>
 
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-                    disabled={selectedItemIds.length === 0}
+                    disabled={selectedItemIds.length === 0 || !agreedToDisclosure}
                     className="mt-4 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
                   >
@@ -413,12 +503,35 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <p className="text-sm text-gray-400">{selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''} selected</p>
               <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
-            <p className="text-[10px] text-gray-500 text-center mb-3 leading-tight">
-              By confirming, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a>, <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>, <a href="#" className="underline hover:text-white transition-colors">Liability Waiver</a>, and <a href="#" className="underline hover:text-white transition-colors">Refund Policy</a>.
-            </p>
+            {/* Mobile disclosure checkbox */}
+            <label className="flex items-start gap-3 mb-3 cursor-pointer">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  id="disclosure-agree-mobile"
+                  checked={agreedToDisclosure}
+                  onChange={e => setAgreedToDisclosure(e.target.checked)}
+                  className="sr-only"
+                />
+                <div
+                  className="w-5 h-5 rounded-md flex items-center justify-center transition-all"
+                  style={agreedToDisclosure
+                    ? { background: '#FFFFFF', border: '2px solid #FFFFFF' }
+                    : { background: 'transparent', border: '2px solid rgba(255,255,255,0.3)' }
+                  }
+                >
+                  {agreedToDisclosure && (
+                    <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  )}
+                </div>
+              </div>
+              <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                I have read and agree to the <span className="font-semibold text-white/60">Wingman Experience Disclosure & User Agreement</span>. I understand I am purchasing an experience, not a specific table, yacht, or reservation.
+              </p>
+            </label>
             <button
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-              disabled={selectedItemIds.length === 0}
+              disabled={selectedItemIds.length === 0 || !agreedToDisclosure}
               className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
             >
