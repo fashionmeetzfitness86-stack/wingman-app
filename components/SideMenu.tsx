@@ -180,12 +180,14 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'store'}
               onClick={() => handleNavigation('store')}
             />
-            <MenuItem
-              icon={<ChatIcon className="w-5 h-5" />}
-              label="Chats"
-              isActive={currentPage === 'eventChatsList' || currentPage === 'guestlistChats'}
-              onClick={() => handleNavigation('eventChatsList')}
-            />
+            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+              <MenuItem
+                icon={<ChatIcon className="w-5 h-5" />}
+                label="Chats"
+                isActive={currentPage === 'eventChatsList' || currentPage === 'guestlistChats'}
+                onClick={() => handleNavigation('eventChatsList')}
+              />
+            )}
             <MenuItem
               icon={<ProfileIcon className="w-5 h-5" />}
               label="Profile"
