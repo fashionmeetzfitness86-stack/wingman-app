@@ -158,30 +158,36 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'exclusiveExperiences' || currentPage === 'eventTimeline'}
               onClick={() => handleNavigation('eventTimeline')}
             />
-            <MenuItem
-              icon={<ChallengesIcon className="w-5 h-5" />}
-              label="Challenges"
-              isActive={currentPage === 'challenges'}
-              onClick={() => handleNavigation('challenges')}
-            />
-            <MenuItem
-              icon={<FriendsIcon className="w-5 h-5" />}
-              label="Friends Zone"
-              isActive={currentPage === 'friendsZone'}
-              onClick={() => handleNavigation('friendsZone')}
-            />
+            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+              <MenuItem
+                icon={<ChallengesIcon className="w-5 h-5" />}
+                label="Challenges"
+                isActive={currentPage === 'challenges'}
+                onClick={() => handleNavigation('challenges')}
+              />
+            )}
+            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+              <MenuItem
+                icon={<FriendsIcon className="w-5 h-5" />}
+                label="Friends Zone"
+                isActive={currentPage === 'friendsZone'}
+                onClick={() => handleNavigation('friendsZone')}
+              />
+            )}
             <MenuItem
               icon={<StoreIcon className="w-5 h-5" />}
               label="Store"
               isActive={currentPage === 'store'}
               onClick={() => handleNavigation('store')}
             />
-            <MenuItem
-              icon={<ChatIcon className="w-5 h-5" />}
-              label="Chats"
-              isActive={currentPage === 'eventChatsList' || currentPage === 'guestlistChats'}
-              onClick={() => handleNavigation('eventChatsList')}
-            />
+            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+              <MenuItem
+                icon={<ChatIcon className="w-5 h-5" />}
+                label="Chats"
+                isActive={currentPage === 'eventChatsList' || currentPage === 'guestlistChats'}
+                onClick={() => handleNavigation('eventChatsList')}
+              />
+            )}
             <MenuItem
               icon={<ProfileIcon className="w-5 h-5" />}
               label="Profile"
@@ -196,12 +202,14 @@ export const SideMenu: React.FC<SideMenuProps> = ({
                 onClick={() => handleNavigation('adminDashboard')}
               />
             )}
-            <MenuItem
-              icon={<AskGabyIcon className="w-5 h-5" />}
-              label="Ask Gaby"
-              isActive={currentPage === 'chatbot' || currentPage === 'liveChat'}
-              onClick={() => handleNavigation('chatbot')}
-            />
+            {currentUser.role === UserRole.ADMIN && (
+              <MenuItem
+                icon={<AskGabyIcon className="w-5 h-5" />}
+                label="Ask Gaby"
+                isActive={currentPage === 'chatbot' || currentPage === 'liveChat'}
+                onClick={() => handleNavigation('chatbot')}
+              />
+            )}
           </nav>
 
           {/* Logout */}

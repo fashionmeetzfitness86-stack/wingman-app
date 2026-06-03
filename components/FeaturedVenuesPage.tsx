@@ -7,9 +7,8 @@
  * spot counts and a "Reserve Spot" CTA that opens the booking modal.
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Venue, User, UserRole, EventInstance, InstanceBooking } from '../types';
-import { venues } from '../data/mockData';
 import {
   generateEventFeed,
   formatEventDate,
@@ -22,6 +21,7 @@ import { ReserveSpotModal } from './ReserveSpotModal';
 // ─── PROPS ────────────────────────────────────────────────────
 
 interface FeaturedVenuesPageProps {
+  venues: Venue[];
   onBookVenue?: (venue: Venue) => void;
   favoriteVenueIds?: number[];
   onToggleFavorite?: (venueId: number) => void;
@@ -312,6 +312,7 @@ const FeaturedVenueCard: React.FC<{
 // ─── MAIN PAGE ────────────────────────────────────────────────
 
 export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
+  venues,
   favoriteVenueIds = [],
   onToggleFavorite = () => {},
   onViewVenueDetails,
@@ -342,7 +343,7 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
     [bookedMap, cancelMap]
   );
 
-  // Filter venues
+  // Filter venues from live appVenues prop
   const filteredVenues = useMemo(() => {
     const kw = searchTerm.toLowerCase().trim();
     return venues.filter(v => {
@@ -357,14 +358,21 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
         v.category.toLowerCase().includes(kw)
       );
     });
-  }, [searchTerm, categoryFilter]);
+  }, [venues, searchTerm, categoryFilter]);
 
-  // Map instances to venues by venue name matching
+  // Map instances to venues — strip punctuation + normalize for fuzzy matching
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+
   const getVenueExperiences = useCallback((venue: Venue): EventInstance[] => {
-    return allInstances.filter(inst =>
-      inst.venue.toLowerCase().includes(venue.name.toLowerCase().replace(' miami', '').replace(' beach', '').split(' ')[0]) ||
-      venue.name.toLowerCase().includes(inst.venue.toLowerCase().replace(' miami', '').replace(' beach', '').split(' ')[0])
-    );
+    const venueName = normalize(venue.name);
+    const venueWords = venueName.split(/\s+/);
+    return allInstances.filter(inst => {
+      const instVenue = normalize(inst.venue);
+      const instWords = instVenue.split(/\s+/);
+      // Match if any significant word (length > 2) overlaps
+      return venueWords.some(w => w.length > 2 && instWords.some(iw => iw.startsWith(w) || w.startsWith(iw)));
+    });
   }, [allInstances]);
 
   // An instance is 'confirmed booked' if user has a paid InstanceBooking

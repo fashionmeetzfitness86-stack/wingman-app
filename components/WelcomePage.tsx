@@ -9,14 +9,13 @@
  *  - "success" — brief success state before redirect
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   validatePasscode,
   grantPasscodeAccess,
   formatTimeRemaining,
   ACCESS_DURATION_MS,
 } from '../utils/accessControl';
-import { generateEventFeed } from '../utils/eventSchedule';
 import { supabase } from '../lib/supabase';
 
 // ─── Icons ────────────────────────────────────────────────────
@@ -434,27 +433,16 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 
 export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin, onCreateAccount }) => {
-  const [mode, setMode] = useState<'browse' | 'enter' | 'login' | 'forgotPassword' | 'success'>('browse');
-  const [prevMode, setPrevMode] = useState<'browse' | 'enter'>('browse');
+  const [mode, setMode] = useState<'enter' | 'login' | 'forgotPassword' | 'success'>('enter');
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(ACCESS_DURATION_MS);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Helper: navigate to login, remembering which screen to return to
-  const goToLogin = (from: 'browse' | 'enter') => { setPrevMode(from); setMode('login'); };
-
-  // Pre-generate sample events for the preview
-  const previewInstances = useMemo(() => {
-    try {
-      return generateEventFeed({}, {}, 1).slice(0, 6);
-    } catch {
-      return [];
-    }
-  }, []);
+  // Helper: navigate to login
+  const goToLogin = () => { setMode('login'); };
 
   // Countdown timer in success state
   useEffect(() => {
@@ -502,7 +490,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
   if (mode === 'login') {
     return (
       <LoginScreen
-        onBack={() => setMode(prevMode)}
+        onBack={() => setMode('enter')}
         onLogin={onLogin ?? (async () => false)}
         onForgotPassword={() => setMode('forgotPassword')}
         onCreateAccount={onCreateAccount ?? (() => {})}
@@ -551,19 +539,13 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         className="fixed inset-0 z-50 flex flex-col"
         style={{ background: '#080808', overflowY: 'auto' }}
       >
-        {/* Back to browse */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
+        {/* Top bar — login link only */}
+        <div className="flex items-center justify-end px-5 pt-5 pb-2 flex-shrink-0">
           <button
-            onClick={() => { setMode('browse'); setError(''); }}
-            className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
+            onClick={() => goToLogin()}
+            className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
           >
-            ← Browse
-          </button>
-          <button
-            onClick={() => goToLogin('enter')}
-            className="text-xs font-semibold text-gray-400 hover:text-white transition-colors"
-          >
-            Already have an account →
+            Log in →
           </button>
         </div>
 
@@ -584,10 +566,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
                 <div className="w-7 h-7 text-white"><IcoLock /></div>
               </div>
               <h1 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                Enter Your Access Code
+                Private Access Code
               </h1>
               <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
-                This platform is invite-only. Enter your email and the passcode you received to unlock access.
+                Access to Wingman experiences is limited.
+                Enter your email and access code to continue.
               </p>
             </div>
 
@@ -630,7 +613,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
 
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Access Passcode
+                  Private Access Code
                 </label>
                 <div className="relative">
                   <input
@@ -681,7 +664,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
             </form>
 
             <p className="text-center text-[10px] text-gray-700 mt-6">
-              Passcode rotates every 6 hours. Contact your host if access has expired.
+              Access is valid for 24 hours. Contact your host if your passcode has expired.
             </p>
           </div>
         </div>
@@ -689,88 +672,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     );
   }
 
-  // ── Browse / Landing State ────────────────────────────────────
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
-      
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
-        <WingmanWordmark />
-        <button
-          onClick={() => goToLogin('browse')}
-          className="text-xs font-semibold text-gray-500 hover:text-white transition-colors"
-        >
-          Login
-        </button>
-      </div>
-
-      {/* Hero section */}
-      <div className="px-5 py-8 text-center flex-shrink-0">
-        <div
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold text-gray-400 mb-6"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
-          Private Access Network · Miami
-        </div>
-
-        <h1
-          className="text-4xl font-black text-white leading-tight mb-4"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          This is not for<br />
-          <span style={{
-            background: 'linear-gradient(90deg, #FFFFFF 0%, #738596 60%, #1A252C 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>everyone.</span>
-        </h1>
-
-        <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto mb-8">
-          WINGMAN is a controlled access network for curated nightlife, private dinners, and yacht experiences in Miami.
-        </p>
-
-        {/* CTA */}
-        <button
-          onClick={() => setMode('enter')}
-          className="w-full max-w-xs mx-auto block font-bold py-4 rounded-xl text-black text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%)',
-            boxShadow: '0 8px 32px rgba(255,255,255,0.1)',
-          }}
-        >
-          Enter Passcode
-        </button>
-        <p className="text-[10px] text-gray-700 mt-3">Have a passcode? Unlock full access in seconds.</p>
-
-        {/* Instagram link */}
-        <a
-          href="https://www.instagram.com/wingman.miami"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 mt-5 group"
-          aria-label="Follow Wingman on Instagram"
-        >
-          <svg
-            className="w-5 h-5 transition-opacity group-hover:opacity-100 opacity-40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-            <circle cx="12" cy="12" r="4" />
-            <circle cx="17.5" cy="6.5" r="0.5" fill="white" stroke="none" />
-          </svg>
-          <span className="text-[11px] text-gray-600 group-hover:text-gray-400 transition-colors tracking-wide">
-            @wingman.miami
-          </span>
-        </a>
-      </div>
-    </div>
-  );
+  // ── Fallback (should not reach here) ────────────────────────
+  return null;
 };
+
