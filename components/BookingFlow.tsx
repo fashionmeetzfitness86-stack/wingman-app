@@ -1,5 +1,6 @@
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { Wingman, Venue, TableOption, UserAccessLevel, User, CartItem, UserRole } from '../types';
 import { CloseIcon } from './icons/CloseIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -52,6 +53,35 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAd
   
   // Ref for focus first input
   const firstInputRef = useRef<HTMLInputElement | HTMLButtonElement>(null);
+
+  // ── Body scroll lock + hide bottom nav (same pattern as ReserveSpotModal) ───
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const nav = document.querySelector<HTMLElement>('nav[aria-label="Wingman Navigation"]');
+    if (nav) {
+      nav.dataset.prevZ = nav.style.zIndex;
+      nav.style.zIndex = '-1';
+      nav.style.pointerEvents = 'none';
+      nav.style.visibility = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = prev;
+      if (nav) {
+        nav.style.zIndex        = nav.dataset.prevZ ?? '';
+        nav.style.pointerEvents = '';
+        nav.style.visibility    = '';
+        delete nav.dataset.prevZ;
+      }
+    };
+  }, []);
+
+  // ── ESC key to close ─────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const wingmanVenues = useMemo(() => {
       const assigned = venues.filter(v => wingman.assignedVenueIds.includes(v.id));
@@ -379,8 +409,8 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAd
                                  <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} placeholder="Guest Phone (Optional)" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" aria-label="Guest Phone" />
                             </div>
                         )}
-                    </div>
-                    
+                 </div>
+
                     {/* 3. Special Requests */}
                     <div className="mt-6">
                         <label className="block text-sm font-medium text-gray-300 mb-2">Special Requests (Optional)</label>
@@ -392,13 +422,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAd
                         />
                     </div>
 
-                    {/* 4. Confirm */}
-                    <button 
-                        onClick={handleConfirmBooking} 
-                        className="mt-8 w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-green-400 shadow-lg shadow-green-900/20 focus:ring-2 focus:ring-white focus:outline-none"
-                    >
-                        Confirm & Add to Plans
-                    </button>
+                    {/* CTA is in sticky footer — see stickyFooterCTA */}
                 </div>
             );
         default:
@@ -406,57 +430,125 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAd
     }
   };
 
-  return (
+  // ── Sticky CTA (Step 4 only) — always visible, never inside scroll area ──
+  const stickyFooterCTA = step === 4 && selectedVenue && selectedTable ? (
+    <div
+      className="flex-shrink-0 px-6 pt-3 pb-6"
+      style={{ background: '#121212', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+    >
+      <button
+        onClick={handleConfirmBooking}
+        className="w-full font-black py-4 rounded-2xl text-black text-base transition-all active:scale-[0.98] hover:opacity-90"
+        style={{
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%)',
+          boxShadow: '0 8px 28px rgba(255,255,255,0.15)',
+        }}
+      >
+        Confirm &amp; Add to Plans
+      </button>
+      <p className="text-center text-xs text-gray-600 mt-2">Spot reserved instantly · Pay at checkout</p>
+    </div>
+  ) : null;
+
+  const modal = (
     <>
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="booking-modal-title">
-            <div 
-                className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg m-4 relative flex flex-col max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-center p-4 border-b border-gray-800 flex-shrink-0">
-                    <div>
-                        <h2 id="booking-modal-title" className="text-xl font-bold text-white">
-                            {step === 1 ? 'Select a Venue' : step === 2 ? 'Date & Guests' : step === 3 ? 'Select a Table' : 'Confirm Details'}
-                        </h2>
-                        {step > 1 && selectedVenue && <p className="text-xs text-gray-400">at {selectedVenue.name}</p>}
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800" aria-label="Close booking flow">
-                        <CloseIcon className="w-6 h-6" />
-                    </button>
-                </div>
+      {/* ── Backdrop ─────────────────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0,
+          zIndex: 1000,
+          background: 'rgba(0,0,0,0.8)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        } as React.CSSProperties}
+      />
 
-                <div className="flex-grow overflow-y-auto p-6 scroll-smooth">
-                    {renderStepContent()}
-                </div>
-
-                {step > 1 && (
-                    <div className="p-4 border-t border-gray-800 flex-shrink-0">
-                        <button 
-                            onClick={() => setStep(step - 1)} 
-                            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-                            aria-label="Go to previous step"
-                        >
-                            <ChevronLeftIcon className="w-5 h-5"/>
-                            Back
-                        </button>
-                    </div>
-                )}
+      {/* ── Sheet ────────────────────────────────────────────── */}
+      <div
+        style={{
+          position: 'fixed', inset: 0,
+          zIndex: 1010,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          pointerEvents: 'none',
+        } as React.CSSProperties}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-modal-title"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            pointerEvents: 'auto',
+            width: '100%',
+            maxWidth: 520,
+            maxHeight: '90vh',
+            background: '#121212',
+            borderRadius: 16,
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.9)',
+            overflow: 'hidden',
+          } as React.CSSProperties}
+        >
+          {/* ── Header ───────────────────────────────────────── */}
+          <div className="flex justify-between items-center p-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div>
+              <h2 id="booking-modal-title" className="text-xl font-bold text-white">
+                {step === 1 ? 'Select a Venue' : step === 2 ? 'Date & Guests' : step === 3 ? 'Select a Table' : 'Confirm Details'}
+              </h2>
+              {step > 1 && selectedVenue && <p className="text-xs text-gray-400">at {selectedVenue.name}</p>}
             </div>
-            
-            {showSuccessModal && (
-                <AddedToPlansModal
-                    isOpen={true}
-                    onClose={() => {
-                        setShowSuccessModal(false);
-                        onClose();
-                    }}
-                    venueName={selectedVenue ? selectedVenue.name : ''}
-                    onCheckout={onNavigateToCheckout}
-                    onKeepBooking={onKeepBooking}
-                    keepBookingLabel="Keep Booking"
-                />
-            )}
+            <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 transition-colors" aria-label="Close booking flow">
+              <CloseIcon className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* ── Scrollable body ───────────────────────────────── */}
+          <div
+            className="flex-1 overflow-y-auto overscroll-contain p-6 scroll-smooth"
+            style={{ minHeight: 0, WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            {renderStepContent()}
+          </div>
+
+          {/* ── Sticky CTA footer (Step 4 only) ──────────────── */}
+          {stickyFooterCTA}
+
+          {/* ── Back nav ─────────────────────────────────────── */}
+          {step > 1 && (
+            <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: stickyFooterCTA ? 'none' : '1px solid rgba(255,255,255,0.07)' }}>
+              <button
+                onClick={() => setStep(step - 1)}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                aria-label="Go to previous step"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+                Back
+              </button>
+            </div>
+          )}
         </div>
+      </div>
+
+      {showSuccessModal && (
+        <AddedToPlansModal
+          isOpen={true}
+          onClose={() => { setShowSuccessModal(false); onClose(); }}
+          venueName={selectedVenue ? selectedVenue.name : ''}
+          onCheckout={onNavigateToCheckout}
+          onKeepBooking={onKeepBooking}
+          keepBookingLabel="Keep Booking"
+        />
+      )}
     </>
   );
+
+  return ReactDOM.createPortal(modal, document.body);
 };

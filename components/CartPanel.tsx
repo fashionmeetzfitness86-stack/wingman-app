@@ -101,7 +101,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                   ? item.fullPrice
                   : item.depositPrice;
                 const isDeposit = item.paymentOption === 'deposit';
-                const isWatchlist = item.isWatchlistPlaceholder;
+                const isWatchlist = item.isPlaceholder;
 
                 return (
                   <div

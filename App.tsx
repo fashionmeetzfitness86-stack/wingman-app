@@ -231,7 +231,16 @@ export const App: React.FC = () => {
         try { return JSON.parse(localStorage.getItem('wingman_watchlist') || '[]'); } catch { return []; }
     });
     const [notifications, setNotifications] = useState<AppNotification[]>(mockNotifications);
-    const [userTokenBalance, setUserTokenBalance] = useState(2500); // Mock balance
+    const [userTokenBalance, setUserTokenBalance] = useState<number>(() => {
+        try { return parseInt(localStorage.getItem('wingman_token_balance') ?? '2500', 10) || 2500; }
+        catch { return 2500; }
+    });
+    const [tokenTransactions, setTokenTransactions] = useState(() => {
+        try {
+            const saved = localStorage.getItem('wingman_token_transactions');
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
     const [appAccessGroups, setAppAccessGroups] = useState<AccessGroup[]>(accessGroups);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
     const [pushCampaigns, setPushCampaigns] = useState<PushCampaign[]>([]);
@@ -268,7 +277,10 @@ export const App: React.FC = () => {
     const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
 
     // ── Recurring Event System ────────────────────────────────────────────────
-    const [instanceBookings, setInstanceBookings] = useState<InstanceBooking[]>([]);
+    const [instanceBookings, setInstanceBookings] = useState<InstanceBooking[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_instance_bookings') || '[]'); }
+        catch { return []; }
+    });
     // pendingCartReservations: { [instanceId]: partySize } — spots held in cart awaiting payment
     const [pendingCartReservations, setPendingCartReservations] = useState<Record<string, number>>({});
     // cartInstanceMeta: { [cartItemId]: { instanceId, partySize } } — used at checkout to create InstanceBookings
@@ -305,9 +317,13 @@ export const App: React.FC = () => {
         return m;
     }, [instanceBookings, pendingCartReservations]);
     // cancelMap: { [instanceId]: true } — admin-cancelled instances
-    const [cancelMap, setCancelMap] = useState<Record<string, boolean>>({});
+    const [cancelMap, setCancelMap] = useState<Record<string, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_cancel_map') || '{}'); } catch { return {}; }
+    });
     // forceSoldOutMap: { [instanceId]: true } — admin force sold-out instances
-    const [forceSoldOutMap, setForceSoldOutMap] = useState<Record<string, boolean>>({});
+    const [forceSoldOutMap, setForceSoldOutMap] = useState<Record<string, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_force_soldout') || '{}'); } catch { return {}; }
+    });
 
     // Chat State
     const [guestlistChats, setGuestlistChats] = useState<GuestlistChat[]>(mockGuestlistChats);
@@ -388,6 +404,10 @@ export const App: React.FC = () => {
     useEffect(() => { localStorage.setItem('wingman_cart', JSON.stringify(cartItems)); }, [cartItems]);
     useEffect(() => { localStorage.setItem('wingman_booked', JSON.stringify(bookedItems)); }, [bookedItems]);
     useEffect(() => { localStorage.setItem('wingman_watchlist', JSON.stringify(watchlist)); }, [watchlist]);
+    // Persist booking system state so bookings survive page refresh
+    useEffect(() => { try { localStorage.setItem('wingman_instance_bookings', JSON.stringify(instanceBookings)); } catch {} }, [instanceBookings]);
+    useEffect(() => { try { localStorage.setItem('wingman_cancel_map', JSON.stringify(cancelMap)); } catch {} }, [cancelMap]);
+    useEffect(() => { try { localStorage.setItem('wingman_force_soldout', JSON.stringify(forceSoldOutMap)); } catch {} }, [forceSoldOutMap]);
 
     // Defensive scroll-lock cleanup: if a modal closed badly and left body in
     // position:fixed (iOS Safari scroll-lock technique), reset it on every nav.
@@ -416,6 +436,9 @@ export const App: React.FC = () => {
             localStorage.setItem('wingman_currentUserId', currentUser.id.toString()); 
         }
     }, [currentUser]);
+    // Persist token balance and transactions
+    useEffect(() => { localStorage.setItem('wingman_token_balance', String(userTokenBalance)); }, [userTokenBalance]);
+    useEffect(() => { try { localStorage.setItem('wingman_token_transactions', JSON.stringify(tokenTransactions)); } catch {} }, [tokenTransactions]);
 
     // Notification Prompt Effect — skip if onboarding is showing or user is in passcode-only session
     useEffect(() => {
@@ -1143,25 +1166,38 @@ export const App: React.FC = () => {
 
 
     const handleOnboardingComplete = (profile: OnboardingProfile) => {
-        // Merge the collected profile data into the current user record
-        const updatedUser = {
-            ...currentUser,
+        // Create a BRAND NEW user record with a fresh unique ID.
+        // We must NEVER merge profile data into currentUser (which may be a mock user like John Doe).
+        const newId = Date.now();
+        const newUser: User = {
+            id: newId,
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: profile.email,
             phoneNumber: profile.phone,
             city: profile.hometown,
-            profilePhoto: profile.photoUrl || currentUser.profilePhoto,
+            profilePhoto: profile.photoUrl || `https://i.pravatar.cc/150?u=${newId}`,
+            accessLevel: UserAccessLevel.GENERAL,
+            role: UserRole.USER,
+            status: 'active',
+            approvalStatus: 'pending',
+            subscriptionStatus: 'free_tier',
+            joinDate: new Date().toISOString().split('T')[0],
+            isNewUser: true,
         };
-        setCurrentUser(updatedUser);
-        // Auto-login: persist the user ID so isLoggedInUser becomes true.
-        // From this point on the user bypasses the passcode gate entirely
-        // and can log back in with their email + password.
-        localStorage.setItem('wingman_currentUserId', updatedUser.id.toString());
+        // Add to users list so they appear in admin & user lookups
+        setAppUsers(prev => [...prev, newUser]);
+        // Set as current user
+        setCurrentUser(newUser);
+        // Auto-login: persist the new user ID — isLoggedInUser becomes true immediately
+        localStorage.setItem('wingman_currentUserId', newUser.id.toString());
+        // Reset any token balance to 0 for new users (they'll earn it)
+        setUserTokenBalance(0);
         // Clear the session-dismissed flag — no longer needed
         sessionStorage.removeItem(ONBOARDING_DISMISSED_KEY);
         markOnboardingComplete();
         setShowOnboarding(false);
         setOnboardingDismissed(false);
+        setCurrentPage('home');
         showToast('Profile created! Welcome to WINGMAN 🎉', 'success');
     };
 
@@ -1948,8 +1984,8 @@ export const App: React.FC = () => {
                 return <EventChatsListPage 
                     currentUser={currentUser} 
                     onNavigate={handleNavigate} 
-                    eventChats={mockEventChats} 
-                    guestlistChats={mockGuestlistChats} 
+                    eventChats={eventChats} 
+                    guestlistChats={guestlistChats} 
                     wingmanChats={wingmanChats}
                     allEvents={appEvents} 
                     venues={appVenues} 
@@ -2149,7 +2185,7 @@ export const App: React.FC = () => {
             />;
             case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} onSave={() => showToast('Cookie preferences saved.', 'success')} />;
             case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => showToast('Data export request submitted. You will receive an email within 48 hours.', 'success')} onNavigate={handleNavigate} />;
-            case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={[]} />;
+            case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={tokenTransactions} />;
             case 'editProfile': return <EditProfilePage 
                 currentUser={currentUser} 
                 onSave={handleUpdateUserWithRewardCheck} 

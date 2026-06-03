@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WingmanApplication, AccessGroup, EventInvitationRequest, User, Event, Page, CartItem, EventInvitation, MembershipRequest } from '../../types';
 import { CheckIcon } from '../icons/CheckIcon';
 import { CloseIcon } from '../icons/CloseIcon';
 import { SendInvitations } from './SendInvitations';
 import { PlusIcon } from '../icons/PlusIcon';
+import { getPasscodeLeads, type PasscodeLead } from '../../utils/accessControl';
 
 interface ManagementTabProps {
     wingmanApplications: WingmanApplication[];
@@ -128,6 +129,12 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
         onRejectMembershipRequest,
     } = props;
 
+    // Read passcode leads from localStorage (captured at the gate)
+    const [passcodeleads] = useState<PasscodeLead[]>(() => {
+        try { return getPasscodeLeads().sort((a, b) => b.capturedAt - a.capturedAt); }
+        catch { return []; }
+    });
+
     const pendingMembershipRequests = membershipRequests.filter(r => r.status === 'pending');
     const processedMembershipRequests = membershipRequests.filter(r => r.status !== 'pending');
 
@@ -137,6 +144,45 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
 
     return (
         <div className="space-y-12">
+
+            {/* ── Passcode Leads (email capture from welcome gate) ─ */}
+            <div>
+                <div className="flex items-center gap-3 mb-1">
+                    <h3 className="text-xl font-bold">Passcode Email Leads</h3>
+                    <span className="bg-[#1A1810] border border-[#333020] text-[#B89B4D] text-xs font-bold px-2 py-0.5 rounded-full">
+                        {passcodeleads.length} captured
+                    </span>
+                </div>
+                <p className="text-[11px] text-[#5D616B] mb-4">Emails entered at the passcode gate. Stored locally — connect Supabase to sync across devices.</p>
+                {passcodeleads.length > 0 ? (
+                    <div className="bg-[#0F1014] rounded-md border border-[#1C1D22] overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-[#1C1D22]">
+                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">#</th>
+                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Email</th>
+                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Captured</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {passcodeleads.map((lead, i) => (
+                                    <tr key={lead.email} className="border-b border-[#1C1D22] last:border-0 hover:bg-[#141418] transition-colors">
+                                        <td className="px-4 py-2.5 text-[#5D616B] text-xs">{i + 1}</td>
+                                        <td className="px-4 py-2.5 text-white font-medium">{lead.email}</td>
+                                        <td className="px-4 py-2.5 text-[#8A8E99] text-xs">
+                                            {new Date(lead.capturedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="bg-[#0F1014] border border-[#1C1D22] p-8 rounded-md text-center text-[#5D616B] font-semibold text-sm">
+                        No leads captured yet. Leads appear here when users enter their email at the passcode gate.
+                    </div>
+                )}
+            </div>
 
             {/* ── Member Access Requests (new system) ───────────── */}
             <div>
