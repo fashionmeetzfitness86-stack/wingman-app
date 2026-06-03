@@ -379,6 +379,7 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const [showPw,      setShowPw]      = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showWelcome,  setShowWelcome]  = useState(false); // shown after step 5 completes
   const fileRef = useRef<HTMLInputElement>(null);
 
   const clearErr = (k: string) => setErrors(p => { const n = { ...p }; delete n[k]; return n; });
@@ -444,7 +445,8 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
       // Keep the legacy localStorage password store in sync so existing
       // login fallback paths still recognise this user.
       saveUserPassword(normalizedEmail, password);
-      onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password });
+      // Show welcome screen before handing off
+      setShowWelcome(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -708,6 +710,99 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
 
   // Lock background scroll while the modal is mounted
   useScrollLock(true);
+
+  // ── Welcome Screen (shown after successful account creation) ────────────
+  if (showWelcome) {
+    return (
+      <div
+        className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+        data-modal-backdrop
+        style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)' }}
+      >
+        <div
+          className="w-full max-w-md rounded-3xl flex flex-col items-center text-center px-8 py-12"
+          style={{
+            background: '#111',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 -16px 64px rgba(0,0,0,0.9)',
+          }}
+        >
+          {/* Animated checkmark */}
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+            style={{
+              background: 'linear-gradient(135deg, rgba(224,64,251,0.2), rgba(123,97,255,0.2))',
+              border: '2px solid rgba(224,64,251,0.4)',
+              boxShadow: '0 0 40px rgba(224,64,251,0.25)',
+            }}
+          >
+            <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none">
+              <path
+                d="M8 20l8 8 16-16"
+                stroke="url(#wg)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <defs>
+                <linearGradient id="wg" x1="8" y1="20" x2="32" y2="20">
+                  <stop stopColor="#E040FB" />
+                  <stop offset="1" stopColor="#00D4FF" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          {/* Wordmark */}
+          <p
+            className="text-[10px] font-black tracking-[0.35em] text-gray-500 uppercase mb-3"
+          >
+            WINGMAN · MIAMI
+          </p>
+
+          {/* Headline */}
+          <h1
+            className="text-3xl font-black text-white mb-3"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.15 }}
+          >
+            Welcome,<br />{firstName}.
+          </h1>
+
+          {/* Body copy */}
+          <p className="text-sm text-gray-400 leading-relaxed mb-2 max-w-xs">
+            Your profile is live. You now have full access to exclusive Wingman
+            experiences in Miami.
+          </p>
+          <p className="text-[11px] text-gray-600 mb-8">
+            A confirmation email has been sent to{' '}
+            <span className="text-gray-400 font-semibold">{email}</span>.
+          </p>
+
+          {/* Divider detail */}
+          <div
+            className="w-16 h-px mb-8"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(224,64,251,0.5), transparent)' }}
+          />
+
+          {/* CTA */}
+          <button
+            onClick={() => onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password })}
+            className="w-full py-4 rounded-2xl font-black text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
+            style={{
+              background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
+              boxShadow: '0 8px 32px rgba(224,64,251,0.35)',
+            }}
+          >
+            Enter Wingman →
+          </button>
+
+          <p className="text-[10px] text-gray-700 mt-4">
+            Use your email and password to log in next time.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // Backdrop
