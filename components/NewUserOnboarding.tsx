@@ -840,9 +840,10 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">{currentStep.subtitle}</p>
           </div>
+          {/* Small close — accessible but not visually prominent */}
           <button
             onClick={onDismiss}
-            className="text-gray-600 hover:text-gray-300 transition-colors text-xs mt-1"
+            className="text-gray-700 hover:text-gray-400 transition-colors text-xs mt-1 px-1"
             aria-label="Dismiss"
           >
             ✕
@@ -861,27 +862,37 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
 
         {/* Footer */}
         <div
-          className="px-6 pb-8 pt-4 flex gap-3 flex-shrink-0"
+          className="px-6 pb-6 pt-4 flex flex-col gap-3 flex-shrink-0"
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: '#111' }}
         >
-          {step > 1 && (
+          <div className="flex gap-3">
+            {step > 1 && (
+              <button
+                onClick={back}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 transition-all"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                ← Back
+              </button>
+            )}
             <button
-              onClick={back}
-              className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              onClick={next}
+              disabled={isSubmitting}
+              className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
             >
-              ← Back
+              {isSubmitting
+                ? 'Creating account…'
+                : step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
             </button>
-          )}
+          </div>
+
+          {/* Skip option — visible but secondary */}
           <button
-            onClick={next}
-            disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
+            onClick={onDismiss}
+            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors py-1"
           >
-            {isSubmitting
-              ? 'Creating account…'
-              : step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
+            Skip for now — you have 24 hrs to complete your profile
           </button>
         </div>
       </div>

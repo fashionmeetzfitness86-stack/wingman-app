@@ -440,9 +440,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     const interval = setInterval(() => {
       setCountdown(c => c - 1000);
     }, 1000);
+    // 1.5 s is enough for the "Access Granted" moment to land
+    // then we hand off immediately to the onboarding modal
     const timeout = setTimeout(() => {
       onAccessGranted();
-    }, 3000);
+    }, 1500);
     return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [mode, onAccessGranted]);
 
@@ -510,10 +512,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
           <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Access Granted
           </h2>
-          <p className="text-gray-400 text-sm mb-6">Welcome to WINGMAN. You have 24 hours.</p>
+          <p className="text-gray-400 text-sm mb-3">Welcome to WINGMAN. You have 24 hours.</p>
+          <p className="text-xs text-gray-600 mb-6">Next → Create your profile to unlock reservations</p>
           <div className="inline-flex items-center gap-2 text-xs text-gray-600 bg-white/[0.04] rounded-full px-4 py-2">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Redirecting to platform...
+            Setting up your experience...
           </div>
         </div>
       </div>

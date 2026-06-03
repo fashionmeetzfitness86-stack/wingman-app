@@ -1421,6 +1421,15 @@ export const App: React.FC = () => {
     };
 
     const handleInstanceBook = (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
+        // ── Profile gate ─────────────────────────────────────────────────────
+        // Passcode users must complete their profile before reserving a spot.
+        // Show onboarding immediately rather than letting them fill the cart
+        // and hit the wall at checkout.
+        if (profileRequired) {
+            setShowOnboarding(true);
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────────
         setPendingCartReservations(prev => ({ ...prev, [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize }));
         const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
