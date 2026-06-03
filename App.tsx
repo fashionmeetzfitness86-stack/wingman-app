@@ -593,17 +593,30 @@ export const App: React.FC = () => {
                 return;
             }
 
-            const stripeItems = itemsToBook
-                .map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    amount: priceForItem(item),
-                    quantity: item.quantity || 1,
-                    image: item.image,
-                }))
-                .filter(i => i.amount > 0);
+            // ── Security: build server-trusted booking payloads ──────────────
+            // We NEVER send price/amount to the server.
+            // The Netlify function resolves all prices from its own server-side
+            // PRICE_SCHEDULE. Clients cannot affect what Stripe charges.
+            const bookings = itemsToBook
+                .map(item => {
+                    // For recurring-event cart items, we stored instanceId in cartInstanceMeta
+                    const meta = cartInstanceMeta[item.id];
+                    if (!meta?.instanceId) return null; // non-schedule item (store, table, etc.)
 
-            if (stripeItems.length === 0) {
+                    // Derive scheduleId by stripping the date suffix from instanceId
+                    // e.g. 'fri-nightclub-e11even-2025-06-07' → 'fri-nightclub-e11even'
+                    const scheduleId = meta.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+
+                    return {
+                        scheduleId,
+                        instanceId: meta.instanceId,
+                        quantity: meta.partySize || 1,
+                        cartItemId: item.id,
+                    };
+                })
+                .filter(Boolean);
+
+            if (bookings.length === 0) {
                 showToast('Cart total is $0 — nothing to charge.', 'error');
                 return;
             }
@@ -615,7 +628,7 @@ export const App: React.FC = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        items: stripeItems,
+                        bookings,
                         userEmail: currentUser.email,
                         userId: String(currentUser.id),
                     }),
