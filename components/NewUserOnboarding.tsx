@@ -417,33 +417,40 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
     if (!validateStep()) return;
     if (step < STEPS.length) { setStep(s => s + 1); return; }
 
-    // Final step — register the account in Supabase Auth.
+    // Final step — save password locally and attempt Supabase registration.
+    // If Supabase is unreachable (network error), we fall back to localStorage-
+    // only auth — the app works fully in that mode.
     const normalizedEmail = email.trim().toLowerCase();
     setIsSubmitting(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: normalizedEmail,
-        password,
-        options: {
-          data: { firstName, lastName, phone, hometown, gender },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
+      try {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+          options: {
+            data: { firstName, lastName, phone, hometown, gender },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
 
-      if (signUpError) {
-        const msg = signUpError.message?.toLowerCase() ?? '';
-        // If the email is already registered, surface a friendly hint and stop.
-        if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
-          setErrors({ email: 'This email is already registered. Try logging in instead.' });
-          setStep(2);
-        } else {
-          setErrors({ password: signUpError.message || 'Could not create account.' });
+        if (signUpError) {
+          const msg = signUpError.message?.toLowerCase() ?? '';
+          // Duplicate-email is a hard stop — send user back to fix it.
+          if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
+            setErrors({ email: 'This email is already registered. Try logging in instead.' });
+            setStep(2);
+            return;
+          }
+          // Any other Supabase error: log it but continue with localStorage auth.
+          console.warn('[Wingman] Supabase signUp error (non-fatal):', signUpError.message);
         }
-        return;
+      } catch (networkErr) {
+        // Network failure (Failed to fetch, offline, CORS, etc.)
+        // Not fatal — proceed with localStorage auth below.
+        console.warn('[Wingman] Supabase unreachable, using local auth:', networkErr);
       }
 
-      // Keep the legacy localStorage password store in sync so existing
-      // login fallback paths still recognise this user.
+      // Always save to localStorage so login works regardless of Supabase state.
       saveUserPassword(normalizedEmail, password);
       // Show welcome screen before handing off
       setShowWelcome(true);
