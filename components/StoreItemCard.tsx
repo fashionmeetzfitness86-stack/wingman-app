@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { StoreItem } from '../types';
-import { TokenIcon } from './icons/TokenIcon';
 
 interface StoreItemCardProps {
   item: StoreItem;
@@ -61,11 +60,10 @@ export const StoreItemCard: React.FC<StoreItemCardProps> = ({ item, onPurchase, 
         <h3 className="font-bold text-white text-base leading-tight mb-1 truncate">{item.title}</h3>
         <p className="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed">{item.description}</p>
 
-        {/* Price row */}
-        <div className="flex items-center gap-2 mb-4">
-          <TokenIcon className="w-4 h-4" style={{ color: '#FFFFFF' } as React.CSSProperties} />
-          <span className="text-white font-black text-lg">{item.price.toLocaleString()}</span>
-          <span className="text-gray-600 text-xs ml-auto">${item.priceUSD.toFixed(0)} USD</span>
+        {/* Price row — USD only */}
+        <div className="flex items-baseline gap-1.5 mb-4">
+          <span className="text-white font-black text-xl">${item.priceUSD.toFixed(0)}</span>
+          <span className="text-gray-600 text-xs">USD</span>
         </div>
 
         {/* Actions */}

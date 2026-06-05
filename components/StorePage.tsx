@@ -4,12 +4,11 @@ import { storeItems } from '../data/mockData';
 import { User, StoreItem } from '../types';
 import { StoreItemCard } from './StoreItemCard';
 import { PurchaseConfirmationModal } from './PurchaseConfirmationModal';
-import { TokenIcon } from './icons/TokenIcon';
 
 interface StorePageProps {
   currentUser: User;
   onPurchase: (item: StoreItem) => boolean;
-  userTokenBalance: number;
+  userTokenBalance?: number; // kept for backward-compat, no longer displayed
   showToast: (message: string, type: 'success' | 'error') => void;
   onAddToCart: (item: StoreItem) => void;
 }
@@ -20,7 +19,7 @@ const CAT_ICONS: Record<string, string> = {
   All: '✦', Merchandise: '👕', NFT: '💎', Perk: '⚡',
 };
 
-export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, userTokenBalance, showToast, onAddToCart }) => {
+export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, showToast, onAddToCart }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [itemToConfirm, setItemToConfirm] = useState<StoreItem | null>(null);
 
@@ -28,14 +27,9 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
     ? storeItems
     : storeItems.filter(item => item.category === activeCategory);
 
-  const handleConfirmPurchase = (method: 'tokens' | 'usd') => {
+  const handleConfirmPurchase = () => {
     if (!itemToConfirm) return;
-    if (method === 'tokens') {
-      const success = onPurchase(itemToConfirm);
-      showToast(success ? `${itemToConfirm.title} is yours! 🎉` : 'Insufficient token balance.', success ? 'success' : 'error');
-    } else {
-      showToast(`${itemToConfirm.title} purchased! 🎉`, 'success');
-    }
+    showToast(`${itemToConfirm.title} purchased! 🎉`, 'success');
     setItemToConfirm(null);
   };
 
@@ -51,7 +45,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        {/* Title + balance */}
+        {/* Title */}
         <div className="flex items-end justify-between mb-4">
           <div>
             <h1
@@ -68,14 +62,6 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
             <p className="text-xs text-gray-500 mt-0.5">
               Exclusive merch, perks &amp; digital collectibles
             </p>
-          </div>
-          {/* Token balance pill */}
-          <div
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.25)' }}
-          >
-            <TokenIcon className="w-3.5 h-3.5" style={{ color: '#FFFFFF' } as React.CSSProperties} />
-            <span className="text-xs font-bold text-white">{userTokenBalance.toLocaleString()}</span>
           </div>
         </div>
 
@@ -130,22 +116,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
           </div>
         )}
 
-        {/* ── Token info banner ── */}
-        <div
-          className="mt-10 rounded-2xl px-5 py-4 flex items-center gap-4"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-        >
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)' }}
-          >
-            <TokenIcon className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white mb-0.5">Your balance: {userTokenBalance.toLocaleString()} TMKC</p>
-            <p className="text-xs text-gray-500 leading-relaxed">Earn tokens by attending events, completing challenges, and referring members.</p>
-          </div>
-        </div>
+
       </div>
 
       {/* ── Purchase modal ── */}
@@ -155,7 +126,7 @@ export const StorePage: React.FC<StorePageProps> = ({ currentUser, onPurchase, u
           onClose={() => setItemToConfirm(null)}
           onConfirm={handleConfirmPurchase}
           item={itemToConfirm}
-          userTokenBalance={userTokenBalance}
+          userTokenBalance={0}
         />
       )}
     </div>
