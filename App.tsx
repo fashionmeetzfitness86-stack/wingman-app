@@ -394,6 +394,15 @@ export const App: React.FC = () => {
 
     const handleAccessGranted = useCallback(() => {
         setPasscodeAccessActive(true);
+        // Pre-populate the guest user with the name+email they entered at the gate
+        const session = getAccessSession();
+        if (session?.fullName || session?.email) {
+            setCurrentUser(prev => ({
+                ...prev,
+                name:  session.fullName  ? session.fullName  : prev.name,
+                email: session.email     ? session.email     : prev.email,
+            }));
+        }
         // Show onboarding only if not already completed AND not dismissed this session
         if (!isOnboardingComplete() && sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) !== 'true') {
             setShowOnboarding(true);
