@@ -470,6 +470,12 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     setTimeout(() => {
       if (validatePasscode(passcode)) {
         grantPasscodeAccess(email.trim().toLowerCase());
+        // Fire welcome email — fire-and-forget, never blocks the user flow
+        fetch('/.netlify/functions/send-welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        }).catch(() => {}); // Silent fail — email failure must never break access
         setMode('success');
       } else {
         setError('Invalid passcode. Please check and try again.');
