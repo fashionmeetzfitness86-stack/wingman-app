@@ -456,11 +456,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       )}
 
-      {/* ── Hire / Become CTA block ─────────────────────────────── */}
+      {/* ── Hire a Wingman CTA ───────────────────────────────────── */}
       {user.role === UserRole.USER && (
-        <div className="px-5 mt-8 space-y-3">
-
-          {/* PRIMARY — Hire a Wingman */}
+        <div className="px-5 mt-8">
           <button
             onClick={() => onNavigate('hireWingman')}
             className="w-full flex items-center justify-between rounded-2xl px-5 py-5 transition-all active:scale-[0.98]"
@@ -482,20 +480,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               🦅
             </div>
           </button>
-
-          {/* SECONDARY — Become a Wingman (ghost) */}
-          <button
-            onClick={() => onNavigate('wingmanApplication')}
-            className="w-full flex items-center justify-between rounded-2xl px-5 py-3 transition-all active:scale-[0.98]"
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.07)' }}
-          >
-            <div className="text-left">
-              <p className="text-xs font-semibold text-gray-500">Become a Wingman</p>
-              <p className="text-[10px] text-gray-700 mt-0.5">Apply to host exclusive experiences</p>
-            </div>
-            <span className="text-gray-700 text-sm">→</span>
-          </button>
-
         </div>
       )}
     </div>

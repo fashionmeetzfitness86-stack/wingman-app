@@ -113,7 +113,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate, users, o
       >
         <div className="flex items-center gap-3 mb-1">
           <button
-            onClick={() => onNavigate('back' as Page)}
+            onClick={() => onNavigate('userProfile')}
             className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
             style={{ color: 'var(--color-text-muted)' }}
             aria-label="Go back"
