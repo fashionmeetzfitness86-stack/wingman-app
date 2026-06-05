@@ -54,6 +54,7 @@ import { DataExportPage } from './components/DataExportPage';
 import { TokenWalletPage } from './components/TokenWalletPage';
 import { EditProfilePage } from './components/EditProfilePage';
 import { ReferFriendPage } from './components/ReferFriendPage';
+import { HireWingmanPage, HireRequest } from './components/HireWingmanPage';
 import { WelcomePage } from './components/WelcomePage';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { supabase } from './lib/supabase';
@@ -2288,6 +2289,13 @@ export const App: React.FC = () => {
                 showToast={showToast} 
             />;
             case 'referFriend': return <ReferFriendPage />;
+            case 'hireWingman': return <HireWingmanPage
+                currentUser={currentUser}
+                onNavigate={handleNavigate}
+                wingmen={appWingmen}
+                showToast={showToast}
+                onSubmitRequest={(req: HireRequest) => showToast(`Wingman request received for ${req.arrivalDate}!`, 'success')}
+            />;
             default: return <HomeScreen
                     onNavigate={handleNavigate}
                     currentUser={currentUser}

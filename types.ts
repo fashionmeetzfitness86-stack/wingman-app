@@ -675,4 +675,5 @@ export type Page =
   | 'friendZoneChat' // Added friendZoneChat
   | 'referFriend'
   | 'eventDetail'
+  | 'hireWingman'
   | 'back';

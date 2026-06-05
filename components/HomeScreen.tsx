@@ -438,6 +438,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
           <PendingHome user={currentUser} onNavigate={onNavigate} onRequestAccess={onRequestAccess} />
         )}
       </main>
+
+      {/* ── Fine-print footer ─────────────────────────────────────── */}
+      <footer className="pb-28 pt-2 flex justify-center">
+        <button
+          onClick={() => onNavigate('wingmanApplication')}
+          className="text-[10px] font-medium transition-colors hover:opacity-80"
+          style={{ color: 'rgba(255,255,255,0.18)', letterSpacing: '0.04em' }}
+        >
+          Become a Wingman →
+        </button>
+      </footer>
+
     </div>
   );
 };

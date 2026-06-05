@@ -456,20 +456,46 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       )}
 
-      {/* ── Wingman apply CTA ──────────────────────────────────── */}
+      {/* ── Hire / Become CTA block ─────────────────────────────── */}
       {user.role === UserRole.USER && (
-        <div className="px-5 mt-8">
+        <div className="px-5 mt-8 space-y-3">
+
+          {/* PRIMARY — Hire a Wingman */}
           <button
-            onClick={() => onNavigate('wingmanApplication')}
-            className="w-full flex items-center justify-between rounded-2xl px-5 py-4 transition-all active:scale-[0.98]"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            onClick={() => onNavigate('hireWingman')}
+            className="w-full flex items-center justify-between rounded-2xl px-5 py-5 transition-all active:scale-[0.98]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(224,64,251,0.14), rgba(123,97,255,0.14))',
+              border: '1px solid rgba(224,64,251,0.3)',
+            }}
           >
             <div className="text-left">
-              <p className="text-sm font-bold text-white">Become a Wingman</p>
-              <p className="text-xs text-gray-600 mt-0.5">Apply to host exclusive experiences</p>
+              <p className="text-sm font-black text-white">Hire a Wingman</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(224,64,251,0.8)' }}>
+                Visiting Miami? Book your personal guide
+              </p>
             </div>
-            <span className="text-gray-600">→</span>
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-base"
+              style={{ background: 'rgba(224,64,251,0.18)' }}
+            >
+              🦅
+            </div>
           </button>
+
+          {/* SECONDARY — Become a Wingman (ghost) */}
+          <button
+            onClick={() => onNavigate('wingmanApplication')}
+            className="w-full flex items-center justify-between rounded-2xl px-5 py-3 transition-all active:scale-[0.98]"
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <div className="text-left">
+              <p className="text-xs font-semibold text-gray-500">Become a Wingman</p>
+              <p className="text-[10px] text-gray-700 mt-0.5">Apply to host exclusive experiences</p>
+            </div>
+            <span className="text-gray-700 text-sm">→</span>
+          </button>
+
         </div>
       )}
     </div>
