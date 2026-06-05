@@ -19,6 +19,7 @@ const DEFAULT_PASSCODE = 'WINGMAN24';
 
 export interface AccessSession {
   email: string;
+  fullName: string;  // captured at passcode gate
   grantedAt: number;  // ms timestamp
   expiresAt: number;  // ms timestamp
 }
@@ -71,15 +72,16 @@ export function getAccessSession(): AccessSession | null {
   }
 }
 
-export function grantPasscodeAccess(email: string): AccessSession {
+export function grantPasscodeAccess(email: string, fullName: string = ''): AccessSession {
   const session: AccessSession = {
     email,
+    fullName: fullName.trim(),
     grantedAt: Date.now(),
     expiresAt: Date.now() + ACCESS_DURATION_MS,
   };
   localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(session));
-  // Always record the email as a permanent lead for outreach
-  recordPasscodeLead(email);
+  // Always record the email+name as a permanent lead for outreach
+  recordPasscodeLead(email, fullName);
   return session;
 }
 
@@ -120,10 +122,11 @@ export const LEADS_STORE_KEY = 'wm_passcode_leads';
 
 export interface PasscodeLead {
   email: string;
+  fullName: string;
   capturedAt: number; // ms timestamp
 }
 
-export function recordPasscodeLead(email: string): void {
+export function recordPasscodeLead(email: string, fullName: string = ''): void {
   try {
     const normalized = email.trim().toLowerCase();
     const existing: PasscodeLead[] = JSON.parse(
@@ -131,7 +134,7 @@ export function recordPasscodeLead(email: string): void {
     );
     // Deduplicate — update capturedAt if email already exists
     const filtered = existing.filter(l => l.email !== normalized);
-    filtered.push({ email: normalized, capturedAt: Date.now() });
+    filtered.push({ email: normalized, fullName: fullName.trim(), capturedAt: Date.now() });
     localStorage.setItem(LEADS_STORE_KEY, JSON.stringify(filtered));
   } catch {}
 }

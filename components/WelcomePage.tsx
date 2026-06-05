@@ -425,6 +425,7 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLoginInstead, onLogin, onCreateAccount }) => {
   const [mode, setMode] = useState<'enter' | 'login' | 'forgotPassword' | 'success'>('enter');
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
   const [error, setError] = useState('');
@@ -452,6 +453,10 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     e.preventDefault();
     setError('');
 
+    if (!fullName.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
     if (!email.trim()) {
       setError('Please enter your email address.');
       return;
@@ -469,12 +474,12 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     setIsSubmitting(true);
     setTimeout(() => {
       if (validatePasscode(passcode)) {
-        grantPasscodeAccess(email.trim().toLowerCase());
+        grantPasscodeAccess(email.trim().toLowerCase(), fullName.trim());
         // Fire welcome email — fire-and-forget, never blocks the user flow
         fetch('/.netlify/functions/send-welcome-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim().toLowerCase() }),
+          body: JSON.stringify({ email: email.trim().toLowerCase(), name: fullName.trim() }),
         }).catch(() => {}); // Silent fail — email failure must never break access
         setMode('success');
       } else {
@@ -590,6 +595,28 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="wm-fullname"
+                  value={fullName}
+                  onChange={e => { setFullName(e.target.value); setError(''); }}
+                  placeholder="Your full name"
+                  autoComplete="name"
+                  autoFocus
+                  className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${error && !fullName.trim() ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                  }}
+                />
+              </div>
+
+              {/* Email */}
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Email Address
