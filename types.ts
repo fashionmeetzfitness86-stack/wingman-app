@@ -674,4 +674,5 @@ export type Page =
   | 'friendsZone'
   | 'friendZoneChat' // Added friendZoneChat
   | 'referFriend'
-  | 'eventDetail';
+  | 'eventDetail'
+  | 'back';

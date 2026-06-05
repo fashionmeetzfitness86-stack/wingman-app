@@ -202,6 +202,8 @@ export const App: React.FC = () => {
 
     const [currentPage, setCurrentPage] = useState<Page>('home');
     const [pageParams, setPageParams] = useState<any>({});
+    // Navigation history stack — enables true "Go Back" from any page
+    const [pageHistory, setPageHistory] = useState<Array<{ page: Page; params: any }>>([]);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -493,6 +495,26 @@ export const App: React.FC = () => {
     }, [appWingmen, appVenues]);
 
     const handleNavigate = (page: Page, params: any = {}) => {
+        if (page === 'back') {
+            // Pop the history stack
+            if (pageHistory.length > 0) {
+                const prev = pageHistory[pageHistory.length - 1];
+                setPageHistory(h => h.slice(0, -1));
+                setCurrentPage(prev.page);
+                setPageParams(prev.params ?? {});
+            } else {
+                // Nothing in history — fall back to home
+                setCurrentPage('home');
+                setPageParams({});
+            }
+            setIsMenuOpen(false);
+            window.scrollTo(0, 0);
+            return;
+        }
+        // Push current page to history before navigating (skip home→home thrash)
+        if (currentPage !== page) {
+            setPageHistory(h => [...h.slice(-19), { page: currentPage, params: pageParams }]);
+        }
         setCurrentPage(page);
         setPageParams(params);
         setIsMenuOpen(false);
@@ -1519,7 +1541,7 @@ export const App: React.FC = () => {
                 if (!wingman) return <div>Wingman not found</div>;
                 return <WingmanProfile 
                     wingman={wingman} 
-                    onBack={() => handleNavigate('directory')} 
+                    onBack={() => handleNavigate('back' as Page)} 
                     onBook={(p, v, d) => setActiveModal({ type: 'booking', wingman: p, venue: v, date: d })} 
                     isFavorite={(currentUser.favoriteWingmanIds || []).includes(wingman.id)} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'wingman')} 
@@ -1828,7 +1850,7 @@ export const App: React.FC = () => {
                     wingmanChats={wingmanChats}
                     messages={wingmanChatMessages}
                     onSendMessage={handleSendWingmanMessage}
-                    onBack={() => handleNavigate('eventChatsList')}
+                    onBack={() => handleNavigate('back' as Page)}
                 />;
             }
             case 'liveChat':
@@ -2091,7 +2113,7 @@ export const App: React.FC = () => {
                         };
                         setEventChatMessages(prev => [...prev, newMsg]);
                     }} 
-                    onBack={() => handleNavigate('eventChatsList')} 
+                    onBack={() => handleNavigate('back' as Page)} 
                 />;
             case 'guestlistChat':
                 return <GuestlistChatPage 
@@ -2112,7 +2134,7 @@ export const App: React.FC = () => {
                         };
                         setGuestlistChatMessages(prev => [...prev, newMsg]);
                     }} 
-                    onBack={() => handleNavigate('guestlistChats')} 
+                    onBack={() => handleNavigate('back' as Page)} 
                     bookedItems={bookedItems}
                 />;
             case 'friendZoneChat':
@@ -2166,7 +2188,7 @@ export const App: React.FC = () => {
                         }));
                         showToast('Wingman removed', 'success');
                     }} 
-                    onBack={() => handleNavigate('friendsZone')} 
+                    onBack={() => handleNavigate('back' as Page)} 
                     onAddMember={(cId, uId) => {
                         setFriendZoneChats(prev => prev.map(c => c.id === cId && !c.memberIds.includes(uId) ? { ...c, memberIds: [...c.memberIds, uId] } : c));
                         showToast('Member added', 'success');
@@ -2224,7 +2246,7 @@ export const App: React.FC = () => {
                 if (!venue) return <div>Venue not found</div>;
                 return <VenueDetailsPage 
                     venue={venue} 
-                    onBack={() => handleNavigate('home')} 
+                    onBack={() => handleNavigate('back' as Page)} 
                     onBookVenue={handleBookVenue} 
                     isFavorite={(currentUser.favoriteVenueIds || []).includes(venue.id)} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 

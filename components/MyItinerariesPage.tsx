@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Itinerary, User, Page } from '../types';
 import { CalendarIcon } from './icons/CalendarIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 
 interface MyItinerariesPageProps {
   currentUser: User;
@@ -135,19 +136,28 @@ export const MyItinerariesPage: React.FC<MyItinerariesPageProps> = ({
   return (
     <div className="min-h-screen pb-36 animate-fade-in" style={{ background: '#080808' }}>
 
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div className="px-5 pt-6 pb-2">
-        <p
-          className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1"
-        >
-          Planning
-        </p>
-        <h1
-          className="text-2xl font-black text-white"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Itineraries
-        </h1>
+      {/* ── Sticky Header ───────────────────────────────────── */}
+      <div
+        className="sticky top-0 z-30 px-5 pt-5 pb-4"
+        style={{ background: 'rgba(8,8,8,0.94)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div className="flex items-center gap-3 mb-1">
+          <button
+            onClick={() => onNavigate('back' as Page)}
+            className="flex items-center gap-1 text-sm font-semibold transition-colors"
+            style={{ color: '#9ca3af' }}
+            aria-label="Go back"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+            Back
+          </button>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Planning</p>
+            <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Itineraries</h1>
+          </div>
+        </div>
       </div>
 
       {/* ── Tabs ───────────────────────────────────────────── */}
