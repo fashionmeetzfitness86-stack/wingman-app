@@ -1,7 +1,5 @@
 
-
-
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Page, User } from '../types';
 import { PencilIcon } from './icons/PencilIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
@@ -21,637 +19,563 @@ interface EditProfilePageProps {
   showToast: (message: string, type: 'success' | 'error') => void;
 }
 
-const MUSIC_OPTIONS = ['Hip-Hop', 'EDM', 'Open Format', 'House', 'Lounge'];
-const ACTIVITY_OPTIONS = ['Dancing', 'Chic Lounging', 'Rooftop Views', 'Dining & Party', 'Live Music'];
+const MUSIC_OPTIONS      = ['Hip-Hop', 'EDM', 'Open Format', 'House', 'Lounge'];
+const ACTIVITY_OPTIONS   = ['Dancing', 'Chic Lounging', 'Rooftop Views', 'Dining & Party', 'Live Music'];
 const PERSONALITY_OPTIONS = ['The Center of Attention', 'The Low-Key Observer', 'The Social Connector', 'The Adventurous Explorer'];
-const TIME_PREFERENCE_OPTIONS = ['Daytime', 'Nighttime', 'Both'] as const;
-const ETHNICITY_OPTIONS = ['Asian', 'Black or African American', 'Hispanic or Latino', 'Native American or Alaska Native', 'Native Hawaiian or Other Pacific Islander', 'White', 'Two or more races', 'Prefer not to say'];
+const TIME_OPTIONS       = ['Daytime', 'Nighttime', 'Both'] as const;
+const ETHNICITY_OPTIONS  = ['Asian', 'Black or African American', 'Hispanic or Latino', 'Native American or Alaska Native', 'Native Hawaiian or Other Pacific Islander', 'White', 'Two or more races', 'Prefer not to say'];
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
-const MAX_FILE_SIZE_MB = 10;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+// ── Design tokens ──────────────────────────────────────────────
+const CARD: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border:     '1px solid rgba(255,255,255,0.07)',
+  borderRadius: 20,
+  padding: 24,
+};
 
-const InfoInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string, placeholder?: string; error?: string; required?: boolean, prefix?: string }> = ({ label, value, onChange, type = 'text', placeholder, error, required, prefix }) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-400 mb-2">{label} {required && <span className="text-red-400">*</span>}</label>
-        <div className="relative">
-             {prefix && <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">{prefix}</span>}
-            <input 
-                type={type} 
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className={`w-full bg-gray-800 border ${error ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400 transition-colors ${prefix ? 'pl-8' : ''}`}
-            />
-        </div>
-        {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
-    </div>
-);
-
-const TextAreaInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; onImprove: () => void; isImproving: boolean; error?: string; }> = ({ label, value, onChange, onImprove, isImproving, error }) => (
-    <div>
-        <div className="flex justify-between items-center mb-2">
-            <label className="block text-sm font-medium text-gray-400">{label}</label>
-            <button type="button" onClick={onImprove} disabled={isImproving} className="flex items-center gap-1 text-xs font-semibold text-amber-300 hover:text-amber-200 disabled:text-gray-500 transition-colors">
-                {isImproving ? <Spinner className="w-4 h-4" /> : <SparkleIcon className="w-4 h-4" />}
-                Improve with AI
-            </button>
-        </div>
-        <textarea 
-            value={value}
-            onChange={onChange}
-            rows={3}
-            className={`w-full bg-gray-800 border ${error ? 'border-red-500' : 'border-gray-700'} text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400 resize-none transition-colors`}
-        />
-        {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
-    </div>
-);
-
-const TagSelector: React.FC<{ options: readonly string[], selected: string[], onToggle: (tag: string) => void }> = ({ options, selected, onToggle }) => (
-    <div className="flex flex-wrap gap-2">
-        {options.map(option => (
-            <button
-                key={option}
-                type="button"
-                onClick={() => onToggle(option)}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                    selected.includes(option)
-                        ? 'bg-amber-400 text-black'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-            >
-                {option}
-            </button>
-        ))}
-    </div>
-);
-
-
-export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, onSave, onNavigate, showToast }) => {
-    const [name, setName] = useState(currentUser.name);
-    const [bio, setBio] = useState(currentUser.bio || '');
-    const [isImprovingBio, setIsImprovingBio] = useState(false);
-    const [instagram, setInstagram] = useState(currentUser.instagramHandle || '');
-    const [tiktok, setTikTok] = useState(currentUser.tiktokHandle || '');
-    const [phoneNumber, setPhoneNumber] = useState(currentUser.phoneNumber || '');
-    const [city, setCity] = useState(currentUser.city || '');
-    const [selectedMusic, setSelectedMusic] = useState(currentUser.preferences?.music || []);
-    const [selectedActivities, setSelectedActivities] = useState(currentUser.preferences?.activities || []);
-    const [selectedPersonality, setSelectedPersonality] = useState(currentUser.preferences?.personality || '');
-    const [timePreference, setTimePreference] = useState(currentUser.preferences?.timeOfDay || '');
-    const [dob, setDob] = useState(currentUser.dob || '');
-    const [ethnicity, setEthnicity] = useState(currentUser.ethnicity || '');
-    const [height, setHeight] = useState(currentUser.appearance?.height || '');
-    const [eyeColor, setEyeColor] = useState(currentUser.appearance?.eyeColor || '');
-    const [hairColor, setHairColor] = useState(currentUser.appearance?.hairColor || '');
-    const [build, setBuild] = useState(currentUser.appearance?.build || '');
-    const [galleryImages, setGalleryImages] = useState(currentUser.galleryImages || []);
-    
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
-    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const galleryFileInputRef = useRef<HTMLInputElement>(null);
-    const [uploadTarget, setUploadTarget] = useState<'profile' | 'gallery' | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-
-    // Password change state
-    const [currentPw, setCurrentPw] = useState('');
-    const [newPw, setNewPw] = useState('');
-    const [confirmPw, setConfirmPw] = useState('');
-    const [showPw, setShowPw] = useState(false);
-    const [pwErrors, setPwErrors] = useState<Record<string, string>>({});
-    const [isUpdatingPw, setIsUpdatingPw] = useState(false);
-
-    const handleChangePassword = async () => {
-        const errs: Record<string, string> = {};
-        if (!currentPw) errs.currentPw = 'Enter your current password.';
-        if (newPw.length < 8) errs.newPw = 'New password must be at least 8 characters.';
-        if (newPw !== confirmPw) errs.confirmPw = 'Passwords do not match.';
-        if (currentPw && newPw && currentPw === newPw) errs.newPw = 'New password must differ from current.';
-        if (Object.keys(errs).length > 0) { setPwErrors(errs); return; }
-
-        setPwErrors({});
-        setIsUpdatingPw(true);
-        try {
-            // Verify current password by signing in.
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email: currentUser.email,
-                password: currentPw,
-            });
-            if (signInError) {
-                setPwErrors({ currentPw: 'Current password is incorrect.' });
-                return;
-            }
-
-            const { error: updateError } = await supabase.auth.updateUser({ password: newPw });
-            if (updateError) {
-                setPwErrors({ newPw: updateError.message || 'Could not update password.' });
-                return;
-            }
-
-            // Keep legacy localStorage password store in sync.
-            saveUserPassword(currentUser.email, newPw);
-
-            setCurrentPw('');
-            setNewPw('');
-            setConfirmPw('');
-            showToast('Password updated successfully.', 'success');
-        } finally {
-            setIsUpdatingPw(false);
-        }
-    };
-
-    const completeness = useMemo(() => {
-        let score = 0;
-        const totalPoints = 12;
-
-        if (name.trim()) score++;
-        if ((profilePhotoPreview || currentUser.profilePhoto) && !(profilePhotoPreview || currentUser.profilePhoto).includes('seed')) score++;
-        if (bio.trim().length > 10) score++;
-        if (city.trim()) score++; 
-        if (instagram.trim() || tiktok.trim()) score++;
-        if (phoneNumber.trim()) score++;
-        if (dob) score++;
-        if (ethnicity) score++;
-        if (height || build) score++;
-        if (selectedMusic.length > 0) score++;
-        if (selectedActivities.length > 0) score++;
-        if (galleryImages.length >= 3) score++;
-
-        return Math.min(100, Math.round((score / totalPoints) * 100));
-    }, [name, profilePhotoPreview, currentUser.profilePhoto, city, bio, instagram, tiktok, phoneNumber, dob, ethnicity, height, build, selectedMusic, selectedActivities, galleryImages]);
-
-    const validate = () => {
-        const newErrors: Record<string, string> = {};
-        if (!name.trim()) newErrors.name = 'Name is required.';
-        if (!bio.trim()) newErrors.bio = 'Bio is required.';
-        if (!dob) {
-            newErrors.dob = 'Date of birth is required.';
-        } else {
-            const birthDate = new Date(dob);
-            if (birthDate > new Date()) {
-                newErrors.dob = 'Date of birth cannot be in the future.';
-            } else {
-                const age = new Date().getFullYear() - birthDate.getFullYear();
-                if (age < 21) newErrors.dob = 'You must be at least 21 years old.';
-            }
-        }
-        if (instagram && !/^[a-zA-Z0-9._]+$/.test(instagram)) {
-            newErrors.instagram = "Invalid Instagram handle format.";
-        }
-        if (tiktok && !/^[a-zA-Z0-9._]+$/.test(tiktok)) {
-            newErrors.tiktok = "Invalid TikTok handle format.";
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-
-    const toggleTag = (tag: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
-        setState(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
-    };
-    
-    const handleImproveBio = async () => {
-        if (!bio.trim()) {
-            setErrors(prev => ({ ...prev, bio: "Please write a bio first."}));
-            return;
-        }
-        showToast("AI bio assistant is temporarily unavailable.", "error");
-    };
-
-    const handleRemoveImage = (index: number) => {
-        if (galleryImages.length > 0) {
-            setGalleryImages(galleryImages.filter((_, i) => i !== index));
-        }
-    };
-
-    const handleSaveChanges = () => {
-        if (!validate()) {
-            showToast("Please fix the errors before saving.", "error");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-
-        const updatedUser: User = {
-            ...currentUser,
-            name,
-            bio,
-            city,
-            profilePhoto: profilePhotoPreview || currentUser.profilePhoto,
-            instagramHandle: instagram,
-            tiktokHandle: tiktok,
-            phoneNumber: phoneNumber,
-            dob,
-            ethnicity,
-            appearance: {
-                height,
-                eyeColor,
-                hairColor,
-                build,
-            },
-            preferences: {
-                music: selectedMusic,
-                activities: selectedActivities,
-                personality: selectedPersonality,
-                timeOfDay: timePreference as 'Daytime' | 'Nighttime' | 'Both',
-            },
-            galleryImages,
-        };
-        onSave(updatedUser);
-        onNavigate('userProfile');
-        showToast("Profile updated successfully!", "success");
-    };
-    
-    const handleProfilePhotoClick = () => {
-        if (!isUploading) {
-            fileInputRef.current?.click();
-        }
-    };
-
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                showToast('Please select a valid image file (PNG, JPG).', 'error');
-                e.target.value = '';
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE_BYTES) {
-                showToast(`File size cannot exceed ${MAX_FILE_SIZE_MB}MB.`, 'error');
-                e.target.value = '';
-                return;
-            }
-
-            setIsUploading(true);
-            setUploadTarget('profile');
-            
-            const reader = new FileReader();
-            reader.onload = () => {
-                setIsUploading(false);
-                if (typeof reader.result === 'string') {
-                    setImageToCrop(reader.result);
-                } else {
-                    showToast('Failed to process image data.', 'error');
-                }
-            };
-            reader.onerror = () => {
-                setIsUploading(false);
-                showToast('Failed to read the selected file. Please try another image.', 'error');
-            };
-            
-            try {
-                reader.readAsDataURL(file);
-            } catch (err) {
-                setIsUploading(false);
-                console.error(err);
-                showToast('An unexpected error occurred while reading the file.', 'error');
-            }
-        }
-        e.target.value = ''; 
-    };
-    
-    const handleGalleryImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (galleryImages.length >= 10) {
-            showToast('You can upload a maximum of 10 images.', 'error');
-            return;
-        }
-        const file = e.target.files?.[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                showToast('Please select a valid image file.', 'error');
-                e.target.value = '';
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE_BYTES) {
-                showToast(`File size cannot exceed ${MAX_FILE_SIZE_MB}MB.`, 'error');
-                e.target.value = '';
-                return;
-            }
-            
-            setIsUploading(true);
-            setUploadTarget('gallery');
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                setIsUploading(false);
-                if (typeof reader.result === 'string') {
-                    setImageToCrop(reader.result);
-                } else {
-                    showToast('Failed to process image data.', 'error');
-                }
-            };
-            reader.onerror = () => {
-                setIsUploading(false);
-                showToast('Failed to read the selected file.', 'error');
-            };
-            
-            try {
-                 reader.readAsDataURL(file);
-            } catch (err) {
-                setIsUploading(false);
-                console.error(err);
-                 showToast('An unexpected error occurred while reading the file.', 'error');
-            }
-        }
-        e.target.value = '';
-    };
-
-    const handleCropComplete = (croppedImageUrl: string) => {
-        if (uploadTarget === 'profile') {
-            setProfilePhotoPreview(croppedImageUrl);
-        } else if (uploadTarget === 'gallery') {
-            setGalleryImages(prev => [...prev, croppedImageUrl]);
-        }
-        setImageToCrop(null);
-        setUploadTarget(null);
-    };
-    
-    const handleCropError = (message: string) => {
-        showToast(message, 'error');
-    };
-
-    const getProgressColor = (percent: number) => {
-        if (percent < 40) return 'bg-red-500';
-        if (percent < 75) return 'bg-yellow-500';
-        return 'bg-green-500';
-    };
+// ── Sub-components ─────────────────────────────────────────────
+const Field: React.FC<{
+  label: string;
+  required?: boolean;
+  error?: string;
+  prefix?: string;
+  children?: never;
+} & (
+  | { type?: 'input'; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; inputType?: string; placeholder?: string }
+  | { type: 'textarea'; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; onImprove?: () => void; isImproving?: boolean }
+  | { type: 'select'; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: string[] }
+)> = (props) => {
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: 'rgba(255,255,255,0.04)',
+    border: `1px solid ${props.error ? '#ef4444' : 'rgba(255,255,255,0.1)'}`,
+    borderRadius: 12,
+    padding: '10px 14px',
+    color: '#fff',
+    fontSize: 14,
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  };
 
   return (
-    <>
-    {imageToCrop && (
-        <ImageCropModal 
-            src={imageToCrop}
-            onClose={() => {
-                setImageToCrop(null);
-                setUploadTarget(null);
-            }}
-            onCrop={handleCropComplete}
-            onError={handleCropError}
-        />
-    )}
-    <div className="p-4 md:p-8 animate-fade-in text-white pb-24">
-      <button onClick={() => onNavigate('userProfile')} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 text-sm font-semibold">
-        <ChevronLeftIcon className="w-5 h-5"/>
-        Cancel & Go Back
-      </button>
-
-      <input type="file" ref={fileInputRef} onChange={onFileChange} className="hidden" accept="image/*" />
-      <input type="file" ref={galleryFileInputRef} onChange={handleGalleryImageUpload} className="hidden" accept="image/*" />
-      
-      {/* Completeness Bar - Sticky */}
-      <div className="sticky top-20 z-30 bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-xl p-4 mb-8 shadow-xl">
-        <div className="flex justify-between items-end mb-2">
-            <div>
-                <h3 className="font-bold text-white">Profile Strength</h3>
-                <p className="text-xs text-gray-400">{completeness === 100 ? "Perfect! Your profile is top-tier." : "Complete more fields to unlock full access."}</p>
-            </div>
-            <span className={`text-2xl font-bold ${completeness === 100 ? 'text-green-400' : 'text-amber-400'}`}>{completeness}%</span>
-        </div>
-        <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
-            <div 
-                className={`h-full transition-all duration-500 ease-out ${getProgressColor(completeness)}`} 
-                style={{ width: `${completeness}%` }}
-            ></div>
-        </div>
-        {completeness === 100 && (
-            <div className="mt-2 flex items-center gap-2 text-green-400 text-sm font-bold justify-center animate-pulse">
-                <CheckCircleIcon className="w-5 h-5" />
-                All set!
-            </div>
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-xs font-bold uppercase tracking-widest text-gray-500">
+          {props.label}{props.required && <span className="text-red-400 ml-0.5">*</span>}
+        </label>
+        {props.type === 'textarea' && props.onImprove && (
+          <button
+            type="button"
+            onClick={props.onImprove}
+            disabled={props.isImproving}
+            className="flex items-center gap-1 text-[11px] font-bold transition-colors disabled:opacity-40"
+            style={{ color: '#818cf8' }}
+          >
+            {props.isImproving ? <Spinner className="w-3.5 h-3.5" /> : <SparkleIcon className="w-3.5 h-3.5" />}
+            Improve with AI
+          </button>
         )}
       </div>
 
+      {props.type === 'textarea' ? (
+        <textarea
+          value={props.value}
+          onChange={props.onChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
+          rows={3}
+          style={{ ...inputStyle, resize: 'none' }}
+          className="placeholder-gray-700"
+        />
+      ) : props.type === 'select' ? (
+        <select
+          value={props.value}
+          onChange={props.onChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          <option value="" disabled>Select…</option>
+          {(props as { options: string[] }).options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      ) : (
+        <div className="relative">
+          {props.prefix && (
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-600 text-sm pointer-events-none select-none">
+              {props.prefix}
+            </span>
+          )}
+          <input
+            type={(props as { inputType?: string }).inputType ?? 'text'}
+            value={props.value}
+            onChange={props.onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            placeholder={(props as { placeholder?: string }).placeholder}
+            style={{ ...inputStyle, paddingLeft: props.prefix ? 28 : 14 }}
+            className="placeholder-gray-700"
+          />
+        </div>
+      )}
+      {props.error && <p className="text-red-400 text-xs mt-1.5">{props.error}</p>}
+    </div>
+  );
+};
 
-      <div className="text-center mb-10">
-        <div className="relative inline-block group">
-          <img src={profilePhotoPreview || currentUser.profilePhoto} alt={currentUser.name} className="w-32 h-32 rounded-full object-cover mx-auto border-4 border-gray-800 shadow-lg" />
-          <button 
-            onClick={handleProfilePhotoClick} 
-            disabled={isUploading}
-            className="absolute bottom-1 right-1 bg-amber-400 text-black p-2 rounded-full flex items-center justify-center border-2 border-[#121212] hover:scale-110 transition-transform disabled:bg-gray-500 disabled:cursor-not-allowed shadow-md"
-            aria-label="Change profile picture"
+const TagPill: React.FC<{ label: string; active: boolean; onClick: () => void; accent?: string }> = ({
+  label, active, onClick, accent = '#6366f1',
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="px-3 py-1.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+    style={active
+      ? { background: `${accent}20`, color: accent, border: `1px solid ${accent}50` }
+      : { background: 'rgba(255,255,255,0.04)', color: '#6b7280', border: '1px solid rgba(255,255,255,0.08)' }}
+  >
+    {label}
+  </button>
+);
+
+const SectionCard: React.FC<{ title: string; accent?: string; right?: React.ReactNode; children: React.ReactNode }> = ({
+  title, accent = '#6366f1', right, children,
+}) => (
+  <div style={CARD}>
+    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center gap-2.5">
+        <div className="w-1 h-5 rounded-full" style={{ background: accent }} />
+        <h2 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h2>
+      </div>
+      {right}
+    </div>
+    {children}
+  </div>
+);
+
+// ── Main ───────────────────────────────────────────────────────
+export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, onSave, onNavigate, showToast }) => {
+  const [name,       setName]       = useState(currentUser.name);
+  const [bio,        setBio]        = useState(currentUser.bio || '');
+  const [instagram,  setInstagram]  = useState(currentUser.instagramHandle || '');
+  const [tiktok,     setTikTok]     = useState(currentUser.tiktokHandle || '');
+  const [phoneNumber,setPhoneNumber]= useState(currentUser.phoneNumber || '');
+  const [city,       setCity]       = useState(currentUser.city || '');
+  const [dob,        setDob]        = useState(currentUser.dob || '');
+  const [ethnicity,  setEthnicity]  = useState(currentUser.ethnicity || '');
+  const [height,     setHeight]     = useState(currentUser.appearance?.height || '');
+  const [eyeColor,   setEyeColor]   = useState(currentUser.appearance?.eyeColor || '');
+  const [hairColor,  setHairColor]  = useState(currentUser.appearance?.hairColor || '');
+  const [build,      setBuild]      = useState(currentUser.appearance?.build || '');
+  const [galleryImages, setGalleryImages] = useState(currentUser.galleryImages || []);
+  const [selectedMusic,       setSelectedMusic]       = useState(currentUser.preferences?.music || []);
+  const [selectedActivities,  setSelectedActivities]  = useState(currentUser.preferences?.activities || []);
+  const [selectedPersonality, setSelectedPersonality] = useState(currentUser.preferences?.personality || '');
+  const [timePreference,      setTimePreference]      = useState(currentUser.preferences?.timeOfDay || '');
+
+  const [errors,            setErrors]           = useState<Record<string, string>>({});
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [imageToCrop,       setImageToCrop]       = useState<string | null>(null);
+  const [uploadTarget,      setUploadTarget]      = useState<'profile' | 'gallery' | null>(null);
+  const [isUploading,       setIsUploading]       = useState(false);
+  const [isImprovingBio,    setIsImprovingBio]    = useState(false);
+
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw,     setNewPw]     = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showPw,    setShowPw]    = useState(false);
+  const [pwErrors,  setPwErrors]  = useState<Record<string, string>>({});
+  const [isUpdatingPw, setIsUpdatingPw] = useState(false);
+
+  const fileInputRef        = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Completeness ─────────────────────────────────────────
+  const completeness = useMemo(() => {
+    let s = 0;
+    if (name.trim()) s++;
+    const photo = profilePhotoPreview || currentUser.profilePhoto;
+    if (photo && !photo.includes('seed')) s++;
+    if (bio.trim().length > 10) s++;
+    if (city.trim()) s++;
+    if (instagram.trim() || tiktok.trim()) s++;
+    if (phoneNumber.trim()) s++;
+    if (dob) s++;
+    if (ethnicity) s++;
+    if (height || build) s++;
+    if (selectedMusic.length > 0) s++;
+    if (selectedActivities.length > 0) s++;
+    if (galleryImages.length >= 3) s++;
+    return Math.min(100, Math.round((s / 12) * 100));
+  }, [name, profilePhotoPreview, currentUser.profilePhoto, city, bio, instagram, tiktok, phoneNumber, dob, ethnicity, height, build, selectedMusic, selectedActivities, galleryImages]);
+
+  const progressColor = completeness === 100 ? '#4ade80' : completeness >= 75 ? '#6366f1' : completeness >= 40 ? '#fbbf24' : '#ef4444';
+
+  // ── Validation ───────────────────────────────────────────
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = 'Name is required.';
+    if (!bio.trim()) e.bio = 'Bio is required.';
+    if (!dob) {
+      e.dob = 'Date of birth is required.';
+    } else {
+      const bd = new Date(dob);
+      if (bd > new Date()) e.dob = 'Date of birth cannot be in the future.';
+      else if (new Date().getFullYear() - bd.getFullYear() < 21) e.dob = 'You must be at least 21.';
+    }
+    if (instagram && !/^[a-zA-Z0-9._]+$/.test(instagram)) e.instagram = 'Invalid Instagram handle.';
+    if (tiktok    && !/^[a-zA-Z0-9._]+$/.test(tiktok))    e.tiktok    = 'Invalid TikTok handle.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  // ── Handlers ─────────────────────────────────────────────
+  const toggleTag = (tag: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) =>
+    setState(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+
+  const handleImproveBio = () => showToast('AI bio assistant is temporarily unavailable.', 'error');
+
+  const handleRemoveImage = (i: number) => setGalleryImages(prev => prev.filter((_, idx) => idx !== i));
+
+  const handleSaveChanges = () => {
+    if (!validate()) {
+      showToast('Please fix the errors before saving.', 'error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    onSave({
+      ...currentUser, name, bio, city,
+      profilePhoto: profilePhotoPreview || currentUser.profilePhoto,
+      instagramHandle: instagram, tiktokHandle: tiktok, phoneNumber, dob, ethnicity,
+      appearance: { height, eyeColor, hairColor, build },
+      preferences: { music: selectedMusic, activities: selectedActivities, personality: selectedPersonality, timeOfDay: timePreference as 'Daytime' | 'Nighttime' | 'Both' },
+      galleryImages,
+    });
+    onNavigate('userProfile');
+    showToast('Profile updated successfully!', 'success');
+  };
+
+  const readFile = (file: File, target: 'profile' | 'gallery') => {
+    if (!file.type.startsWith('image/')) { showToast('Please select a valid image file.', 'error'); return; }
+    if (file.size > MAX_FILE_SIZE_BYTES) { showToast('File size cannot exceed 10MB.', 'error'); return; }
+    setIsUploading(true);
+    setUploadTarget(target);
+    const reader = new FileReader();
+    reader.onload = () => { setIsUploading(false); typeof reader.result === 'string' ? setImageToCrop(reader.result) : showToast('Failed to process image.', 'error'); };
+    reader.onerror = () => { setIsUploading(false); showToast('Failed to read file.', 'error'); };
+    reader.readAsDataURL(file);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (f) readFile(f, 'profile'); e.target.value = '';
+  };
+  const onGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (galleryImages.length >= 10) { showToast('Maximum 10 images allowed.', 'error'); return; }
+    const f = e.target.files?.[0]; if (f) readFile(f, 'gallery'); e.target.value = '';
+  };
+  const handleCropComplete = (url: string) => {
+    if (uploadTarget === 'profile') setProfilePhotoPreview(url);
+    else if (uploadTarget === 'gallery') setGalleryImages(p => [...p, url]);
+    setImageToCrop(null); setUploadTarget(null);
+  };
+
+  const handleChangePassword = async () => {
+    const errs: Record<string, string> = {};
+    if (!currentPw) errs.currentPw = 'Enter your current password.';
+    if (newPw.length < 8) errs.newPw = 'At least 8 characters.';
+    if (newPw !== confirmPw) errs.confirmPw = 'Passwords do not match.';
+    if (currentPw && newPw && currentPw === newPw) errs.newPw = 'New password must differ from current.';
+    if (Object.keys(errs).length > 0) { setPwErrors(errs); return; }
+    setPwErrors({}); setIsUpdatingPw(true);
+    try {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: currentUser.email, password: currentPw });
+      if (signInErr) { setPwErrors({ currentPw: 'Current password is incorrect.' }); return; }
+      const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
+      if (updateErr) { setPwErrors({ newPw: updateErr.message }); return; }
+      saveUserPassword(currentUser.email, newPw);
+      setCurrentPw(''); setNewPw(''); setConfirmPw('');
+      showToast('Password updated successfully.', 'success');
+    } finally { setIsUpdatingPw(false); }
+  };
+
+  // ── Render ───────────────────────────────────────────────
+  return (
+    <>
+      {imageToCrop && (
+        <ImageCropModal
+          src={imageToCrop}
+          onClose={() => { setImageToCrop(null); setUploadTarget(null); }}
+          onCrop={handleCropComplete}
+          onError={msg => showToast(msg, 'error')}
+        />
+      )}
+
+      <input type="file" ref={fileInputRef}        onChange={onFileChange}     className="hidden" accept="image/*" />
+      <input type="file" ref={galleryFileInputRef}  onChange={onGalleryChange}  className="hidden" accept="image/*" />
+
+      <div className="min-h-screen animate-fade-in pb-36 text-white" style={{ background: '#080808' }}>
+
+        {/* ── Sticky header ──────────────────────────────── */}
+        <div
+          className="sticky top-0 z-30 px-5 pt-5 pb-4"
+          style={{ background: 'rgba(8,8,8,0.94)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => onNavigate('userProfile')}
+              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              style={{ color: '#9ca3af' }}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+              Back
+            </button>
+            <h1 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Edit Profile
+            </h1>
+            <button
+              onClick={handleSaveChanges}
+              disabled={isUploading}
+              className="text-sm font-black px-4 py-1.5 rounded-full transition-all active:scale-95 disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF)', color: '#000' }}
+            >
+              Save
+            </button>
+          </div>
+
+          {/* Progress bar */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Profile Strength</p>
+              <span className="text-xs font-black" style={{ color: progressColor }}>
+                {completeness === 100
+                  ? <span className="flex items-center gap-1"><CheckCircleIcon className="w-3.5 h-3.5 inline" /> Complete</span>
+                  : `${completeness}%`}
+              </span>
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${completeness}%`, background: `linear-gradient(90deg,${progressColor},${progressColor}80)` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Avatar ──────────────────────────────────────── */}
+        <div className="flex flex-col items-center pt-8 pb-6">
+          <div className="relative">
+            <div
+              className="w-28 h-28 rounded-2xl overflow-hidden"
+              style={{ border: '2px solid rgba(255,255,255,0.12)' }}
+            >
+              <img
+                src={profilePhotoPreview || currentUser.profilePhoto}
+                alt={currentUser.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              disabled={isUploading}
+              aria-label="Change profile picture"
+              className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 disabled:opacity-50"
+              style={{ background: '#6366f1', border: '2px solid #080808' }}
+            >
+              {isUploading && uploadTarget === 'profile' ? <Spinner className="w-4 h-4 text-white" /> : <PencilIcon className="w-4 h-4 text-white" />}
+            </button>
+          </div>
+          <p className="text-xs text-gray-600 mt-3">Tap to change photo</p>
+        </div>
+
+        {/* ── Sections ────────────────────────────────────── */}
+        <div className="px-5 space-y-4 max-w-2xl mx-auto">
+
+          {/* Personal Information */}
+          <SectionCard title="Personal Information" accent="#6366f1">
+            <div className="space-y-4">
+              <Field label="Full Name" value={name} onChange={e => setName(e.target.value)} error={errors.name} required />
+              <Field
+                type="textarea"
+                label="About Me"
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                onImprove={handleImproveBio}
+                isImproving={isImprovingBio}
+                error={errors.bio}
+              />
+              <Field label="City" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g., Miami" />
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Instagram" value={instagram} onChange={e => setInstagram(e.target.value)} prefix="@" error={errors.instagram} />
+                <Field label="TikTok"    value={tiktok}    onChange={e => setTikTok(e.target.value)}    prefix="@" error={errors.tiktok} />
+              </div>
+              <Field label="Phone Number" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} inputType="tel" />
+              <Field label="Date of Birth" value={dob} onChange={e => setDob(e.target.value)} inputType="date" error={errors.dob} required />
+              <Field
+                type="select"
+                label="Ethnicity"
+                value={ethnicity}
+                onChange={e => setEthnicity(e.target.value)}
+                options={ETHNICITY_OPTIONS}
+              />
+            </div>
+          </SectionCard>
+
+          {/* Appearance */}
+          <SectionCard title="Appearance" accent="#a78bfa">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Height" value={height} onChange={e => setHeight(e.target.value)} placeholder="5'11&quot;" />
+                <Field label="Build"  value={build}  onChange={e => setBuild(e.target.value)}  placeholder="Athletic" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Eye Color"  value={eyeColor}  onChange={e => setEyeColor(e.target.value)}  placeholder="Blue" />
+                <Field label="Hair Color" value={hairColor} onChange={e => setHairColor(e.target.value)} placeholder="Blonde" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Gallery */}
+          <SectionCard
+            title="My Gallery"
+            accent="#fb923c"
+            right={<span className="text-xs font-bold text-gray-600">{galleryImages.length}/10</span>}
           >
-            {isUploading && uploadTarget === 'profile' ? <Spinner className="w-5 h-5" /> : <PencilIcon className="w-5 h-5" />}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+              {galleryImages.map((url, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden group"
+                  style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(i)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(239,68,68,0.85)' }}
+                  >
+                    <TrashIcon className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+              {galleryImages.length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => !isUploading && galleryFileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all disabled:opacity-40"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '2px dashed rgba(255,255,255,0.1)' }}
+                >
+                  {isUploading && uploadTarget === 'gallery'
+                    ? <Spinner className="w-6 h-6 text-gray-500" />
+                    : <>
+                        <CloudArrowUpIcon className="w-6 h-6 text-gray-600" />
+                        <span className="text-[10px] font-bold text-gray-600">Add Photo</span>
+                      </>
+                  }
+                </button>
+              )}
+            </div>
+          </SectionCard>
+
+          {/* Nightlife Preferences */}
+          <SectionCard title="Nightlife Preferences" accent="#34d399">
+            <div className="space-y-6">
+
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-3">My Vibe</p>
+                <div className="flex flex-wrap gap-2">
+                  {PERSONALITY_OPTIONS.map(o => (
+                    <TagPill
+                      key={o} label={o}
+                      active={selectedPersonality === o}
+                      onClick={() => setSelectedPersonality(o)}
+                      accent="#6366f1"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-3">Time Preference</p>
+                <div className="flex gap-2">
+                  {TIME_OPTIONS.map(o => (
+                    <TagPill
+                      key={o} label={o}
+                      active={timePreference === o}
+                      onClick={() => setTimePreference(o)}
+                      accent="#34d399"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-3">Favorite Music</p>
+                <div className="flex flex-wrap gap-2">
+                  {MUSIC_OPTIONS.map(o => (
+                    <TagPill
+                      key={o} label={o}
+                      active={selectedMusic.includes(o)}
+                      onClick={() => toggleTag(o, selectedMusic, setSelectedMusic)}
+                      accent="#fb923c"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-3">Activities</p>
+                <div className="flex flex-wrap gap-2">
+                  {ACTIVITY_OPTIONS.map(o => (
+                    <TagPill
+                      key={o} label={o}
+                      active={selectedActivities.includes(o)}
+                      onClick={() => toggleTag(o, selectedActivities, setSelectedActivities)}
+                      accent="#38bdf8"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Change Password */}
+          <SectionCard
+            title="Change Password"
+            accent="#9ca3af"
+            right={
+              <button
+                type="button"
+                onClick={() => setShowPw(s => !s)}
+                className="text-[11px] font-bold text-gray-500 hover:text-white transition-colors"
+              >
+                {showPw ? 'Hide' : 'Show'}
+              </button>
+            }
+          >
+            <div className="space-y-4">
+              <Field label="Current Password"  value={currentPw} onChange={e => { setCurrentPw(e.target.value); setPwErrors(p => ({ ...p, currentPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.currentPw} required />
+              <Field label="New Password"       value={newPw}     onChange={e => { setNewPw(e.target.value);     setPwErrors(p => ({ ...p, newPw: '' }));     }} inputType={showPw ? 'text' : 'password'} placeholder="At least 8 characters" error={pwErrors.newPw} required />
+              <Field label="Confirm Password"   value={confirmPw} onChange={e => { setConfirmPw(e.target.value); setPwErrors(p => ({ ...p, confirmPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.confirmPw} required />
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                disabled={isUpdatingPw}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-40"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+              >
+                {isUpdatingPw ? 'Updating…' : 'Update Password'}
+              </button>
+            </div>
+          </SectionCard>
+
+          {/* Save CTA */}
+          <button
+            onClick={handleSaveChanges}
+            disabled={isUploading}
+            className="w-full font-black py-4 rounded-2xl text-base transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40"
+            style={{
+              background: 'linear-gradient(135deg,#FFFFFF,#9CA3AF,#374151)',
+              color: '#fff',
+              boxShadow: '0 8px 32px rgba(255,255,255,0.15)',
+            }}
+          >
+            {isUploading ? 'Uploading…' : 'Save Profile Changes'}
           </button>
         </div>
-        <p className="text-gray-500 text-xs mt-3">Tap icon to change photo</p>
       </div>
-
-      <div className="space-y-10 max-w-3xl mx-auto">
-        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-amber-400 rounded-full"></span>
-                Personal Information
-            </h2>
-            <div className="space-y-5">
-                <InfoInput label="Full Name" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} required />
-                <TextAreaInput label="About Me" value={bio} onChange={(e) => setBio(e.target.value)} onImprove={handleImproveBio} isImproving={isImprovingBio} error={errors.bio} />
-                <InfoInput label="City" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g., Miami, New York" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoInput label="Instagram Handle" value={instagram} onChange={(e) => setInstagram(e.target.value)} error={errors.instagram} prefix="@" />
-                    <InfoInput label="TikTok Handle" value={tiktok} onChange={(e) => setTikTok(e.target.value)} error={errors.tiktok} prefix="@" />
-                </div>
-                <InfoInput label="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} type="tel" />
-                <InfoInput label="Date of Birth" value={dob} onChange={(e) => setDob(e.target.value)} type="date" error={errors.dob} required />
-                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Ethnicity</label>
-                    <select
-                        value={ethnicity}
-                        onChange={(e) => setEthnicity(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400 transition-colors"
-                    >
-                        <option value="" disabled>Select your ethnicity</option>
-                        {ETHNICITY_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-white text-black hover:bg-gray-200 rounded-full"></span>
-                Appearance
-            </h2>
-            <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                    <InfoInput label="Height" value={height} onChange={(e) => setHeight(e.target.value)} placeholder={`e.g., 5'11"`} />
-                    <InfoInput label="Build" value={build} onChange={(e) => setBuild(e.target.value)} placeholder="e.g., Athletic" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <InfoInput label="Eye Color" value={eyeColor} onChange={(e) => setEyeColor(e.target.value)} placeholder="e.g., Blue" />
-                    <InfoInput label="Hair Color" value={hairColor} onChange={(e) => setHairColor(e.target.value)} placeholder="e.g., Blonde" />
-                </div>
-            </div>
-        </div>
-
-        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span className="w-1 h-6 bg-gray-200 text-black hover:bg-white rounded-full"></span>
-                    My Gallery
-                </h2>
-                <span className="text-sm text-gray-400">{galleryImages.length}/10</span>
-            </div>
-            
-            {errors.galleryImages && <p className="text-red-400 text-sm mb-4 bg-red-900/30 p-3 rounded-lg border border-red-900/50">{errors.galleryImages}</p>}
-            
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {galleryImages.map((url, index) => (
-                    <div key={index} className="relative aspect-square group rounded-lg overflow-hidden bg-black">
-                        <img src={url} alt={`Gallery image ${index + 1}`} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
-                        <button 
-                            type="button" 
-                            onClick={() => handleRemoveImage(index)} 
-                            className="absolute top-1 right-1 bg-black/60 p-1.5 rounded-full text-white hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                            aria-label={`Remove image ${index + 1}`}
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                        </button>
-                    </div>
-                ))}
-                {galleryImages.length < 10 && (
-                    <button
-                        type="button"
-                        onClick={() => !isUploading && galleryFileInputRef.current?.click()}
-                        disabled={isUploading}
-                        className="aspect-square bg-gray-800 border-2 border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center text-center text-gray-500 hover:border-amber-400 hover:text-amber-400 transition-all hover:bg-gray-800/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isUploading && uploadTarget === 'gallery' ? (
-                            <Spinner className="w-8 h-8" />
-                        ) : (
-                            <>
-                                <CloudArrowUpIcon className="w-8 h-8 mb-2" />
-                                <span className="text-xs font-semibold">Add Photo</span>
-                            </>
-                        )}
-                    </button>
-                )}
-            </div>
-        </div>
-        
-        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                Nightlife Preferences
-            </h2>
-            <div className="space-y-8">
-                <div>
-                    <h3 className="font-semibold text-white mb-3 text-sm uppercase tracking-wide text-gray-400">My Vibe</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {PERSONALITY_OPTIONS.map(option => (
-                            <button
-                                key={option}
-                                type="button"
-                                onClick={() => setSelectedPersonality(option)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    selectedPersonality === option
-                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
-                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                }`}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                 <div>
-                    <h3 className="font-semibold text-white mb-3 text-sm uppercase tracking-wide text-gray-400">Time Preference</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {TIME_PREFERENCE_OPTIONS.map(option => (
-                            <button
-                                key={option}
-                                type="button"
-                                onClick={() => setTimePreference(option)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    timePreference === option
-                                        ? 'bg-amber-400 text-black shadow-lg shadow-amber-900/30'
-                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                }`}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                 <div>
-                    <h3 className="font-semibold text-white mb-3 text-sm uppercase tracking-wide text-gray-400">Favorite Music</h3>
-                    <TagSelector options={MUSIC_OPTIONS} selected={selectedMusic} onToggle={(tag) => toggleTag(tag, selectedMusic, setSelectedMusic)} />
-                </div>
-                 <div>
-                    <h3 className="font-semibold text-white mb-3 text-sm uppercase tracking-wide text-gray-400">Activities</h3>
-                    <TagSelector options={ACTIVITY_OPTIONS} selected={selectedActivities} onToggle={(tag) => toggleTag(tag, selectedActivities, setSelectedActivities)} />
-                </div>
-            </div>
-        </div>
-        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span className="w-1 h-6 bg-amber-400 rounded-full"></span>
-                    Change Password
-                </h2>
-                <button
-                    type="button"
-                    onClick={() => setShowPw(s => !s)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors"
-                    aria-label={showPw ? 'Hide passwords' : 'Show passwords'}
-                >
-                    {showPw ? (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88" />
-                        </svg>
-                    ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                    )}
-                    {showPw ? 'Hide' : 'Show'}
-                </button>
-            </div>
-            <div className="space-y-5">
-                <InfoInput
-                    label="Current Password"
-                    value={currentPw}
-                    onChange={(e) => { setCurrentPw(e.target.value); setPwErrors(p => ({ ...p, currentPw: '' })); }}
-                    type={showPw ? 'text' : 'password'}
-                    error={pwErrors.currentPw}
-                    required
-                />
-                <InfoInput
-                    label="New Password"
-                    value={newPw}
-                    onChange={(e) => { setNewPw(e.target.value); setPwErrors(p => ({ ...p, newPw: '' })); }}
-                    type={showPw ? 'text' : 'password'}
-                    placeholder="At least 8 characters"
-                    error={pwErrors.newPw}
-                    required
-                />
-                <InfoInput
-                    label="Confirm New Password"
-                    value={confirmPw}
-                    onChange={(e) => { setConfirmPw(e.target.value); setPwErrors(p => ({ ...p, confirmPw: '' })); }}
-                    type={showPw ? 'text' : 'password'}
-                    error={pwErrors.confirmPw}
-                    required
-                />
-                <button
-                    type="button"
-                    onClick={handleChangePassword}
-                    disabled={isUpdatingPw}
-                    className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                    {isUpdatingPw ? 'Updating…' : 'Update Password'}
-                </button>
-            </div>
-        </div>
-      </div>
-
-      <div className="mt-12 flex justify-center">
-        <button onClick={handleSaveChanges} disabled={isUploading} className="w-full max-w-md bg-gradient-to-r from-amber-400 to-amber-500 text-black font-bold py-4 px-8 rounded-xl text-lg transition-transform duration-200 hover:scale-105 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
-            {isUploading ? 'Uploading Images...' : 'Save Profile Changes'}
-        </button>
-      </div>
-    </div>
     </>
   );
 };
