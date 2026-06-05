@@ -1905,6 +1905,7 @@ export const App: React.FC = () => {
                 return <ItineraryDetailsPage 
                     itinerary={itinerary} 
                     currentUser={currentUser} 
+                    onNavigate={handleNavigate}
                     onEdit={(i) => handleNavigate('itineraryBuilder', { itineraryId: i.id })} 
                     onClone={(i) => {
                         const cloned = { ...i, id: Date.now(), title: `${i.title} (Copy)` };

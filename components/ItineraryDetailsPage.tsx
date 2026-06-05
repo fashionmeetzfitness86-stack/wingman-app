@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Itinerary, User } from '../types';
+import { Itinerary, User, Page } from '../types';
 import { venues, events, experiences } from '../data/mockData';
 import { LocationMarkerIcon } from './icons/LocationMarkerIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
@@ -10,32 +10,43 @@ import { ShareIcon } from './icons/ShareIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { DocumentDuplicateIcon } from './icons/DocumentDuplicateIcon';
 import { FriendsIcon } from './icons/FriendsIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 
 interface ItineraryDetailsPageProps {
     itinerary: Itinerary;
     currentUser: User;
     onEdit: (itinerary: Itinerary) => void;
     onClone?: (itinerary: Itinerary) => void;
+    onNavigate?: (page: Page) => void;
 }
 
-const itemIcons = {
-    venue: <LocationMarkerIcon className="w-5 h-5" />,
-    event: <CalendarIcon className="w-5 h-5" />,
-    experience: <SparkleIcon className="w-5 h-5" />,
-    note: <PencilIcon className="w-5 h-5" />,
+const itemIcons: Record<string, React.ReactNode> = {
+    venue:      <LocationMarkerIcon className="w-4 h-4" />,
+    event:      <CalendarIcon className="w-4 h-4" />,
+    experience: <SparkleIcon className="w-4 h-4" />,
+    note:       <PencilIcon className="w-4 h-4" />,
 };
 
-export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({ itinerary, currentUser, onEdit, onClone }) => {
-    const [isCopied, setIsCopied] = useState(false);
-    const [isSharedToFriends, setIsSharedToFriends] = useState(false);
-    
+const itemAccents: Record<string, string> = {
+    venue:      '#6366f1',
+    event:      '#fb923c',
+    experience: '#34d399',
+    note:       '#9ca3af',
+};
+
+export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({
+    itinerary, currentUser, onEdit, onClone, onNavigate,
+}) => {
+    const [isCopied,         setIsCopied]         = useState(false);
+    const [isSharedToFriends,setIsSharedToFriends] = useState(false);
+
     const getItemDetails = (type: string, id?: number) => {
         if (!id) return null;
         switch (type) {
-            case 'venue': return venues.find(i => i.id === id);
-            case 'event': return events.find(i => i.id === id);
+            case 'venue':      return venues.find(i => i.id === id);
+            case 'event':      return events.find(i => i.id === id);
             case 'experience': return experiences.find(i => i.id === id);
-            default: return null;
+            default:           return null;
         }
     };
 
@@ -43,106 +54,223 @@ export const ItineraryDetailsPage: React.FC<ItineraryDetailsPageProps> = ({ itin
 
     const handleShare = async () => {
         const shareUrl = `${window.location.origin}?itinerary=${itinerary.id}`;
-        const shareData = {
-            title: `Check out my itinerary: ${itinerary.title}`,
-            text: itinerary.description,
-            url: shareUrl,
-        };
-
         if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.error('Error sharing:', err);
-            }
+            try { await navigator.share({ title: `Check out my itinerary: ${itinerary.title}`, text: itinerary.description, url: shareUrl }); }
+            catch {}
         } else {
             try {
                 await navigator.clipboard.writeText(shareUrl);
                 setIsCopied(true);
                 setTimeout(() => setIsCopied(false), 2000);
-            } catch (err) {
-                console.error('Failed to copy:', err);
-                (window as any).showAppToast?.('Could not share itinerary.');
-            }
+            } catch { (window as any).showAppToast?.('Could not share itinerary.'); }
         }
     };
 
     const handleShareToFriendsZone = () => {
-        // In a real app, this would call an API endpoint
         setIsSharedToFriends(true);
         setTimeout(() => setIsSharedToFriends(false), 2000);
     };
 
+    const formattedDate = new Date(itinerary.date + 'T00:00:00').toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric',
+    });
+
+    // ── Design tokens
+    const CARD: React.CSSProperties = {
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 20,
+    };
+
     return (
-        <div className="p-4 md:p-8 animate-fade-in text-white">
-            <div className="flex justify-between items-start">
-                <div>
-                    <h1 className="text-3xl font-bold">{itinerary.title}</h1>
-                    <p className="text-gray-400 mt-1">{new Date(itinerary.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                </div>
-                {isOwner ? (
-                    <button 
-                        onClick={() => onEdit(itinerary)}
-                        className="bg-gray-800 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
+        <div className="min-h-screen pb-36 animate-fade-in" style={{ background: '#08080A' }}>
+
+            {/* ── Sticky header */}
+            <div
+                className="sticky top-0 z-30 px-5 pt-5 pb-4"
+                style={{ background: 'rgba(8,8,10,0.94)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+            >
+                {/* Back row */}
+                <div className="flex items-center justify-between mb-3">
+                    <button
+                        onClick={() => onNavigate?.('back' as Page)}
+                        className="flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-70"
+                        style={{ color: '#9ca3af' }}
                     >
-                        <PencilIcon className="w-4 h-4" />
-                        Edit
+                        <ChevronLeftIcon className="w-4 h-4" />
+                        Back
                     </button>
-                ) : (
-                    onClone && (
-                        <button 
-                            onClick={() => onClone(itinerary)}
-                            className="bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-[#E5E5E5] transition-colors"
+
+                    {/* Edit / Clone action */}
+                    {isOwner ? (
+                        <button
+                            onClick={() => onEdit(itinerary)}
+                            className="flex items-center gap-1.5 text-sm font-bold rounded-xl px-4 py-2 transition-all active:scale-95"
+                            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#e5e7eb' }}
                         >
-                            <DocumentDuplicateIcon className="w-4 h-4" />
-                            Copy to My Itineraries
+                            <PencilIcon className="w-3.5 h-3.5" />
+                            Edit
                         </button>
-                    )
+                    ) : (
+                        onClone && (
+                            <button
+                                onClick={() => onClone(itinerary)}
+                                className="flex items-center gap-1.5 text-sm font-bold rounded-xl px-4 py-2 transition-all active:scale-95"
+                                style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', color: '#818cf8' }}
+                            >
+                                <DocumentDuplicateIcon className="w-3.5 h-3.5" />
+                                Clone
+                            </button>
+                        )
+                    )}
+                </div>
+
+                {/* Title block */}
+                <h1
+                    className="text-2xl font-black text-white leading-tight"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                    {itinerary.title}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                    <CalendarIcon className="w-3.5 h-3.5" style={{ color: '#6366f1' } as any} />
+                    <p className="text-xs font-semibold" style={{ color: '#6366f1' }}>{formattedDate}</p>
+                </div>
+            </div>
+
+            <div className="px-5 pt-5 space-y-5">
+
+                {/* Description */}
+                {itinerary.description && (
+                    <p className="text-sm leading-relaxed" style={{ color: '#9ca3af' }}>
+                        {itinerary.description}
+                    </p>
                 )}
-            </div>
-            
-            <p className="text-gray-300 mt-4">{itinerary.description}</p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button 
-                    onClick={handleShare}
-                    className="flex-1 bg-amber-400 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-amber-300 transition-colors"
-                >
-                    {isCopied ? <CheckIcon className="w-5 h-5" /> : <ShareIcon className="w-5 h-5" />}
-                    {isCopied ? 'Copied Link' : 'Share Link'}
-                </button>
-                 <button 
-                    onClick={handleShareToFriendsZone}
-                    className="flex-1 bg-gray-800 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors"
-                >
-                    {isSharedToFriends ? <CheckIcon className="w-5 h-5" /> : <FriendsIcon className="w-5 h-5" />}
-                    {isSharedToFriends ? 'Shared!' : 'Share to Friends Zone'}
-                </button>
-            </div>
 
-            <div className="mt-8">
-                {itinerary.items.map((item, index) => {
-                    const details = getItemDetails(item.type, item.itemId);
-                    const title = item.customTitle || (details && 'name' in details ? details.name : details && 'title' in details ? details.title : 'Custom Note');
-                    const isLast = index === itinerary.items.length - 1;
+                {/* Share buttons */}
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center gap-2 font-bold text-sm rounded-2xl py-3.5 transition-all active:scale-[0.97]"
+                        style={{
+                            background: isCopied
+                                ? 'rgba(52,211,153,0.15)'
+                                : 'linear-gradient(135deg,#f59e0b,#d97706)',
+                            color: isCopied ? '#34d399' : '#000',
+                            border: isCopied ? '1px solid rgba(52,211,153,0.3)' : 'none',
+                            boxShadow: isCopied ? 'none' : '0 4px 20px rgba(245,158,11,0.35)',
+                        }}
+                    >
+                        {isCopied ? <CheckIcon className="w-4 h-4" /> : <ShareIcon className="w-4 h-4" />}
+                        {isCopied ? 'Link Copied!' : 'Share Link'}
+                    </button>
+                    <button
+                        onClick={handleShareToFriendsZone}
+                        className="flex items-center justify-center gap-2 font-bold text-sm rounded-2xl py-3.5 transition-all active:scale-[0.97]"
+                        style={{
+                            background: isSharedToFriends
+                                ? 'rgba(52,211,153,0.12)'
+                                : 'rgba(255,255,255,0.06)',
+                            color: isSharedToFriends ? '#34d399' : '#e5e7eb',
+                            border: isSharedToFriends
+                                ? '1px solid rgba(52,211,153,0.3)'
+                                : '1px solid rgba(255,255,255,0.1)',
+                        }}
+                    >
+                        {isSharedToFriends ? <CheckIcon className="w-4 h-4" /> : <FriendsIcon className="w-4 h-4" />}
+                        {isSharedToFriends ? 'Shared!' : 'Friends Zone'}
+                    </button>
+                </div>
 
-                    return (
-                        <div key={item.id} className="flex gap-4">
-                            <div className="flex flex-col items-center">
-                                <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-amber-400">
-                                    {itemIcons[item.type]}
-                                </div>
-                                {!isLast && <div className="w-0.5 flex-grow bg-gray-700 my-2"></div>}
-                            </div>
-                            <div className="pb-8 flex-grow">
-                                <p className="text-sm font-semibold text-gray-400">{item.startTime}{item.endTime && ` - ${item.endTime}`}</p>
-                                <h3 className="font-bold text-white text-lg mt-1">{title}</h3>
-                                {details && 'location' in details && <p className="text-sm text-gray-400">{details.location}</p>}
-                                {item.notes && <p className="text-sm text-gray-300 mt-2 p-3 bg-gray-900/50 rounded-md border border-gray-800">{item.notes}</p>}
-                            </div>
+                {/* Timeline */}
+                <div style={CARD} className="overflow-hidden">
+                    <div className="px-5 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#4b5563' }}>
+                            {itinerary.items.length} Stop{itinerary.items.length !== 1 ? 's' : ''}
+                        </p>
+                    </div>
+
+                    {itinerary.items.length === 0 ? (
+                        <div className="px-5 py-10 text-center">
+                            <p className="text-sm" style={{ color: '#4b5563' }}>No stops yet.</p>
                         </div>
-                    );
-                })}
+                    ) : (
+                        <div className="px-5 py-4 space-y-0">
+                            {itinerary.items.map((item, index) => {
+                                const details = getItemDetails(item.type, item.itemId);
+                                const title   = item.customTitle
+                                    || (details && 'name'  in details ? details.name  : null)
+                                    || (details && 'title' in details ? details.title : null)
+                                    || 'Custom Note';
+                                const isLast  = index === itinerary.items.length - 1;
+                                const accent  = itemAccents[item.type] || '#9ca3af';
+
+                                return (
+                                    <div key={item.id} className="flex gap-4">
+                                        {/* Timeline spine */}
+                                        <div className="flex flex-col items-center pt-1">
+                                            <div
+                                                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                                                style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}30` }}
+                                            >
+                                                {itemIcons[item.type]}
+                                            </div>
+                                            {!isLast && (
+                                                <div
+                                                    className="w-px flex-grow my-2"
+                                                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                                                />
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className={`flex-grow ${!isLast ? 'pb-6' : 'pb-2'}`}>
+                                            {item.startTime && (
+                                                <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: accent }}>
+                                                    {item.startTime}
+                                                    {item.endTime && ` – ${item.endTime}`}
+                                                </p>
+                                            )}
+                                            <p className="font-black text-white text-base leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                                                {title}
+                                            </p>
+                                            {details && 'location' in details && (
+                                                <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>{details.location}</p>
+                                            )}
+                                            {item.notes && (
+                                                <p
+                                                    className="text-xs mt-2 px-3 py-2 rounded-xl leading-relaxed"
+                                                    style={{ background: 'rgba(255,255,255,0.04)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.06)' }}
+                                                >
+                                                    {item.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats footer */}
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: 'Stops',   value: itinerary.items.length, accent: '#6366f1' },
+                        { label: 'Shared',  value: (itinerary.sharedWithUserIds?.length ?? 0), accent: '#34d399' },
+                        { label: 'Public',  value: itinerary.isPublic ? 'Yes' : 'No', accent: itinerary.isPublic ? '#fb923c' : '#374151' },
+                    ].map(s => (
+                        <div
+                            key={s.label}
+                            className="rounded-2xl px-3 py-3 flex flex-col items-center"
+                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                        >
+                            <span className="text-xl font-black" style={{ color: s.accent }}>{s.value}</span>
+                            <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#4b5563' }}>{s.label}</span>
+                        </div>
+                    ))}
+                </div>
+
             </div>
         </div>
     );
