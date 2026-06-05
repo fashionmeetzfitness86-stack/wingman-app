@@ -10,6 +10,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Page, User, EventChat, Event, GuestlistChat, Venue, Wingman, UserRole, WingmanChat } from '../types';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
 
 // ─── ICONS ────────────────────────────────────────────────────
@@ -318,6 +319,18 @@ export const EventChatsListPage: React.FC<EventChatsListPageProps> = ({
         className="sticky top-0 z-30 px-4 pt-5 pb-4"
         style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
+        {/* Back row */}
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={() => onNavigate('back' as Page)}
+            className="flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: '#9ca3af' }}
+            aria-label="Go back"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+            Back
+          </button>
+        </div>
         <h1 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           Chats
         </h1>
