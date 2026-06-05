@@ -171,7 +171,7 @@ export const AccessGroupsPage: React.FC<AccessGroupsPageProps> = ({
                 <div className="flex items-center justify-between max-w-7xl mx-auto gap-3">
                     {/* ← Back */}
                     <button
-                        onClick={() => onNavigate('home')}
+                        onClick={() => onNavigate('userProfile')}
                         id="access-groups-back-btn"
                         aria-label="Go back"
                         className="flex items-center gap-1.5 flex-shrink-0 text-sm font-semibold text-white py-2 px-3 rounded-full transition-all active:scale-95"
