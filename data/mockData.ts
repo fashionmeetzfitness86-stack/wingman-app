@@ -167,6 +167,9 @@ export const venues: Venue[] = [
     averageRating: 4.7,
     totalReviews: 320,
     isGuestlistAvailable: true,
+    dressCode: 'Upscale nightclub attire. Men: dress shirt or blazer, dress pants or dark jeans, dress shoes. No sneakers, no shorts, no hats, no graphic tees. Women: cocktail dress, heels or dressy sandals.',
+    entryNotes: 'Arrive with your Wingman confirmation. Give your name at the door — you will be walked to the table, not left at the line. Come groomed and dressed to impress. The door staff make quick decisions.',
+    arrivalTip: 'Arrive between 11:00 PM – 12:00 AM. After 1 AM the line is long and entry becomes stricter.',
     tableOptions: [
       { id: 't1', name: 'Dance Floor Table', area: 'Main Room', minSpend: 5000, description: 'Right in the action', capacityHint: 'Small Groups' },
       { id: 't2', name: 'VIP Booth', area: 'Mezzanine', minSpend: 3000, description: 'Private view of the stage', capacityHint: 'Large Groups' }
@@ -185,6 +188,9 @@ export const venues: Venue[] = [
     averageRating: 4.5,
     totalReviews: 210,
     isGuestlistAvailable: true,
+    dressCode: 'Fashion-forward nightclub look. Men: slim-fit dress shirt, dark trousers or fitted jeans, leather or suede shoes. No athletic wear, no sneakers, no flip-flops. Women: chic dress or stylish separates.',
+    entryNotes: 'Story is image-conscious — the door team pays attention to how you present. Arrive as a group with your Wingman booking reference. Look confident, be friendly with door staff. Do not bring large groups or show up underdressed.',
+    arrivalTip: 'Best window is 11:30 PM – 12:30 AM. Earlier and the energy is low, later and the door becomes selective.',
     tableOptions: [
        { id: 't3', name: 'Owners Table', area: 'Main Room', minSpend: 8000, description: 'Best table in the house', capacityHint: 'Large Groups' }
     ]
@@ -201,6 +207,9 @@ export const venues: Venue[] = [
     capacity: 400,
     averageRating: 4.8,
     totalReviews: 450,
+    dressCode: 'Smart casual to upscale. Men: collared shirt, chinos or dress pants, loafers or clean dress shoes. Women: a dress, blouse with trousers, or an elegant casual look. Avoid beachwear, athletic wear, or flip-flops.',
+    entryNotes: 'Komodo is a dining-first experience. Your Wingman reservation is tied to the table — confirm with the host stand upon arrival. Be on time: tables are held for 10 minutes max. Present yourself calmly and professionally.',
+    arrivalTip: 'Dinner is best between 8:00 PM and 9:30 PM. After 10 PM it transitions to a lounge atmosphere — still great but different energy.',
     tableOptions: []
   },
   {
@@ -216,6 +225,9 @@ export const venues: Venue[] = [
     averageRating: 4.6,
     totalReviews: 180,
     isGuestlistAvailable: true,
+    dressCode: 'Stylish and clean. Men: fitted shirt (button-up or premium crew), dark jeans or trousers, clean sneakers or dress shoes accepted. No ripped jeans, no oversized sportswear, no sandals. Women: casual-chic — dress, skirt, or polished separates.',
+    entryNotes: 'Mr. Jones runs a tight door — your Wingman booking gets you past the line. Walk up confidently, give your name, and follow the host. Groups should arrive together: split groups may be asked to wait for all members.',
+    arrivalTip: 'Ideal arrival is 11:00 PM – 12:00 AM. The venue fills quickly on Fridays and Saturdays — earlier is smoother.',
     tableOptions: [
       { id: 'mj-t1', name: 'Main Floor Table', area: 'Main Room', minSpend: 3000, description: 'Center of the action on the main floor', capacityHint: 'Small Groups' },
       { id: 'mj-t2', name: 'VIP Booth', area: 'VIP Section', minSpend: 5000, description: 'Elevated VIP section with bottle service', capacityHint: 'Large Groups' }

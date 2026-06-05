@@ -113,6 +113,10 @@ export interface Venue {
   totalReviews?: number;
   isGuestlistAvailable?: boolean;
   guestlistCapacity?: number;
+  // Entry & dress code guidance — shown on the venue detail page
+  dressCode?: string;   // e.g. 'All black, no sneakers, no shorts'
+  entryNotes?: string;  // How to present at the door / what to expect
+  arrivalTip?: string;  // Best time to arrive
 }
 
 export interface Wingman {
