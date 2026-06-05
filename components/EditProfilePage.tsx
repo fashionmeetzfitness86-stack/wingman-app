@@ -245,7 +245,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
       preferences: { music: selectedMusic, activities: selectedActivities, personality: selectedPersonality, timeOfDay: timePreference as 'Daytime' | 'Nighttime' | 'Both' },
       galleryImages,
     });
-    onNavigate('userProfile');
+    onNavigate('back' as Page);
     showToast('Profile updated successfully!', 'success');
   };
 
@@ -316,7 +316,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
         >
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={() => onNavigate('userProfile')}
+              onClick={() => onNavigate('back' as Page)}
               className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
               style={{ color: '#9ca3af' }}
             >

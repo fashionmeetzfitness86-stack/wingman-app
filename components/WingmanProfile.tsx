@@ -555,7 +555,7 @@ export const WingmanProfile: React.FC<WingmanProfileProps> = ({
        <div className={`fixed inset-x-0 ${showBottomNav ? 'bottom-20' : 'bottom-0'} z-30 bg-black/80 backdrop-blur-lg border-t border-gray-800 p-4`}>
         <div className="container mx-auto max-w-5xl text-center flex flex-col sm:flex-row items-center justify-center gap-3">
             {isOwnProfile ? (
-                <button onClick={onEditProfile} className="w-full sm:flex-1 bg-white text-black hover:bg-gray-200 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] hover:bg-[#E5E5E5] shadow-xl shadow-[#FFFFFF]/20 text-lg">
+                <button onClick={() => onEditProfile?.()} className="w-full sm:flex-1 bg-white text-black hover:bg-gray-200 text-white font-bold py-4 px-6 rounded-xl transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#FFFFFF] hover:bg-[#E5E5E5] shadow-xl shadow-[#FFFFFF]/20 text-lg">
                     <PencilIcon className="w-5 h-5 inline-block mr-2" />
                     Edit Profile
                 </button>

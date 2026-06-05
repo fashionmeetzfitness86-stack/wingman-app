@@ -115,7 +115,7 @@ const VibePill: React.FC<{ children: string }> = ({ children }) => (
 
 // ── Main Page ──────────────────────────────────────────────────
 export const ProfilePage: React.FC<ProfilePageProps> = ({
-  onNavigate, currentUser, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails,
+  onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails,
 }) => {
   const user = currentUser;
   if (!user) return null;
@@ -274,7 +274,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
       {/* ── Stats strip ────────────────────────────────────────── */}
       <div className="px-5 mt-4 grid grid-cols-3 gap-3">
-        <StatBadge value={bookingHistory.length} label="Bookings" accent={accent} />
+        <StatBadge value={userBookings.length} label="Bookings" accent={accent} />
         <StatBadge value={eventsAttended} label="Attended" accent="#34d399" />
         <StatBadge value={favoriteVenueIds.length} label="Saved" accent="#fb923c" />
       </div>

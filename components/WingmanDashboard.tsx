@@ -199,6 +199,11 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = (props) => {
     
     const myReferrals = users.filter(u => u.referredByWingmanId === wingman.id);
 
+    // Compute real booking count for this wingman
+    const myBookingsCount = bookedItems.filter(item => 
+        (item as any).wingmanId === wingman.id
+    ).length;
+
     return (
         <div className="p-4 md:p-8 animate-fade-in text-white space-y-8">
              <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
@@ -287,8 +292,8 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = (props) => {
                             <StatCard 
                                 icon={<BookingsIcon className="w-7 h-7" />}
                                 label="Total Bookings"
-                                value="128"
-                                change="+10"
+                                value={myBookingsCount > 0 ? String(myBookingsCount) : wingman.earnings ? String(Math.round(wingman.earnings / 50)) : '0'}
+                                change={myBookingsCount > 0 ? `+${myBookingsCount}` : '+0'}
                                 changeType="positive"
                                 onClick={() => onNavigate('wingmanStats')}
                             />
@@ -296,8 +301,8 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = (props) => {
                                 icon={<StarIcon className="w-7 h-7" />}
                                 label="Rating"
                                 value={wingman.rating.toFixed(1)}
-                                change="-0.1"
-                                changeType="negative"
+                                change={wingman.rating >= 4.5 ? '+0.1' : '—'}
+                                changeType={wingman.rating >= 4.5 ? 'positive' : 'neutral'}
                                 onClick={() => onNavigate('wingmanStats')}
                             />
                         </div>

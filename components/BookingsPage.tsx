@@ -183,7 +183,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
 
   return (
     <div className="p-4 md:p-8 animate-fade-in text-white pb-24">
-      <button onClick={() => onNavigate('userProfile')} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-6 text-sm font-semibold">
+      <button onClick={() => onNavigate('back' as Page)} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-6 text-sm font-semibold">
         <ChevronLeftIcon className="w-5 h-5"/>
         Back to Profile
       </button>

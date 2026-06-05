@@ -154,7 +154,7 @@ export const WingmanStatsPage: React.FC<WingmanStatsPageProps> = ({ currentUser,
         <div className="p-4 md:p-8 animate-fade-in text-white space-y-8 pb-24">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                  <div>
-                    <button onClick={() => onNavigate('userProfile')} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2 text-sm font-bold">
+                    <button onClick={() => onNavigate('back' as Page)} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2 text-sm font-bold">
                         <ChevronLeftIcon className="w-4 h-4"/>
                         Back to Profile
                     </button>
