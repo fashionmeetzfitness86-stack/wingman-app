@@ -1,12 +1,74 @@
 import Stripe from 'stripe';
 
-interface CartItemPayload {
+// ─── Server-side price authority ─────────────────────────────────────────────
+// This is the SINGLE SOURCE OF TRUTH for pricing.
+// The client is NEVER trusted for price data — it sends only a scheduleId
+// and quantity. The server resolves the dollar amount here.
+//
+// Keep this in sync with utils/eventSchedule.ts WEEKLY_SCHEDULE.
+// When you add or update an event price, update BOTH files.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ScheduleEntry {
   id: string;
-  name: string;
-  amount: number;
-  quantity: number;
-  image?: string;
+  title: string;
+  pricePerPerson: number; // USD
+  maxPerBooking?: number;
 }
+
+const PRICE_SCHEDULE: ScheduleEntry[] = [
+  // ── Monday ──
+  { id: 'mon-dinner-nobu',           title: 'Wingman Dinner @ Nobu',          pricePerPerson: 400, maxPerBooking: 2 },
+  // ── Tuesday ──
+  { id: 'tue-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
+  // ── Wednesday ──
+  { id: 'wed-dinner-sexy-fish',      title: 'Wingman Dinner @ Sexy Fish',     pricePerPerson: 400, maxPerBooking: 2 },
+  // ── Thursday ──
+  { id: 'thu-nightclub-liv',         title: 'Wingman @ LIV',                  pricePerPerson: 500 },
+  // ── Friday ──
+  { id: 'fri-nightclub-e11even',     title: 'Wingman @ E11EVEN',              pricePerPerson: 500 },
+  { id: 'fri-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
+  { id: 'fri-yacht-biscayne',        title: 'Friday Yacht — Biscayne Bay',    pricePerPerson: 350 },
+  // ── Saturday ──
+  { id: 'sat-nightclub-story',       title: 'Wingman @ Story',                pricePerPerson: 500 },
+  { id: 'sat-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
+  { id: 'sat-yacht-miami-beach',     title: 'Saturday Yacht — Miami Beach',   pricePerPerson: 350 },
+  // ── Sunday ──
+  { id: 'sun-dinner-komodo',         title: 'Sunday Dinner @ Komodo',         pricePerPerson: 400, maxPerBooking: 2 },
+  { id: 'sun-yacht-key-biscayne',    title: 'Sunday Yacht — Key Biscayne',    pricePerPerson: 350 },
+];
+
+// Build a lookup map for O(1) access
+const PRICE_MAP = new Map<string, ScheduleEntry>(
+  PRICE_SCHEDULE.map(e => [e.id, e])
+);
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface BookingPayload {
+  /**
+   * The scheduleId from WEEKLY_SCHEDULE (e.g. 'fri-nightclub-e11even').
+   * This is NOT an instanceId — the date suffix is stripped server-side
+   * so that any client-supplied date cannot affect pricing.
+   */
+  scheduleId: string;
+  /** Full instanceId stored in cart (e.g. 'fri-nightclub-e11even-2025-06-07') */
+  instanceId: string;
+  /** Number of spots being purchased */
+  quantity: number;
+  /** Cart item ID, echoed back in metadata for post-payment reconciliation */
+  cartItemId: string;
+}
+
+interface RequestBody {
+  bookings: BookingPayload[];
+  userEmail?: string;
+  userId?: string;
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
+// ─── Handler ─────────────────────────────────────────────────────────────────
 
 export default async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -26,46 +88,95 @@ export default async (req: Request) => {
   try {
     const apiKey = process.env.STRIPE_API_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_KEY;
     if (!apiKey) {
-      throw new Error('Stripe secret key missing. Set STRIPE_API_KEY (or STRIPE_SECRET_KEY) in Netlify environment variables and redeploy.');
+      throw new Error(
+        'Stripe secret key missing. Set STRIPE_API_KEY (or STRIPE_SECRET_KEY) in Netlify environment variables and redeploy.'
+      );
     }
 
     const stripe = new Stripe(apiKey, { apiVersion: '2026-02-25.clover' as any });
 
-    const body = await req.json();
-    const { items, userEmail, userId, successUrl, cancelUrl } = body as {
-      items: CartItemPayload[];
-      userEmail?: string;
-      userId?: string;
-      successUrl?: string;
-      cancelUrl?: string;
-    };
+    const body = await req.json() as RequestBody;
+    const { bookings, userEmail, userId, successUrl, cancelUrl } = body;
 
-    if (!items || items.length === 0) {
-      return new Response(JSON.stringify({ error: 'No items provided' }), { status: 400 });
+    if (!bookings || bookings.length === 0) {
+      return new Response(JSON.stringify({ error: 'No bookings provided' }), { status: 400 });
     }
 
-    let origin = 'https://wingman-app.com';
-    try { origin = new URL(req.url).origin; } catch { origin = req.headers.get('origin') || origin; }
+    // ── Server-side price resolution ─────────────────────────────────────────
+    // We NEVER use any price the client sent. We derive price from scheduleId.
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    const resolvedBookings: { cartItemId: string; instanceId: string; quantity: number; unitPrice: number }[] = [];
 
-    const lineItems = items
-      .filter(item => item && item.amount > 0)
-      .map(item => ({
+    for (const booking of bookings) {
+      const { scheduleId, instanceId, quantity, cartItemId } = booking;
+
+      if (!scheduleId || !instanceId || !quantity || !cartItemId) {
+        return new Response(
+          JSON.stringify({ error: `Invalid booking payload: missing required field` }),
+          { status: 400 }
+        );
+      }
+
+      // Strip the date suffix to get the base schedule ID
+      // Instance IDs look like: 'fri-nightclub-e11even-2025-06-07'
+      // We derive scheduleId from the instance so clients can't tamper with it
+      const derivedScheduleId = instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+      const entry = PRICE_MAP.get(derivedScheduleId);
+
+      if (!entry) {
+        return new Response(
+          JSON.stringify({ error: `Unknown schedule: ${derivedScheduleId}. Booking rejected.` }),
+          { status: 400 }
+        );
+      }
+
+      // Enforce booking rules server-side
+      if (entry.maxPerBooking && quantity > entry.maxPerBooking) {
+        return new Response(
+          JSON.stringify({
+            error: `${entry.title} has a max of ${entry.maxPerBooking} per booking. Requested ${quantity}.`,
+          }),
+          { status: 400 }
+        );
+      }
+
+      if (quantity < 1 || quantity > 20) {
+        return new Response(
+          JSON.stringify({ error: `Invalid quantity: ${quantity}` }),
+          { status: 400 }
+        );
+      }
+
+      const unitAmountCents = Math.round(entry.pricePerPerson * 100);
+
+      lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: item.name,
-            images: item.image ? [item.image] : undefined,
+            name: entry.title,
+            description: `${quantity} spot${quantity > 1 ? 's' : ''} · ${instanceId.slice(-10)}`,
           },
-          unit_amount: Math.round(item.amount * 100),
+          unit_amount: unitAmountCents,
         },
-        quantity: item.quantity || 1,
-      }));
+        quantity,
+      });
 
-    if (lineItems.length === 0) {
-      return new Response(JSON.stringify({ error: 'No valid line items' }), { status: 400 });
+      resolvedBookings.push({ cartItemId, instanceId, quantity, unitPrice: entry.pricePerPerson });
     }
 
-    const cartContext = JSON.stringify(items.map(i => ({ id: i.id, q: i.quantity || 1 })));
+    if (lineItems.length === 0) {
+      return new Response(JSON.stringify({ error: 'No valid bookings after validation' }), { status: 400 });
+    }
+
+    let origin = 'https://wingman-app.netlify.app';
+    try { origin = new URL(req.url).origin; } catch {
+      origin = req.headers.get('origin') || origin;
+    }
+
+    // Store resolved booking metadata so verify-session can reconcile
+    const cartContext = JSON.stringify(
+      resolvedBookings.map(b => ({ id: b.cartItemId, inst: b.instanceId, q: b.quantity }))
+    );
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -74,6 +185,7 @@ export default async (req: Request) => {
       adaptive_pricing: { enabled: false },
       metadata: {
         userId: userId || '',
+        // Store resolved bookings (not client prices) so webhooks can trust them
         cart_context: cartContext.length < 500 ? cartContext : '',
       },
       line_items: lineItems,

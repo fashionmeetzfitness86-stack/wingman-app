@@ -173,8 +173,7 @@ const LoginScreen: React.FC<{
   onBack: () => void;
   onLogin: (email: string, password: string, stayLoggedIn: boolean) => Promise<boolean>;
   onForgotPassword: () => void;
-  onCreateAccount: () => void;
-}> = ({ onBack, onLogin, onForgotPassword, onCreateAccount }) => {
+}> = ({ onBack, onLogin, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -295,24 +294,15 @@ const LoginScreen: React.FC<{
               </div>
               <span className="text-[11px] text-gray-500 select-none">Stay logged in</span>
             </label>
-          </form>
 
           <button
             onClick={onForgotPassword}
-            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-5">
+            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-5"
+          >
             Forgot your password?
           </button>
+          </form>
 
-          <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-center text-[11px] text-gray-600 mb-3">Don't have an account?</p>
-            <button
-              type="button"
-              onClick={onCreateAccount}
-              className="w-full font-bold py-3.5 rounded-xl text-sm transition-all active:scale-[0.98]"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff' }}>
-              Create an account
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -450,9 +440,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     const interval = setInterval(() => {
       setCountdown(c => c - 1000);
     }, 1000);
+    // 1.5 s is enough for the "Access Granted" moment to land
+    // then we hand off immediately to the onboarding modal
     const timeout = setTimeout(() => {
       onAccessGranted();
-    }, 3000);
+    }, 1500);
     return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [mode, onAccessGranted]);
 
@@ -478,6 +470,12 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     setTimeout(() => {
       if (validatePasscode(passcode)) {
         grantPasscodeAccess(email.trim().toLowerCase());
+        // Fire welcome email — fire-and-forget, never blocks the user flow
+        fetch('/.netlify/functions/send-welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        }).catch(() => {}); // Silent fail — email failure must never break access
         setMode('success');
       } else {
         setError('Invalid passcode. Please check and try again.');
@@ -493,7 +491,6 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
         onBack={() => setMode('enter')}
         onLogin={onLogin ?? (async () => false)}
         onForgotPassword={() => setMode('forgotPassword')}
-        onCreateAccount={onCreateAccount ?? (() => {})}
       />
     );
   }
@@ -521,10 +518,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
           <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Access Granted
           </h2>
-          <p className="text-gray-400 text-sm mb-6">Welcome to WINGMAN. You have 24 hours.</p>
+          <p className="text-gray-400 text-sm mb-3">Welcome to WINGMAN. You have 24 hours.</p>
+          <p className="text-xs text-gray-600 mb-6">Next → Create your profile to unlock reservations</p>
           <div className="inline-flex items-center gap-2 text-xs text-gray-600 bg-white/[0.04] rounded-full px-4 py-2">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Redirecting to platform...
+            Setting up your experience...
           </div>
         </div>
       </div>

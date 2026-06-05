@@ -379,6 +379,7 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const [showPw,      setShowPw]      = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showWelcome,  setShowWelcome]  = useState(false); // shown after step 5 completes
   const fileRef = useRef<HTMLInputElement>(null);
 
   const clearErr = (k: string) => setErrors(p => { const n = { ...p }; delete n[k]; return n; });
@@ -416,35 +417,43 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
     if (!validateStep()) return;
     if (step < STEPS.length) { setStep(s => s + 1); return; }
 
-    // Final step — register the account in Supabase Auth.
+    // Final step — save password locally and attempt Supabase registration.
+    // If Supabase is unreachable (network error), we fall back to localStorage-
+    // only auth — the app works fully in that mode.
     const normalizedEmail = email.trim().toLowerCase();
     setIsSubmitting(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: normalizedEmail,
-        password,
-        options: {
-          data: { firstName, lastName, phone, hometown, gender },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
+      try {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+          options: {
+            data: { firstName, lastName, phone, hometown, gender },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
 
-      if (signUpError) {
-        const msg = signUpError.message?.toLowerCase() ?? '';
-        // If the email is already registered, surface a friendly hint and stop.
-        if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
-          setErrors({ email: 'This email is already registered. Try logging in instead.' });
-          setStep(2);
-        } else {
-          setErrors({ password: signUpError.message || 'Could not create account.' });
+        if (signUpError) {
+          const msg = signUpError.message?.toLowerCase() ?? '';
+          // Duplicate-email is a hard stop — send user back to fix it.
+          if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
+            setErrors({ email: 'This email is already registered. Try logging in instead.' });
+            setStep(2);
+            return;
+          }
+          // Any other Supabase error: log it but continue with localStorage auth.
+          console.warn('[Wingman] Supabase signUp error (non-fatal):', signUpError.message);
         }
-        return;
+      } catch (networkErr) {
+        // Network failure (Failed to fetch, offline, CORS, etc.)
+        // Not fatal — proceed with localStorage auth below.
+        console.warn('[Wingman] Supabase unreachable, using local auth:', networkErr);
       }
 
-      // Keep the legacy localStorage password store in sync so existing
-      // login fallback paths still recognise this user.
+      // Always save to localStorage so login works regardless of Supabase state.
       saveUserPassword(normalizedEmail, password);
-      onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password });
+      // Show welcome screen before handing off
+      setShowWelcome(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -709,6 +718,99 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   // Lock background scroll while the modal is mounted
   useScrollLock(true);
 
+  // ── Welcome Screen (shown after successful account creation) ────────────
+  if (showWelcome) {
+    return (
+      <div
+        className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+        data-modal-backdrop
+        style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)' }}
+      >
+        <div
+          className="w-full max-w-md rounded-3xl flex flex-col items-center text-center px-8 py-12"
+          style={{
+            background: '#111',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 -16px 64px rgba(0,0,0,0.9)',
+          }}
+        >
+          {/* Animated checkmark */}
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+            style={{
+              background: 'linear-gradient(135deg, rgba(224,64,251,0.2), rgba(123,97,255,0.2))',
+              border: '2px solid rgba(224,64,251,0.4)',
+              boxShadow: '0 0 40px rgba(224,64,251,0.25)',
+            }}
+          >
+            <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none">
+              <path
+                d="M8 20l8 8 16-16"
+                stroke="url(#wg)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <defs>
+                <linearGradient id="wg" x1="8" y1="20" x2="32" y2="20">
+                  <stop stopColor="#E040FB" />
+                  <stop offset="1" stopColor="#00D4FF" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          {/* Wordmark */}
+          <p
+            className="text-[10px] font-black tracking-[0.35em] text-gray-500 uppercase mb-3"
+          >
+            WINGMAN · MIAMI
+          </p>
+
+          {/* Headline */}
+          <h1
+            className="text-3xl font-black text-white mb-3"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.15 }}
+          >
+            Welcome,<br />{firstName}.
+          </h1>
+
+          {/* Body copy */}
+          <p className="text-sm text-gray-400 leading-relaxed mb-2 max-w-xs">
+            Your profile is live. You now have full access to exclusive Wingman
+            experiences in Miami.
+          </p>
+          <p className="text-[11px] text-gray-600 mb-8">
+            A confirmation email has been sent to{' '}
+            <span className="text-gray-400 font-semibold">{email}</span>.
+          </p>
+
+          {/* Divider detail */}
+          <div
+            className="w-16 h-px mb-8"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(224,64,251,0.5), transparent)' }}
+          />
+
+          {/* CTA */}
+          <button
+            onClick={() => onComplete({ firstName, lastName, email, phone, hometown, gender, photoUrl, password })}
+            className="w-full py-4 rounded-2xl font-black text-white text-base transition-all active:scale-[0.98] hover:opacity-90"
+            style={{
+              background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
+              boxShadow: '0 8px 32px rgba(224,64,251,0.35)',
+            }}
+          >
+            Enter Wingman →
+          </button>
+
+          <p className="text-[10px] text-gray-700 mt-4">
+            Use your email and password to log in next time.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // Backdrop
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
@@ -738,9 +840,10 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">{currentStep.subtitle}</p>
           </div>
+          {/* Small close — accessible but not visually prominent */}
           <button
             onClick={onDismiss}
-            className="text-gray-600 hover:text-gray-300 transition-colors text-xs mt-1"
+            className="text-gray-700 hover:text-gray-400 transition-colors text-xs mt-1 px-1"
             aria-label="Dismiss"
           >
             ✕
@@ -759,27 +862,37 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
 
         {/* Footer */}
         <div
-          className="px-6 pb-8 pt-4 flex gap-3 flex-shrink-0"
+          className="px-6 pb-6 pt-4 flex flex-col gap-3 flex-shrink-0"
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: '#111' }}
         >
-          {step > 1 && (
+          <div className="flex gap-3">
+            {step > 1 && (
+              <button
+                onClick={back}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 transition-all"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                ← Back
+              </button>
+            )}
             <button
-              onClick={back}
-              className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              onClick={next}
+              disabled={isSubmitting}
+              className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
             >
-              ← Back
+              {isSubmitting
+                ? 'Creating account…'
+                : step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
             </button>
-          )}
+          </div>
+
+          {/* Skip option — visible but secondary */}
           <button
-            onClick={next}
-            disabled={isSubmitting}
-            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF,#00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
+            onClick={onDismiss}
+            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors py-1"
           >
-            {isSubmitting
-              ? 'Creating account…'
-              : step === STEPS.length ? '✓ Complete Profile' : 'Continue →'}
+            Skip for now — you have 24 hrs to complete your profile
           </button>
         </div>
       </div>

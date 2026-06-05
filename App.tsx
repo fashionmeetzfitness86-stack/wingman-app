@@ -216,6 +216,9 @@ export const App: React.FC = () => {
         if (sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') return false;
         return true;
     });
+    // Stores the booking the user attempted when the profile gate fired,
+    // so we can replay it immediately after onboarding completes.
+    const pendingBookingIntent = React.useRef<Omit<InstanceBooking, 'id' | 'bookedAt'> | null>(null);
     const [onboardingDismissed, setOnboardingDismissed] = useState(
         sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
     );
@@ -593,17 +596,30 @@ export const App: React.FC = () => {
                 return;
             }
 
-            const stripeItems = itemsToBook
-                .map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    amount: priceForItem(item),
-                    quantity: item.quantity || 1,
-                    image: item.image,
-                }))
-                .filter(i => i.amount > 0);
+            // ── Security: build server-trusted booking payloads ──────────────
+            // We NEVER send price/amount to the server.
+            // The Netlify function resolves all prices from its own server-side
+            // PRICE_SCHEDULE. Clients cannot affect what Stripe charges.
+            const bookings = itemsToBook
+                .map(item => {
+                    // For recurring-event cart items, we stored instanceId in cartInstanceMeta
+                    const meta = cartInstanceMeta[item.id];
+                    if (!meta?.instanceId) return null; // non-schedule item (store, table, etc.)
 
-            if (stripeItems.length === 0) {
+                    // Derive scheduleId by stripping the date suffix from instanceId
+                    // e.g. 'fri-nightclub-e11even-2025-06-07' → 'fri-nightclub-e11even'
+                    const scheduleId = meta.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+
+                    return {
+                        scheduleId,
+                        instanceId: meta.instanceId,
+                        quantity: meta.partySize || 1,
+                        cartItemId: item.id,
+                    };
+                })
+                .filter(Boolean);
+
+            if (bookings.length === 0) {
                 showToast('Cart total is $0 — nothing to charge.', 'error');
                 return;
             }
@@ -615,7 +631,7 @@ export const App: React.FC = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        items: stripeItems,
+                        bookings,
                         userEmail: currentUser.email,
                         userId: String(currentUser.id),
                     }),
@@ -1197,8 +1213,47 @@ export const App: React.FC = () => {
         markOnboardingComplete();
         setShowOnboarding(false);
         setOnboardingDismissed(false);
-        setCurrentPage('home');
-        showToast('Profile created! Welcome to WINGMAN 🎉', 'success');
+
+        // ── Replay pending booking intent ─────────────────────────────────
+        // If the user tapped Reserve before their profile existed, we saved
+        // that booking. Now that the profile is created, process it and send
+        // them straight to the cart — not back to a blank home screen.
+        const intent = pendingBookingIntent.current;
+        if (intent) {
+            pendingBookingIntent.current = null;
+            setPendingCartReservations(prev => ({
+                ...prev,
+                [intent.instanceId]: (prev[intent.instanceId] ?? 0) + intent.partySize,
+            }));
+            const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
+            const inst = allInst.find(i => i.instanceId === intent.instanceId);
+            const newCartItem: CartItem = {
+                id: cartId,
+                name: inst?.title ?? intent.instanceId,
+                type: 'event',
+                image: inst?.coverImage ?? '',
+                date: inst?.date,
+                sortableDate: inst?.date,
+                fullPrice: intent.totalPaid,
+                depositPrice: intent.totalPaid,
+                paymentOption: 'full',
+                bookedTimestamp: Date.now(),
+                quantity: 1,
+            };
+            setCartItems(prev => [...prev, newCartItem]);
+            setCartInstanceMeta(prev => ({
+                ...prev,
+                [cartId]: { instanceId: intent.instanceId, partySize: intent.partySize },
+            }));
+            // Navigate to cart so the user can continue without re-finding the event
+            showToast(`Profile created! Your spot for ${inst?.title ?? 'the event'} is in your cart 🎉`, 'success');
+            handleNavigate('checkout', { initialTab: 'cart' });
+        } else {
+            setCurrentPage('home');
+            showToast('Profile created! Welcome to WINGMAN 🎉', 'success');
+        }
+        // ─────────────────────────────────────────────────────────────────
     };
 
     const handleOnboardingDismiss = () => {
@@ -1408,6 +1463,15 @@ export const App: React.FC = () => {
     };
 
     const handleInstanceBook = (booking: Omit<InstanceBooking, 'id' | 'bookedAt'>) => {
+        // ── Profile gate ─────────────────────────────────────────────────────
+        // Passcode users must complete their profile before reserving a spot.
+        // Save the booking intent so we can replay it after profile creation.
+        if (profileRequired) {
+            pendingBookingIntent.current = booking;
+            setShowOnboarding(true);
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────────
         setPendingCartReservations(prev => ({ ...prev, [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize }));
         const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
