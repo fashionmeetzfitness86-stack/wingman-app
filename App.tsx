@@ -1095,8 +1095,7 @@ export const App: React.FC = () => {
         
         if (completeness === 100 && !userToSave.hasProfileReward) {
             userToSave.hasProfileReward = true;
-            setUserTokenBalance(prev => prev + 500);
-            showToast("Profile Completed! You earned 500 TMKC.", "success");
+            showToast("Profile complete! You're all set. ✓", "success");
         }
         
         // Update global users list
@@ -1636,8 +1635,7 @@ export const App: React.FC = () => {
                     onToggleTask={handleToggleTask} 
                     onDeleteTask={handleDeleteTask} 
                     onRewardClaimed={(amt, title) => {
-                        setUserTokenBalance(prev => prev + amt);
-                        showToast(`Claimed ${amt} TMKC for ${title}!`, 'success');
+                        showToast(`Challenge complete: ${title}! 🏆`, 'success');
                     }} 
                 />;
             case 'friendsZone':
@@ -1691,7 +1689,18 @@ export const App: React.FC = () => {
                     onNavigate={handleNavigate} 
                     currentUser={currentUser} 
                     tokenBalance={userTokenBalance} 
-                    bookingHistory={[]}
+                    bookingHistory={instanceBookings
+                        .filter(b => b.userId === currentUser.id)
+                        .map(b => ({
+                            id: typeof b.id === 'string' ? parseInt(b.id.replace(/\D/g, '').slice(-8), 10) || 0 : 0,
+                            userId: b.userId,
+                            venueName: b.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+                            wingmanName: 'WINGMAN',
+                            date: b.bookedAt ? new Date(b.bookedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+                            tableTier: `${b.partySize} spot${b.partySize > 1 ? 's' : ''}`,
+                            status: 'Confirmed' as const,
+                        }))
+                    }
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     venues={appVenues} 
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
