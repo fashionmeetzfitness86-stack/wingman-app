@@ -4,7 +4,6 @@ import { CartItem, EventInstance, Venue, User, Page } from '../types';
 import { CartItemCard } from './CartItemCard';
 import { ReserveSpotModal } from './ReserveSpotModal';
 import { CreditCardIcon } from './icons/CreditCardIcon';
-import { TokenIcon } from './icons/TokenIcon';
 import { CartIcon } from './icons/CartIcon';
 import { BookingsIcon } from './icons/BookingsIcon';
 import { CurrencyDollarIcon } from './icons/CurrencyDollarIcon';
@@ -31,7 +30,6 @@ interface CheckoutPageProps {
   isCheckoutLoading?: boolean;
 }
 
-const USD_TO_TMKC_RATE = 100;
 
 const EmptyState: React.FC<{ icon: React.ReactNode; title: string; subtitle: string; action?: React.ReactNode }> = ({ icon, title, subtitle, action }) => (
   <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -54,7 +52,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   initialTab = 'cart', onNavigate, allInstances = [], currentUserCanBook = true
 }) => {
   const [activeTab, setActiveTab] = useState<'cart' | 'watchlist' | 'purchased'>(initialTab);
-  const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'usd' | 'cashapp'>('usd');
+  const [paymentMethod, setPaymentMethod] = useState<'usd' | 'cashapp'>('usd');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
   const [agreedToDisclosure, setAgreedToDisclosure] = useState(false);
@@ -89,19 +87,6 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     }, 0),
   [selectedItems]);
 
-  const totalTokensCost = useMemo(() =>
-    selectedItems.reduce((total, item) => {
-      if (item.type === 'storeItem' && item.storeItemDetails) return total + item.storeItemDetails.item.price;
-      const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
-      return total + (price * USD_TO_TMKC_RATE);
-    }, 0),
-  [selectedItems]);
-
-  const hasEnoughTokens = userTokenBalance >= totalTokensCost;
-
-  useEffect(() => {
-    if (!hasEnoughTokens && paymentMethod === 'tokens') setPaymentMethod('usd');
-  }, [hasEnoughTokens, paymentMethod]);
 
   const handleToggleItemSelection = (itemId: string) => {
     setSelectedItemIds(prev =>
@@ -219,24 +204,6 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 >
                   <h2 className="text-base font-bold text-white mb-4">Payment Method</h2>
                   <div className="space-y-2">
-                    {/* Tokens */}
-                    <button
-                      onClick={() => setPaymentMethod('tokens')}
-                      disabled={!hasEnoughTokens}
-                      className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={paymentMethod === 'tokens'
-                        ? { background: 'rgba(255,255,255,0.1)', borderColor: '#FFFFFF' }
-                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
-                    >
-                      <TokenIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#FFFFFF' } as React.CSSProperties} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">Tokens</p>
-                        <p className={`text-xs ${hasEnoughTokens ? 'text-gray-500' : 'text-red-400'}`}>Balance: {userTokenBalance.toLocaleString()} TMKC</p>
-                      </div>
-                      <span className="text-sm font-bold text-white">{totalTokensCost.toLocaleString()}</span>
-                    </button>
-
-                    {/* Card */}
                     <button
                       onClick={() => setPaymentMethod('usd')}
                       className="w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 flex items-center gap-3"

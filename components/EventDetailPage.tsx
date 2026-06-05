@@ -247,11 +247,13 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
         {/* Back button */}
         <button
           onClick={() => onNavigate('eventTimeline')}
+          id="event-back-btn"
           className="absolute top-4 left-4 flex items-center gap-1.5 font-semibold text-sm text-white py-2 px-3 rounded-full backdrop-blur-sm transition-all active:scale-95"
           style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)' }}
+          aria-label="Go back"
         >
           <IcoArrow />
-          Feed
+          Back
         </button>
 
         {/* Days-until pill */}

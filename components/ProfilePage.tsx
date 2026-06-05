@@ -1,17 +1,12 @@
 
-
-
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Page, User, Booking, Venue, UserRole } from '../types';
+import { PencilIcon } from './icons/PencilIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import { CalendarDaysIcon } from './icons/CalendarDaysIcon';
-import { KeyIcon } from './icons/KeyIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { FaInstagram } from './icons/FaInstagram';
 import { FaTiktok } from './icons/FaTiktok';
 import { AskGabyIcon } from './icons/AskGabyIcon';
-import { PencilIcon } from './icons/PencilIcon';
-import { WalletIcon } from './icons/FeatureIcons';
 import { GroupIcon } from './icons/GroupIcon';
 import { RouteIcon } from './icons/RouteIcon';
 import { ChatIcon } from './icons/ChatIcon';
@@ -20,7 +15,9 @@ import { UserPlusIcon } from './icons/UserPlusIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { ChartPieIcon } from './icons/ChartPieIcon';
-import { CreditCardIcon } from './icons/CreditCardIcon'; // Added import
+import { CreditCardIcon } from './icons/CreditCardIcon';
+import { CalendarDaysIcon } from './icons/CalendarDaysIcon';
+import { KeyIcon } from './icons/KeyIcon';
 
 interface ProfilePageProps {
   onNavigate: (page: Page) => void;
@@ -32,359 +29,449 @@ interface ProfilePageProps {
   onViewVenueDetails: (venue: Venue) => void;
 }
 
+// ── Helpers ────────────────────────────────────────────────────
 const calculateProfileCompleteness = (user: User): number => {
-    let score = 0;
-    const totalPoints = 12;
-
-    if (user.name) score++;
-    if (user.profilePhoto && !user.profilePhoto.includes('seed')) score++;
-    if (user.bio && user.bio.length > 10) score++;
-    if (user.city) score++;
-    if (user.instagramHandle || user.tiktokHandle) score++;
-    if (user.phoneNumber) score++;
-    if (user.dob) score++;
-    if (user.ethnicity) score++;
-    if (user.appearance && (user.appearance.height || user.appearance.build)) score++;
-    if (user.preferences && user.preferences.music.length > 0) score++;
-    if (user.preferences && user.preferences.activities.length > 0) score++;
-    if (user.galleryImages && user.galleryImages.length >= 3) score++;
-
-    return Math.min(100, Math.round((score / totalPoints) * 100));
+  let score = 0;
+  const total = 12;
+  if (user.name) score++;
+  if (user.profilePhoto && !user.profilePhoto.includes('seed')) score++;
+  if (user.bio && user.bio.length > 10) score++;
+  if (user.city) score++;
+  if (user.instagramHandle || user.tiktokHandle) score++;
+  if (user.phoneNumber) score++;
+  if (user.dob) score++;
+  if (user.ethnicity) score++;
+  if (user.appearance && (user.appearance.height || user.appearance.build)) score++;
+  if (user.preferences && user.preferences.music.length > 0) score++;
+  if (user.preferences && user.preferences.activities.length > 0) score++;
+  if (user.galleryImages && user.galleryImages.length >= 3) score++;
+  return Math.min(100, Math.round((score / total) * 100));
 };
 
-const ProfileSection: React.FC<{ title: string; children: React.ReactNode; action?: React.ReactNode }> = ({ title, children, action }) => (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden mb-6 shadow-sm transition-all hover:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/30">
-            <h3 className="font-bold text-gray-200 uppercase tracking-wider text-sm">{title}</h3>
-            {action}
-        </div>
-        <div className="p-6">
-            {children}
-        </div>
+function getAge(dob?: string): number | null {
+  if (!dob) return null;
+  const b = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  if (now.getMonth() - b.getMonth() < 0 || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--;
+  return age;
+}
+
+// ── Sub-components ─────────────────────────────────────────────
+const StatBadge: React.FC<{ value: string | number; label: string; accent?: string }> = ({ value, label, accent = '#a78bfa' }) => (
+  <div className="flex flex-col items-center gap-0.5 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+    <span className="text-2xl font-black" style={{ color: accent }}>{value}</span>
+    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">{label}</span>
+  </div>
+);
+
+const InfoPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
+  <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-400"
+    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+    {icon}
+    {label}
+  </div>
+);
+
+const SectionLabel: React.FC<{ children: React.ReactNode; action?: React.ReactNode }> = ({ children, action }) => (
+  <div className="flex items-center justify-between mb-3">
+    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">{children}</p>
+    {action}
+  </div>
+);
+
+const NavRow: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  accent: string;
+  onClick: () => void;
+  id?: string;
+}> = ({ icon, label, accent, onClick, id }) => (
+  <button
+    id={id}
+    onClick={onClick}
+    className="w-full flex items-center gap-4 px-4 py-3.5 transition-all active:scale-[0.98] group"
+    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+  >
+    <div
+      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110"
+      style={{ background: `${accent}14`, border: `1px solid ${accent}30` }}
+    >
+      <span style={{ color: accent }}>{icon}</span>
     </div>
+    <span className="text-sm font-semibold text-white flex-grow text-left">{label}</span>
+    <ChevronRightIcon className="w-4 h-4 text-gray-700 group-hover:text-gray-400 transition-colors" />
+  </button>
 );
 
-const StatBox: React.FC<{ label: string; value: string | number; subtext?: string }> = ({ label, value, subtext }) => (
-    <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 text-center border border-gray-700/50 hover:border-gray-600 transition-colors">
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-xs text-gray-400 uppercase tracking-wide mt-1 font-semibold">{label}</p>
-        {subtext && <p className="text-[10px] text-gray-500 mt-1">{subtext}</p>}
-    </div>
+const VibePill: React.FC<{ children: string }> = ({ children }) => (
+  <span
+    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+    style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}
+  >
+    {children}
+  </span>
 );
 
-const PreferenceTag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-        {children}
-    </span>
-);
+// ── Main Page ──────────────────────────────────────────────────
+export const ProfilePage: React.FC<ProfilePageProps> = ({
+  onNavigate, currentUser, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails,
+}) => {
+  const user = currentUser;
+  if (!user) return null;
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails }) => {
-    
-    const user = currentUser;
-    if (!user) return null;
-    
-    const completeness = calculateProfileCompleteness(user);
-    const userBookings = bookingHistory.filter(b => b.userId === user.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
-    const favoriteVenues = venues.filter(v => favoriteVenueIds.includes(v.id)).slice(0, 3);
-    
-    const totalSpend = userBookings.length * 1500;
-    const eventsAttended = userBookings.filter(b => b.status === 'Completed').length;
+  const completeness  = calculateProfileCompleteness(user);
+  const age           = getAge(user.dob);
+  const userBookings  = bookingHistory.filter(b => b.userId === user.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+  const favoriteVenues = venues.filter(v => favoriteVenueIds.includes(v.id)).slice(0, 3);
+  const eventsAttended = userBookings.filter(b => b.status === 'Completed').length;
 
-    const calculateAge = (dob: string | undefined): number | null => {
-        if (!dob) return null;
-        const birthDate = new Date(dob);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        return age;
-    };
-    const age = calculateAge(user.dob);
+  // Role accent
+  const accent = user.role === UserRole.ADMIN ? '#a78bfa'
+    : user.role === UserRole.WINGMAN ? '#fb923c'
+    : '#6366f1';
 
-    const getProgressColor = (percent: number) => {
-        if (percent < 40) return 'bg-red-500';
-        if (percent < 75) return 'bg-yellow-500';
-        return 'bg-green-500';
-    };
+  const topMusic    = user.preferences?.music?.[0];
+  const topActivity = user.preferences?.activities?.[0];
 
-    return (
-        <div className="animate-fade-in pb-4">
-            {/* Hero Section */}
-            <div className="relative bg-gradient-to-b from-gray-900 to-[#121212] border-b border-gray-800 pb-12 pt-8 px-6">
-                <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
-                    
-                    {/* Profile Photo & Edit */}
-                    <div className="relative flex-shrink-0 group">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 shadow-2xl">
-                             <img src={user.profilePhoto} alt={user.name} className="w-full h-full rounded-full object-cover border-4 border-[#121212]" />
-                        </div>
-                        <button 
-                            onClick={() => onNavigate('editProfile')} 
-                            className="absolute bottom-1 right-1 bg-gray-800 p-2.5 rounded-full text-white hover:bg-gray-700 border-2 border-[#121212] transition-colors shadow-lg group-hover:scale-110"
-                            aria-label="Edit profile"
-                        >
-                            <PencilIcon className="w-4 h-4 group-hover:text-amber-400" />
-                        </button>
-                    </div>
-                    
-                    {/* User Info & Completeness */}
-                    <div className="flex-grow text-center md:text-left w-full">
-                        <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
-                            <div>
-                                <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
-                                <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                                    <span className="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-xs font-bold border border-gray-700">
-                                        <KeyIcon className="w-3 h-3 text-amber-400" />
-                                        {user.accessLevel}
-                                    </span>
-                                    {user.city && (
-                                        <span className="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-xs font-medium border border-gray-700">
-                                            <LocationMarkerIcon className="w-3 h-3 text-blue-400" />
-                                            {user.city}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+  return (
+    <div className="min-h-screen animate-fade-in pb-36" style={{ background: '#080808' }}>
 
-                            {/* Profile Strength Indicator */}
-                            <div className="bg-gray-800/50 p-3 rounded-xl border border-gray-700 min-w-[200px] backdrop-blur-sm shadow-lg">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Profile Strength</span>
-                                    <span className={`font-bold text-sm ${completeness === 100 ? 'text-green-400' : 'text-amber-400'}`}>{completeness}%</span>
-                                </div>
-                                <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                    <div 
-                                        className={`h-full transition-all duration-1000 ease-out ${getProgressColor(completeness)}`} 
-                                        style={{ width: `${completeness}%` }}
-                                    ></div>
-                                </div>
-                                {completeness < 100 ? (
-                                    <button onClick={() => onNavigate('editProfile')} className="text-[10px] text-amber-400 mt-2 hover:underline w-full text-right font-medium">
-                                        Complete Profile &rarr;
-                                    </button>
-                                ) : (
-                                    <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-green-400 font-bold">
-                                        <CheckCircleIcon className="w-3 h-3" /> All Set
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+      {/* ── Hero Card ──────────────────────────────────────────── */}
+      <div className="relative px-5 pt-8 pb-0">
+        <div
+          className="rounded-3xl p-6 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg,#09090b 0%,#111827 100%)',
+            border: `1px solid ${accent}25`,
+          }}
+        >
+          {/* Ambient glow */}
+          <div
+            className="absolute top-0 right-0 w-48 h-48 opacity-[0.08] pointer-events-none"
+            style={{ background: `radial-gradient(circle,${accent},transparent 70%)`, transform: 'translate(20%,-20%)' }}
+          />
 
-                        <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-400">
-                             {user.email && (
-                                 <div className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg border border-gray-700/50 max-w-full">
-                                     <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                     </svg>
-                                     <span className="truncate">{user.email}</span>
-                                 </div>
-                             )}
-                             {age && (
-                                 <div className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg border border-gray-700/50">
-                                     <CalendarDaysIcon className="w-4 h-4 text-gray-500" />
-                                     <span>{age} years old</span>
-                                 </div>
-                             )}
-                             {user.instagramHandle && (
-                                <a href={`https://instagram.com/${user.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-gray-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-gray-500">
-                                    <FaInstagram className="w-4 h-4" />
-                                    <span>@{user.instagramHandle}</span>
-                                </a>
-                             )}
-                             {user.tiktokHandle && (
-                                <a href={`https://tiktok.com/@${user.tiktokHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gray-800/30 px-3 py-1.5 rounded-lg hover:text-gray-400 hover:bg-gray-800 transition-colors border border-gray-700/50 hover:border-gray-500">
-                                    <FaTiktok className="w-4 h-4" />
-                                    <span>@{user.tiktokHandle}</span>
-                                </a>
-                             )}
-                        </div>
-                    </div>
-                </div>
+          {/* Avatar row */}
+          <div className="relative z-10 flex items-center gap-4 mb-5">
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-20 h-20 rounded-2xl overflow-hidden"
+                style={{ border: `2px solid ${accent}50` }}
+              >
+                <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
+              </div>
+              <button
+                onClick={() => onNavigate('editProfile')}
+                id="profile-edit-photo-btn"
+                aria-label="Edit profile"
+                className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                style={{ background: accent, border: '2px solid #080808' }}
+              >
+                <PencilIcon className="w-3 h-3 text-white" />
+              </button>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="max-w-5xl mx-auto p-4 md:p-6">
-                
-                {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-4 mb-8 -mt-12 relative z-10">
-                    <StatBox label="Bookings" value={bookingHistory.length} subtext="Lifetime" />
-                    <StatBox label="Events" value={eventsAttended} subtext="Attended" />
-                    <StatBox label="Est. Spend" value={`$${(totalSpend/1000).toFixed(1)}k`} subtext="Total Value" />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* Left Column: Personal Details */}
-                    <div className="lg:col-span-2 space-y-8">
-                        
-                        <ProfileSection title="About Me" action={<button onClick={() => onNavigate('editProfile')} className="text-gray-400 hover:text-white transition-colors"><PencilIcon className="w-4 h-4" /></button>}>
-                             <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-line">{user.bio || "Tell us about yourself to get better recommendations."}</p>
-                        </ProfileSection>
-
-                        {user.preferences && (
-                            <ProfileSection title="Vibe & Preferences" action={<button onClick={() => onNavigate('editProfile')} className="text-gray-400 hover:text-white transition-colors"><PencilIcon className="w-4 h-4" /></button>}>
-                                 <div className="space-y-6">
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase font-bold mb-3">My Vibe</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.preferences.personality && <PreferenceTag>{user.preferences.personality}</PreferenceTag>}
-                                            {user.preferences.timeOfDay && <PreferenceTag>{user.preferences.timeOfDay}</PreferenceTag>}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase font-bold mb-3">Music</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.preferences.music.length > 0 ? user.preferences.music.map(m => <PreferenceTag key={m}>{m}</PreferenceTag>) : <span className="text-gray-500 text-sm italic">No music preferences selected.</span>}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase font-bold mb-3">Activities</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {user.preferences.activities.length > 0 ? user.preferences.activities.map(a => <PreferenceTag key={a}>{a}</PreferenceTag>) : <span className="text-gray-500 text-sm italic">No activities selected.</span>}
-                                        </div>
-                                    </div>
-                                 </div>
-                            </ProfileSection>
-                        )}
-                        
-                        {user.appearance && (
-                             <ProfileSection title="Appearance" action={<button onClick={() => onNavigate('editProfile')} className="text-gray-400 hover:text-white transition-colors"><PencilIcon className="w-4 h-4" /></button>}>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                                    <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-800"><p className="text-gray-500 text-xs uppercase font-bold mb-1">Height</p><p className="text-white font-medium">{user.appearance.height || '-'}</p></div>
-                                    <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-800"><p className="text-gray-500 text-xs uppercase font-bold mb-1">Build</p><p className="text-white font-medium">{user.appearance.build || '-'}</p></div>
-                                    <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-800"><p className="text-gray-500 text-xs uppercase font-bold mb-1">Hair</p><p className="text-white font-medium">{user.appearance.hairColor || '-'}</p></div>
-                                    <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-800"><p className="text-gray-500 text-xs uppercase font-bold mb-1">Eyes</p><p className="text-white font-medium">{user.appearance.eyeColor || '-'}</p></div>
-                                </div>
-                             </ProfileSection>
-                        )}
-
-                        <ProfileSection title="Gallery" action={<button onClick={() => onNavigate('editProfile')} className="text-amber-400 text-xs font-bold hover:underline">Manage Photos</button>}>
-                             {user.galleryImages && user.galleryImages.length > 0 ? (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                    {user.galleryImages.map((img, index) => (
-                                        <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-800 border border-gray-700 group cursor-pointer">
-                                            <img src={img} alt="Gallery" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8 bg-gray-800/30 rounded-lg border border-dashed border-gray-700">
-                                    <p className="text-gray-500 text-sm">Add photos to complete your profile.</p>
-                                </div>
-                            )}
-                        </ProfileSection>
-                    </div>
-
-                    {/* Right Column: Activity & Menu */}
-                    <div className="space-y-8">
-                        
-                        {/* Recent Activity */}
-                        <div className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                                <h3 className="font-bold text-gray-200 uppercase tracking-wider text-sm">Recent Activity</h3>
-                                <button onClick={() => onNavigate('bookings')} className="text-amber-400 text-xs font-bold hover:underline">View All</button>
-                            </div>
-                             <div className="p-4 space-y-3">
-                                {userBookings.length > 0 ? userBookings.map(booking => (
-                                    <div key={booking.id} className="flex justify-between items-center p-3 bg-gray-800/40 rounded-lg border border-gray-800 hover:bg-gray-800 transition-colors">
-                                        <div>
-                                            <p className="font-bold text-white text-sm">{booking.venueName}</p>
-                                            <p className="text-xs text-gray-400">{booking.date}</p>
-                                        </div>
-                                        <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase ${booking.status === 'Confirmed' ? 'bg-blue-900/50 text-blue-300 border border-blue-800' : 'bg-gray-700/50 text-gray-400 border border-gray-600'}`}>{booking.status}</span>
-                                    </div>
-                                )) : <p className="text-gray-500 text-sm text-center py-4">No recent bookings.</p>}
-                            </div>
-                        </div>
-                        
-                        {/* Favorites */}
-                         <div className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                                <h3 className="font-bold text-gray-200 uppercase tracking-wider text-sm">Favorites</h3>
-                                <button onClick={() => onNavigate('favorites')} className="text-amber-400 text-xs font-bold hover:underline">View All</button>
-                            </div>
-                            <div className="p-4 space-y-3">
-                                {favoriteVenues.length > 0 ? favoriteVenues.map(venue => (
-                                    <button key={venue.id} onClick={() => onViewVenueDetails(venue)} className="w-full flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
-                                        <img src={venue.coverImage} alt={venue.name} className="w-12 h-12 rounded-md object-cover" />
-                                        <div className="text-left flex-grow min-w-0">
-                                            <p className="font-bold text-white text-sm truncate">{venue.name}</p>
-                                            <p className="text-xs text-gray-400 truncate">{venue.location}</p>
-                                        </div>
-                                        <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                                    </button>
-                                )) : <p className="text-gray-500 text-sm text-center py-4">No favorites yet.</p>}
-                            </div>
-                        </div>
-
-                        {/* Quick Links Menu */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-800">
-                             {currentUser.role === UserRole.WINGMAN && (
-                                <button onClick={() => onNavigate('wingmanDashboard')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                    <div className="p-2 bg-gray-800 rounded-full text-gray-300"><ChartPieIcon className="w-4 h-4" /></div>
-                                    <span className="text-white text-sm font-bold flex-grow text-left">Wingman Dashboard</span>
-                                    <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                                </button>
-                            )}
-                            <button onClick={() => onNavigate('accessGroups')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-blue-400"><GroupIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Access Groups</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button onClick={() => onNavigate('invitations')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-green-400"><UserPlusIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Invitations</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button onClick={() => onNavigate('myItineraries')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-gray-300"><RouteIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Itineraries</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                            {user.role === UserRole.WINGMAN && (
-                                 <button onClick={() => onNavigate('wingmanStats')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                    <div className="p-2 bg-gray-800 rounded-full text-gray-400"><ChartBarIcon className="w-4 h-4" /></div>
-                                    <span className="text-white text-sm font-bold flex-grow text-left">Wingman Stats</span>
-                                    <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                                </button>
-                            )}
-                            <button onClick={() => onNavigate('eventChatsList')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-indigo-400"><ChatIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Chats</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button onClick={() => onNavigate('paymentMethods')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-green-400"><CreditCardIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Payment Methods</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                             <button onClick={() => onNavigate('settings')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-gray-400"><SettingsIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Settings</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                            <button onClick={() => onNavigate('chatbot')} className="w-full flex items-center gap-4 p-4 hover:bg-gray-800 transition-colors">
-                                <div className="p-2 bg-gray-800 rounded-full text-amber-400"><AskGabyIcon className="w-4 h-4" /></div>
-                                <span className="text-white text-sm font-bold flex-grow text-left">Ask Gaby</span>
-                                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-                            </button>
-                        </div>
-                        
-                        {currentUser.role === UserRole.USER && (
-                            <div className="text-center pt-4">
-                                <button 
-                                    onClick={() => onNavigate('wingmanApplication')}
-                                    className="text-xs text-gray-500 hover:text-amber-400 hover:underline transition-colors"
-                                >
-                                    Apply to be a Wingman
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                style={{ color: accent }}
+              >
+                {user.role === UserRole.ADMIN ? '⚡ Admin' : user.role === UserRole.WINGMAN ? '🔥 Wingman' : '✦ Member'}
+              </p>
+              <h1
+                className="text-2xl font-black text-white leading-tight truncate"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {user.name}
+              </h1>
+              {user.accessLevel && (
+                <p className="text-xs text-gray-500 mt-0.5">{user.accessLevel}</p>
+              )}
             </div>
+
+            <button
+              onClick={() => onNavigate('editProfile')}
+              id="profile-edit-btn"
+              className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all hover:opacity-80"
+              style={{ background: `${accent}14`, border: `1px solid ${accent}30`, color: accent }}
+            >
+              <PencilIcon className="w-3.5 h-3.5" />
+              Edit
+            </button>
+          </div>
+
+          {/* Info pills */}
+          <div className="relative z-10 flex flex-wrap gap-2 mb-4">
+            {user.city && (
+              <InfoPill icon={<LocationMarkerIcon className="w-3.5 h-3.5" />} label={user.city} />
+            )}
+            {age && (
+              <InfoPill icon={<CalendarDaysIcon className="w-3.5 h-3.5" />} label={`${age} yrs`} />
+            )}
+            {user.instagramHandle && (
+              <a
+                href={`https://instagram.com/${user.instagramHandle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-pink-400 transition-opacity hover:opacity-80"
+                style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.2)' }}
+              >
+                <FaInstagram className="w-3.5 h-3.5" />
+                @{user.instagramHandle}
+              </a>
+            )}
+            {user.tiktokHandle && (
+              <a
+                href={`https://tiktok.com/@${user.tiktokHandle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-80"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <FaTiktok className="w-3.5 h-3.5" />
+                @{user.tiktokHandle}
+              </a>
+            )}
+          </div>
+
+          {/* Bio */}
+          {user.bio && (
+            <p className="relative z-10 text-sm text-gray-400 leading-relaxed line-clamp-2 mb-4">
+              {user.bio}
+            </p>
+          )}
+
+          {/* Profile strength */}
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Profile Strength</p>
+              <button
+                onClick={() => onNavigate('editProfile')}
+                className="text-[10px] font-bold transition-colors"
+                style={{ color: completeness === 100 ? '#4ade80' : accent }}
+              >
+                {completeness === 100 ? (
+                  <span className="flex items-center gap-1"><CheckCircleIcon className="w-3 h-3" /> Complete</span>
+                ) : `${completeness}% — Finish →`}
+              </button>
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{
+                  width: `${completeness}%`,
+                  background: completeness === 100
+                    ? 'linear-gradient(90deg,#4ade80,#22c55e)'
+                    : `linear-gradient(90deg,${accent},${accent}80)`,
+                }}
+              />
+            </div>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* ── Stats strip ────────────────────────────────────────── */}
+      <div className="px-5 mt-4 grid grid-cols-3 gap-3">
+        <StatBadge value={bookingHistory.length} label="Bookings" accent={accent} />
+        <StatBadge value={eventsAttended} label="Attended" accent="#34d399" />
+        <StatBadge value={favoriteVenueIds.length} label="Saved" accent="#fb923c" />
+      </div>
+
+      {/* ── Vibe & Preferences ─────────────────────────────────── */}
+      {(topMusic || topActivity) && (
+        <div className="px-5 mt-6">
+          <SectionLabel>Your Vibe</SectionLabel>
+          <div className="flex flex-wrap gap-2">
+            {topMusic && <VibePill>{topMusic}</VibePill>}
+            {topActivity && <VibePill>{topActivity}</VibePill>}
+            {user.preferences?.personality && <VibePill>{user.preferences.personality}</VibePill>}
+            {user.preferences?.timeOfDay && <VibePill>{user.preferences.timeOfDay}</VibePill>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Gallery preview ────────────────────────────────────── */}
+      {user.galleryImages && user.galleryImages.length > 0 && (
+        <div className="px-5 mt-6">
+          <SectionLabel
+            action={
+              <button onClick={() => onNavigate('editProfile')} className="text-[10px] font-bold" style={{ color: accent }}>
+                Manage →
+              </button>
+            }
+          >
+            Gallery
+          </SectionLabel>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {user.galleryImages.slice(0, 6).map((img, i) => (
+              <div key={i} className="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden"
+                style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent Bookings ────────────────────────────────────── */}
+      <div className="px-5 mt-6">
+        <SectionLabel
+          action={
+            <button onClick={() => onNavigate('bookings')} className="text-[10px] font-bold" style={{ color: accent }}>
+              View All →
+            </button>
+          }
+        >
+          Recent Activity
+        </SectionLabel>
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {userBookings.length > 0 ? userBookings.map((b, i) => (
+            <div
+              key={b.id}
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: i < userBookings.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+            >
+              <div>
+                <p className="text-sm font-bold text-white">{b.venueName}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{b.date}</p>
+              </div>
+              <span
+                className="text-[10px] font-black px-2 py-1 rounded-lg uppercase"
+                style={b.status === 'Confirmed'
+                  ? { background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }
+                  : { background: 'rgba(255,255,255,0.05)', color: '#6b7280', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                {b.status}
+              </span>
+            </div>
+          )) : (
+            <div className="flex flex-col items-center py-10 text-center">
+              <p className="text-sm text-gray-600">No bookings yet.</p>
+              <button
+                onClick={() => onNavigate('eventTimeline')}
+                className="mt-3 text-xs font-bold"
+                style={{ color: accent }}
+              >
+                Browse Events →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Saved Venues ───────────────────────────────────────── */}
+      {favoriteVenues.length > 0 && (
+        <div className="px-5 mt-6">
+          <SectionLabel
+            action={
+              <button onClick={() => onNavigate('favorites')} className="text-[10px] font-bold" style={{ color: accent }}>
+                View All →
+              </button>
+            }
+          >
+            Saved Venues
+          </SectionLabel>
+          <div
+            className="rounded-2xl overflow-hidden divide-y"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', divideBorderColor: 'rgba(255,255,255,0.05)' } as React.CSSProperties}
+          >
+            {favoriteVenues.map((venue, i) => (
+              <button
+                key={venue.id}
+                onClick={() => onViewVenueDetails(venue)}
+                className="w-full flex items-center gap-3 px-4 py-3 transition-all hover:bg-white/[0.02] active:scale-[0.99]"
+                style={{ borderBottom: i < favoriteVenues.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+              >
+                <img src={venue.coverImage} alt={venue.name} className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+                <div className="text-left flex-grow min-w-0">
+                  <p className="font-bold text-white text-sm truncate">{venue.name}</p>
+                  <p className="text-xs text-gray-600 truncate">{venue.location}</p>
+                </div>
+                <ChevronRightIcon className="w-4 h-4 text-gray-700 flex-shrink-0" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Navigation Menu ────────────────────────────────────── */}
+      <div className="px-5 mt-6">
+        <SectionLabel>Quick Access</SectionLabel>
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {user.role === UserRole.WINGMAN && (
+            <NavRow id="profile-wingman-dash" icon={<ChartPieIcon className="w-4.5 h-4.5" />} label="Wingman Dashboard" accent="#fb923c" onClick={() => onNavigate('wingmanDashboard')} />
+          )}
+          <NavRow id="profile-access-groups" icon={<GroupIcon className="w-4.5 h-4.5" />} label="Access Groups" accent="#60a5fa" onClick={() => onNavigate('accessGroups')} />
+          <NavRow id="profile-invitations" icon={<UserPlusIcon className="w-4.5 h-4.5" />} label="Invitations" accent="#4ade80" onClick={() => onNavigate('invitations')} />
+          <NavRow id="profile-itineraries" icon={<RouteIcon className="w-4.5 h-4.5" />} label="Itineraries" accent="#a78bfa" onClick={() => onNavigate('myItineraries')} />
+          {user.role === UserRole.WINGMAN && (
+            <NavRow id="profile-wingman-stats" icon={<ChartBarIcon className="w-4.5 h-4.5" />} label="Wingman Stats" accent="#fb923c" onClick={() => onNavigate('wingmanStats')} />
+          )}
+          <NavRow id="profile-chats" icon={<ChatIcon className="w-4.5 h-4.5" />} label="Chats" accent="#818cf8" onClick={() => onNavigate('eventChatsList')} />
+          <NavRow id="profile-payment" icon={<CreditCardIcon className="w-4.5 h-4.5" />} label="Payment Methods" accent="#34d399" onClick={() => onNavigate('paymentMethods')} />
+          <NavRow id="profile-settings" icon={<SettingsIcon className="w-4.5 h-4.5" />} label="Settings" accent="#9ca3af" onClick={() => onNavigate('settings')} />
+          <div style={{ borderBottom: 'none' }}>
+            <NavRow id="profile-ask-gaby" icon={<AskGabyIcon className="w-4.5 h-4.5" />} label="Ask Gaby" accent="#fbbf24" onClick={() => onNavigate('chatbot')} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Appearance ─────────────────────────────────────────── */}
+      {user.appearance && (
+        <div className="px-5 mt-6">
+          <SectionLabel
+            action={
+              <button onClick={() => onNavigate('editProfile')} className="text-[10px] font-bold" style={{ color: accent }}>
+                Edit →
+              </button>
+            }
+          >
+            Appearance
+          </SectionLabel>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Height', val: user.appearance.height },
+              { label: 'Build',  val: user.appearance.build  },
+              { label: 'Hair',   val: user.appearance.hairColor },
+              { label: 'Eyes',   val: user.appearance.eyeColor },
+            ].map(({ label, val }) => (
+              <div
+                key={label}
+                className="rounded-2xl p-3 text-center"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-600 mb-1">{label}</p>
+                <p className="text-sm font-bold text-white">{val || '—'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Wingman apply CTA ──────────────────────────────────── */}
+      {user.role === UserRole.USER && (
+        <div className="px-5 mt-8">
+          <button
+            onClick={() => onNavigate('wingmanApplication')}
+            className="w-full flex items-center justify-between rounded-2xl px-5 py-4 transition-all active:scale-[0.98]"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <div className="text-left">
+              <p className="text-sm font-bold text-white">Become a Wingman</p>
+              <p className="text-xs text-gray-600 mt-0.5">Apply to host exclusive experiences</p>
+            </div>
+            <span className="text-gray-600">→</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };

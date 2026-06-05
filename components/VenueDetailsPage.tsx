@@ -28,6 +28,7 @@ interface VenueDetailsPageProps {
   onJoinGuestlist: (wingman: Wingman, venue: Venue) => void;
   guestlistJoinRequests: GuestlistJoinRequest[];
   onCheckIn: (venueId: number, qrData: string) => void;
+  onNavigate?: (page: string, params?: any) => void;
 }
 
 const DetailChip: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
@@ -37,7 +38,30 @@ const DetailChip: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, 
     </div>
 );
 
-export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBack, onBookVenue, isFavorite, onToggleFavorite, currentUser, onUpdateVenue, wingmen, onBookWithSpecificWingman, onJoinGuestlist, guestlistJoinRequests, onCheckIn }) => {
+// ── Dress code icon ────────────────────────────────────────────────────────────
+const ShirtIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 3H5L2 9l3 1.5V21h14V10.5L22 9l-3-6h-4m-6 0l3 3 3-3m-6 0c0 1.657 1.343 3 3 3s3-1.343 3-3" />
+  </svg>
+);
+
+const DoorIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12V5a2 2 0 012-2h14a2 2 0 012 2v7M3 12v7a2 2 0 002 2h14a2 2 0 002-2v-7M3 12h18M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+const TimerIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+  </svg>
+);
+
+export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({
+  venue, onBack, onBookVenue, isFavorite, onToggleFavorite, currentUser,
+  onUpdateVenue, wingmen, onBookWithSpecificWingman, onJoinGuestlist,
+  guestlistJoinRequests, onCheckIn, onNavigate,
+}) => {
   const [isImageGenerating, setIsImageGenerating] = useState(false);
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
   const [videoLoadingMessage, setVideoLoadingMessage] = useState('');
@@ -89,14 +113,6 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
   const hasApprovedGuestlist = activeGuestlistRequest?.status === 'approved';
   const isCheckedIn = activeGuestlistRequest?.attendanceStatus === 'show';
 
-  const videoLoadingMessages = [
-    "Our AI director is setting up the scene...",
-    "Shooting the perfect angles of the venue...",
-    "Editing the footage... this can take a few minutes.",
-    "Applying final color grading and effects...",
-    "Almost ready to premiere!",
-  ];
-
   const handleGenerateImage = async () => {
       (window as any).showAppToast?.("AI image generation is temporarily unavailable. Please upload a cover image manually.");
   };
@@ -123,6 +139,17 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
     setIsFavoriteModalOpen(false);
   };
 
+  const handleBookNow = () => {
+    // Navigate to the event timeline — this is where recurring events are booked
+    if (onNavigate) {
+      onNavigate('eventTimeline');
+    } else {
+      onBookVenue(venue);
+    }
+  };
+
+  const hasDressInfo = venue.dressCode || venue.entryNotes || venue.arrivalTip;
+
   return (
     <>
     {isVideoGenerating && (
@@ -136,6 +163,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
       <QrScanner onClose={() => setIsScannerOpen(false)} onScan={handleScan} />
     )}
     <div className={`animate-fade-in ${showBottomNav ? 'pb-44' : 'pb-24'}`}>
+      {/* ── Hero image ─────────────────────────────────────────── */}
       <div className="relative">
         {showVideo && venue.videoTourUrl ? (
             <video
@@ -165,6 +193,20 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
         
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"></div>
 
+        {/* ← Back button */}
+        <button
+          onClick={onBack}
+          id="venue-back-btn"
+          className="absolute top-4 left-4 flex items-center gap-1.5 font-semibold text-sm text-white py-2 px-3 rounded-full backdrop-blur-sm transition-all active:scale-95"
+          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)' }}
+          aria-label="Go back"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+
         {venue.coverImage && venue.videoTourUrl && !showVideo && (
             <div className="absolute inset-0 flex items-center justify-center">
                 <button onClick={() => setShowVideo(true)} className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all hover:scale-110" aria-label="Play video tour">
@@ -186,6 +228,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
             </div>
         )}
 
+        {/* Venue name + favorite */}
         <div className="absolute bottom-0 left-0 p-6 w-full">
             <div className="flex items-center gap-4">
                 <h1 className="text-4xl font-extrabold text-white">{venue.name}</h1>
@@ -212,6 +255,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
       </div>
       
       <div className="p-6">
+        {/* Check-in / guestlist status */}
         {isCheckedIn && (
             <div className="w-full flex items-center justify-center gap-3 bg-green-500/20 text-green-400 font-bold py-3 px-6 rounded-lg mb-8 border border-green-500/50">
                 <CheckCircleIcon className="w-6 h-6" />
@@ -228,6 +272,8 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
                 Check-in at {venue.name}
             </button>
         )}
+
+        {/* ── Operating Hours ───────────────────────────────────── */}
         <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <ClockIcon className="w-5 h-5" />
@@ -256,6 +302,61 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
             </p>
         </div>
 
+        {/* ── Dress Code & Entry Guide ──────────────────────────── */}
+        {hasDressInfo && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <ShirtIcon className="w-5 h-5" />
+              Dress Code &amp; Entry
+            </h2>
+            <div className="space-y-3">
+
+              {/* Dress Code */}
+              {venue.dressCode && (
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShirtIcon className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <p className="text-xs font-bold text-amber-400 uppercase tracking-widest">What to Wear</p>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{venue.dressCode}</p>
+                </div>
+              )}
+
+              {/* Entry Notes */}
+              {venue.entryNotes && (
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <DoorIcon className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                    <p className="text-xs font-bold text-purple-400 uppercase tracking-widest">At the Door</p>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{venue.entryNotes}</p>
+                </div>
+              )}
+
+              {/* Arrival tip */}
+              {venue.arrivalTip && (
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <TimerIcon className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">Best Time to Arrive</p>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{venue.arrivalTip}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Amenities ────────────────────────────────────────── */}
         {venue.amenities && venue.amenities.length > 0 && (
             <div className="mb-8">
                 <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Amenities</h2>
@@ -269,9 +370,7 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
             </div>
         )}
 
-
-        
-        {/* Experience Pricing — pulled from the venue category */}
+        {/* ── Experience Pricing ────────────────────────────────── */}
         <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Experience Pricing</h2>
             <div className="space-y-3">
@@ -316,21 +415,40 @@ export const VenueDetailsPage: React.FC<VenueDetailsPageProps> = ({ venue, onBac
                 ));
               })()}
             </div>
-            <p className="text-xs text-gray-600 mt-4">Browse the Timeline to see all upcoming events and book a spot.</p>
         </div>
 
       </div>
-      
-
-        <FavoriteConfirmationModal 
-            isOpen={isFavoriteModalOpen}
-            onClose={() => setIsFavoriteModalOpen(false)}
-            onConfirm={confirmFavorite}
-            entityName={venue.name}
-            entityType="Venue"
-            action={isFavorite ? 'remove' : 'add'}
-        />
     </div>
+
+    {/* ── Sticky Book Now button ────────────────────────────────── */}
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 p-4"
+      style={{
+        background: 'linear-gradient(to top, #000000 60%, transparent)',
+        paddingBottom: showBottomNav ? '88px' : '24px',
+      }}
+    >
+      <button
+        id="venue-book-now-btn"
+        onClick={handleBookNow}
+        className="w-full py-4 rounded-2xl text-base font-black text-white transition-all active:scale-[0.98]"
+        style={{
+          background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
+          boxShadow: '0 8px 32px rgba(224,64,251,0.35)',
+        }}
+      >
+        Reserve a Spot at {venue.name} →
+      </button>
+    </div>
+
+    <FavoriteConfirmationModal 
+        isOpen={isFavoriteModalOpen}
+        onClose={() => setIsFavoriteModalOpen(false)}
+        onConfirm={confirmFavorite}
+        entityName={venue.name}
+        entityType="Venue"
+        action={isFavorite ? 'remove' : 'add'}
+    />
     </>
   );
 };
