@@ -168,18 +168,34 @@ export const AccessGroupsPage: React.FC<AccessGroupsPageProps> = ({
                 className="sticky top-0 z-30 px-4 pt-5 pb-4"
                 style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
-                    <div>
+                <div className="flex items-center justify-between max-w-7xl mx-auto gap-3">
+                    {/* ← Back */}
+                    <button
+                        onClick={() => onNavigate('home')}
+                        id="access-groups-back-btn"
+                        aria-label="Go back"
+                        className="flex items-center gap-1.5 flex-shrink-0 text-sm font-semibold text-white py-2 px-3 rounded-full transition-all active:scale-95"
+                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back
+                    </button>
+
+                    {/* Title */}
+                    <div className="flex-1 min-w-0">
                         <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                             Access Groups
                         </h1>
                         <p className="text-xs text-gray-500 mt-0.5">Exclusive communities for the Wingman network</p>
                     </div>
+
                     {canCreateGroup && (
                         <button
                             onClick={() => onNavigate('createGroup')}
                             id="create-group-btn"
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-black text-white transition-all hover:opacity-90"
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 flex-shrink-0"
                             style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF)', color: '#000' }}
                         >
                             <PlusIcon className="w-4 h-4" />
@@ -188,6 +204,7 @@ export const AccessGroupsPage: React.FC<AccessGroupsPageProps> = ({
                     )}
                 </div>
             </div>
+
 
             <div className="px-4 pb-28 max-w-7xl mx-auto space-y-10 pt-6">
 
