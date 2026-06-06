@@ -2022,9 +2022,21 @@ export const App: React.FC = () => {
                             return exists ? prev.map(it => it.id === i.id ? i as any : it) : [...prev, i as any];
                         });
                         showToast('Itinerary saved.', 'success');
-                        handleNavigate('myItineraries');
+                        // After save, return to the detail page so the user sees their updated itinerary
+                        if (i.id) {
+                            handleNavigate('itineraryDetails', { itineraryId: i.id });
+                        } else {
+                            handleNavigate('myItineraries');
+                        }
                     }} 
-                    onCancel={() => handleNavigate('myItineraries')} 
+                    onCancel={() => {
+                        // Back → go to itineraryDetails if editing an existing one, otherwise list
+                        if (pageParams.itineraryId) {
+                            handleNavigate('itineraryDetails', { itineraryId: pageParams.itineraryId });
+                        } else {
+                            handleNavigate('myItineraries');
+                        }
+                    }} 
                     itinerary={existingItinerary} 
                     venues={appVenues} 
                     events={appEvents} 
