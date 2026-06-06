@@ -15,10 +15,9 @@ export const PASSCODE_STORAGE_KEY = 'wm_admin_passcode';
 export const ACCESS_DURATION_MS  = 24 * 60 * 60 * 1000; // 24 hours
 
 // ─── Default passcode ─────────────────────────────────────────
-// NO hardcoded fallback — admin MUST set a passcode via the Admin Dashboard
-// before the gate will accept any entry. This prevents the dev default from
-// being used as a backdoor in production.
-const DEFAULT_PASSCODE = null;
+// This is the fallback used when no passcode has been set via the
+// Admin Dashboard. Admin should rotate this immediately after first login.
+const DEFAULT_PASSCODE = 'WINGMAN2025';
 
 export interface AccessSession {
   email: string;
@@ -37,7 +36,7 @@ export function getAdminPasscode(): string | null {
       return parsed.code;
     }
   } catch {}
-  return DEFAULT_PASSCODE; // null — admin must set a passcode in the dashboard
+  return DEFAULT_PASSCODE; // fallback until admin sets a custom code
 }
 
 export function setAdminPasscode(code: string): void {
