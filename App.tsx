@@ -2119,19 +2119,28 @@ export const App: React.FC = () => {
                     .filter(b => b.userId === currentUser.id)
                     .map(b => {
                         const inst = allInstances.find(i => i.instanceId === b.instanceId);
+                        // Clean fallback: strip trailing date, replace hyphens, title-case
+                        const cleanName = inst?.title ?? b.instanceId
+                            .replace(/-\d{4}-\d{2}-\d{2}$/, '')
+                            .replace(/-/g, ' ')
+                            .replace(/\b\w/g, c => c.toUpperCase())
+                            .replace(/\[test\]/i, '[TEST]');
                         return {
                             id: b.id,
-                            name: inst?.title ?? b.instanceId,
+                            name: cleanName,
                             type: 'event' as const,
                             image: inst?.coverImage ?? '',
-                            date: inst?.date ?? b.bookedAt.slice(0, 10),
-                            sortableDate: inst?.date ?? b.bookedAt.slice(0, 10),
+                            date: inst?.date ?? b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] ?? b.bookedAt.slice(0, 10),
+                            sortableDate: inst?.date ?? b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] ?? b.bookedAt.slice(0, 10),
                             fullPrice: b.totalPaid,
                             depositPrice: b.totalPaid,
                             paymentOption: 'full' as const,
                             bookedTimestamp: new Date(b.bookedAt).getTime(),
-                            quantity: 1,
-                        };
+                            quantity: b.partySize,
+                            // Extra metadata for the receipt card
+                            guestDetails: { name: b.guestName || currentUser.name, email: b.guestEmail || currentUser.email } as any,
+                            paymentMethod: b.totalPaid > 0 ? 'usd' : 'usd',
+                        } as CartItem;
                     });
                 // Gate checkout if passcode user hasn't built their profile yet
                 if (profileRequired) {
