@@ -23,6 +23,16 @@ export default async (req: Request) => {
       return new Response(JSON.stringify({ error: 'session_id required' }), { status: 400 });
     }
 
+    // ── Free booking bypass ───────────────────────────────────────────────────
+    // session_ids prefixed with 'free-' are generated locally for $0 bookings
+    // that bypassed Stripe. No Stripe call needed — they are always considered paid.
+    if (sessionId.startsWith('free-')) {
+      return new Response(
+        JSON.stringify({ paid: true, status: 'complete', amountTotal: 0, currency: 'usd', customerEmail: '', cartContext: '' }),
+        { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
+    }
+
     const stripe = new Stripe(apiKey, { apiVersion: '2026-02-25.clover' as any });
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 

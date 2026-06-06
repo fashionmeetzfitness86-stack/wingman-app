@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest } from '../types';
+import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest, InstanceBooking } from '../types';
 
 // ── Sub-components (all preserved, just moved to legacy drawer) ──────────────
 import { ManagementTab } from './admin/ManagementTab';
@@ -78,6 +78,7 @@ interface AdminDashboardProps {
     membershipRequests: MembershipRequest[];
     onApproveMembershipRequest: (requestId: number) => void;
     onRejectMembershipRequest: (requestId: number) => void;
+    instanceBookings?: InstanceBooking[];
 }
 
 // ── Shared FilterDropdown (unchanged) ─────────────────────────────────────────
@@ -257,7 +258,8 @@ const BookingsTab: React.FC<{
     users: User[];
     venues: Venue[];
     wingmen: Wingman[];
-}> = ({ bookedItems, guestlistRequests, users, venues, wingmen }) => {
+    instanceBookings?: InstanceBooking[];
+}> = ({ bookedItems, guestlistRequests, users, venues, wingmen, instanceBookings = [] }) => {
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'table' | 'event' | 'experience' | 'guestlist' | 'storeItem'>('all');
     const [guestlistFilter, setGuestlistFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -289,13 +291,26 @@ const BookingsTab: React.FC<{
         filteredBookings.reduce((acc, item) => acc + ((item.paymentOption === 'full' ? item.fullPrice : item.depositPrice) || 0), 0),
         [filteredBookings]);
 
+    const instanceRevenue = useMemo(() =>
+        instanceBookings.reduce((acc, b) => acc + (b.totalPaid || 0), 0),
+        [instanceBookings]);
+
+    const filteredInstances = useMemo(() => {
+        if (!search) return instanceBookings;
+        const q = search.toLowerCase();
+        return instanceBookings.filter(b =>
+            (b.guestName || '').toLowerCase().includes(q) ||
+            b.instanceId.toLowerCase().includes(q)
+        );
+    }, [instanceBookings, search]);
+
     return (
         <div className="space-y-8 animate-fade-in">
             {/* Summary bar */}
             <div className="grid grid-cols-3 gap-4">
-                <KpiCard label="Confirmed Bookings" value={bookedItems.length} />
-                <KpiCard label="Total Revenue" value={`$${totalRevenue.toLocaleString()}`} />
-                <KpiCard label="Guestlist Requests" value={guestlistRequests.length} sub={`${guestlistRequests.filter(r => r.status === 'pending').length} pending`} accent="#B89B4D" />
+                <KpiCard label="Cart Bookings" value={bookedItems.length} />
+                <KpiCard label="Event Bookings" value={instanceBookings.length} sub={`${instanceBookings.length} confirmed spots`} accent="#4DB87C" />
+                <KpiCard label="Total Revenue" value={`$${(totalRevenue + instanceRevenue).toLocaleString()}`} />
             </div>
 
             {/* Search + filter */}
@@ -359,6 +374,47 @@ const BookingsTab: React.FC<{
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-white">${price.toFixed(0)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            {/* Event-Feed Bookings (InstanceBooking) */}
+            <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[#5D616B] mb-3">Event Feed Bookings ({filteredInstances.length})</p>
+                {filteredInstances.length === 0
+                    ? <div className="py-8 text-center text-gray-600 text-sm rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>No event-feed bookings yet.</div>
+                    : <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-[10px] font-bold uppercase tracking-wider text-[#5D616B]" style={{ background: '#0c0c0e' }}>
+                                    <th className="px-4 py-3 text-left">Event</th>
+                                    <th className="px-4 py-3 text-left">Guest</th>
+                                    <th className="px-4 py-3 text-left">Date</th>
+                                    <th className="px-4 py-3 text-left">Spots</th>
+                                    <th className="px-4 py-3 text-right">Paid</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredInstances.map((b, i) => {
+                                    const eventDate = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '—';
+                                    const eventName = b.instanceId
+                                        .replace(/-\d{4}-\d{2}-\d{2}$/, '')
+                                        .replace(/-/g, ' ')
+                                        .replace(/\b\w/g, c => c.toUpperCase());
+                                    return (
+                                        <tr key={b.id} className={i % 2 === 0 ? 'bg-[#141414]' : 'bg-[#111113]'}>
+                                            <td className="px-4 py-3 text-white font-medium max-w-[160px] truncate">{eventName}</td>
+                                            <td className="px-4 py-3 text-gray-400">{b.guestName || '—'}</td>
+                                            <td className="px-4 py-3 text-gray-400">{eventDate}</td>
+                                            <td className="px-4 py-3 text-gray-400">{b.partySize}</td>
+                                            <td className="px-4 py-3 text-right font-bold">
+                                                {b.totalPaid > 0 ? `$${b.totalPaid.toLocaleString()}` : <span className="text-green-400">FREE</span>}
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -618,7 +674,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             case 'overview':
                 return <OverviewTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} events={props.events} membershipRequests={props.membershipRequests} wingmanApplications={props.wingmanApplications} invitationRequests={props.invitationRequests} onGoTo={handleGoTo} />;
             case 'bookings':
-                return <BookingsTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} venues={props.venues} wingmen={props.wingmen} />;
+                return <BookingsTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} venues={props.venues} wingmen={props.wingmen} instanceBookings={props.instanceBookings || []} />;
             case 'events':
                 return (
                     <div className="space-y-3">
