@@ -280,6 +280,7 @@ export const App: React.FC = () => {
     const [wingmanApplications, setWingmanApplications] = useState(mockWingmanApplications);
     // Membership access requests — separate system from WingmanApplication
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
+    const [appHireRequests, setAppHireRequests] = useState<HireRequest[]>([]);
     const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
 
     // ── Recurring Event System ────────────────────────────────────────────────
@@ -288,9 +289,13 @@ export const App: React.FC = () => {
         catch { return []; }
     });
     // pendingCartReservations: { [instanceId]: partySize } — spots held in cart awaiting payment
-    const [pendingCartReservations, setPendingCartReservations] = useState<Record<string, number>>({});
+    const [pendingCartReservations, setPendingCartReservations] = useState<Record<string, number>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_pending_reservations') ?? '{}'); } catch { return {}; }
+    });
     // cartInstanceMeta: { [cartItemId]: { instanceId, partySize } } — used at checkout to create InstanceBookings
-    const [cartInstanceMeta, setCartInstanceMeta] = useState<Record<string, { instanceId: string; partySize: number }>>({});
+    const [cartInstanceMeta, setCartInstanceMeta] = useState<Record<string, { instanceId: string; partySize: number }>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_cart_instance_meta') ?? '{}'); } catch { return {}; }
+    });
     // bookedMap: { [instanceId]: total spots taken (confirmed + cart-pending) }
 
     // Notification preferences — persisted to localStorage
@@ -423,6 +428,9 @@ export const App: React.FC = () => {
     useEffect(() => { try { localStorage.setItem('wingman_instance_bookings', JSON.stringify(instanceBookings)); } catch {} }, [instanceBookings]);
     useEffect(() => { try { localStorage.setItem('wingman_cancel_map', JSON.stringify(cancelMap)); } catch {} }, [cancelMap]);
     useEffect(() => { try { localStorage.setItem('wingman_force_soldout', JSON.stringify(forceSoldOutMap)); } catch {} }, [forceSoldOutMap]);
+    // Fix: persist cart checkout metadata so refresh mid-checkout doesn't break booking
+    useEffect(() => { try { localStorage.setItem('wingman_cart_instance_meta', JSON.stringify(cartInstanceMeta)); } catch {} }, [cartInstanceMeta]);
+    useEffect(() => { try { localStorage.setItem('wingman_pending_reservations', JSON.stringify(pendingCartReservations)); } catch {} }, [pendingCartReservations]);
 
     // Defensive scroll-lock cleanup: if a modal closed badly and left body in
     // position:fixed (iOS Safari scroll-lock technique), reset it on every nav.
@@ -1834,7 +1842,8 @@ export const App: React.FC = () => {
                 return <BookingsPage 
                     onNavigate={handleNavigate} 
                     bookedItems={bookedItems} 
-                    venues={appVenues} 
+                    venues={appVenues}
+                    instanceBookings={instanceBookings.filter(b => b.userId === currentUser.id)}
                 />;
             case 'settings': {
                 // Check if the current user is admin OR if we have a persistent admin session active
@@ -2304,7 +2313,29 @@ export const App: React.FC = () => {
                 onNavigate={handleNavigate}
                 wingmen={appWingmen}
                 showToast={showToast}
-                onSubmitRequest={(req: HireRequest) => showToast(`Wingman request received for ${req.arrivalDate}!`, 'success')}
+                onSubmitRequest={(req: HireRequest) => {
+                    // Store request in app state so admin can see it
+                    setAppHireRequests(prev => [...prev, { ...req, id: Date.now(), submittedAt: new Date().toISOString(), status: 'pending' }]);
+                    // Persist to localStorage so it survives refresh
+                    try {
+                        const existing = JSON.parse(localStorage.getItem('wingman_hire_requests') ?? '[]');
+                        existing.push({ ...req, id: Date.now(), submittedAt: new Date().toISOString(), status: 'pending', userId: currentUser.id, userName: currentUser.name, userEmail: currentUser.email });
+                        localStorage.setItem('wingman_hire_requests', JSON.stringify(existing));
+                    } catch {}
+                    // Fire notification email (fire-and-forget)
+                    fetch('/.netlify/functions/send-welcome-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: currentUser.email || req.email || '',
+                            name: currentUser.name,
+                            subject: 'Wingman Request Received',
+                            type: 'hire_request',
+                            details: req,
+                        }),
+                    }).catch(() => {});
+                    showToast(`Request sent! A Wingman will contact you shortly.`, 'success');
+                }}
             />;
             default: return <HomeScreen
                     onNavigate={handleNavigate}

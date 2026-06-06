@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Booking, Page, CartItem, Venue } from '../types';
+import { Booking, Page, CartItem, Venue, InstanceBooking } from '../types';
 import { bookingHistory } from '../data/mockData';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
@@ -10,6 +10,7 @@ interface BookingsPageProps {
   onNavigate: (page: Page) => void;
   bookedItems?: CartItem[];
   venues?: Venue[];
+  instanceBookings?: InstanceBooking[];
 }
 
 const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void }> = ({ booking, onNavigate }) => {
@@ -106,7 +107,7 @@ const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string
 
 type FilterType = 'All' | 'Tables' | 'Events';
 
-export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedItems = [], venues = [] }) => {
+export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedItems = [], venues = [], instanceBookings = [] }) => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
@@ -156,8 +157,27 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
           };
       });
 
-      return [...normalizedTableBookings, ...normalizedSessionBookings];
-  }, [bookedItems, venues]);
+      // Recurring event-feed bookings (InstanceBooking) — the new system
+      const normalizedInstanceBookings = instanceBookings.map(b => {
+          const venueName = b.instanceId
+              .replace(/-\d{4}-\d{2}-\d{2}$/, '')
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, c => c.toUpperCase());
+          const bookingDate = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '';
+          return {
+              id: `instance-${b.id}`,
+              type: 'instance',
+              name: venueName,
+              date: bookingDate,
+              status: 'Confirmed',
+              originalData: b,
+              isEvent: true,
+              venueName,
+          };
+      });
+
+      return [...normalizedTableBookings, ...normalizedSessionBookings, ...normalizedInstanceBookings];
+  }, [bookedItems, venues, instanceBookings]);
 
   const filteredList = useMemo(() => {
       const today = new Date().toISOString().split('T')[0];
@@ -220,7 +240,33 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
       <div className="space-y-4">
         {filteredList.length > 0 ? (
           filteredList.map(item => {
-              if (item.isEvent) {
+              if (item.type === 'instance') {
+                  // It's an InstanceBooking from the recurring event feed
+                  const b = item.originalData as InstanceBooking;
+                  return (
+                      <div key={item.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                          <div className="flex justify-between items-start">
+                              <div>
+                                  <p className="font-bold text-white text-lg">{item.name}</p>
+                                  <p className="text-sm text-gray-400">{b.partySize} spot{b.partySize > 1 ? 's' : ''} · via Wingman</p>
+                              </div>
+                              <span className="text-green-400 font-semibold text-sm">Confirmed</span>
+                          </div>
+                          <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
+                              <p className="text-gray-400">{item.date}</p>
+                              <p className="text-gray-300">Party of <span className="font-semibold text-white">{b.partySize}</span></p>
+                          </div>
+                          <div className="mt-3">
+                              <button
+                                onClick={() => onNavigate('chatbot')}
+                                className="w-full bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                              >
+                                Chat with Wingman
+                              </button>
+                          </div>
+                      </div>
+                  );
+              } else if (item.isEvent) {
                   // It's a CartItem of type event or guestlist
                   const cartItem = item.originalData as CartItem;
                   const venue = venues.find(v => v.name === item.venueName);
