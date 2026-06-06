@@ -55,7 +55,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'usd' | 'cashapp'>('usd');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
-  const [agreedToDisclosure, setAgreedToDisclosure] = useState(false);
+  const [agreedToDisclosure, setAgreedToDisclosure] = useState<Record<string, boolean>>({});
   const [disclosureExpanded, setDisclosureExpanded] = useState(false);
 
   useEffect(() => {
@@ -269,104 +269,161 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <div className="flex justify-between items-center pt-3 border-t border-gray-800">
                     <p className="font-bold text-white">Total</p>
                     <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                  </div>
-
-                  {/* ── Experience Disclosure ───────────────────── */}
+              
+                  {/* ── Experience Disclosure & Participation Agreement ── */}
                   <div
                     className="rounded-xl overflow-hidden mt-4"
-                    style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}
+                    style={{ border: '1px solid rgba(184,155,77,0.3)', background: 'rgba(184,155,77,0.04)' }}
                   >
-                    {/* Accordion header */}
+                    {/* Header */}
                     <button
                       onClick={() => setDisclosureExpanded(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left"
+                      className="w-full flex items-center justify-between px-4 py-3.5 text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#B89B4D' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        <span className="text-[11px] font-bold text-white">Experience Disclosure & Agreement</span>
+                        <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#B89B4D' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <div>
+                          <p className="text-[11px] font-black text-white">Experience Disclosure & Agreement</p>
+                          <p className="text-[9px] font-semibold mt-0.5" style={{ color: '#B89B4D' }}>⚠ Required — read before payment</p>
+                        </div>
                       </div>
                       <svg className={`w-3.5 h-3.5 text-gray-500 transition-transform flex-shrink-0 ${disclosureExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" /></svg>
                     </button>
 
                     {/* Full agreement text */}
                     {disclosureExpanded && (
-                      <div className="px-4 pb-4 space-y-4 text-[11px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                        <p className="pt-3 font-bold text-white/70 text-[10px] uppercase tracking-widest">Important — Please Read Carefully Before Proceeding With Payment.</p>
+                      <div
+                        className="px-4 pb-4 space-y-4 text-[11px] leading-relaxed"
+                        style={{ color: 'rgba(255,255,255,0.5)', borderTop: '1px solid rgba(184,155,77,0.15)' }}
+                      >
+                        <p className="pt-3 font-black text-white/80 text-[10px] uppercase tracking-widest text-center">
+                          WINGMAN EXPERIENCE DISCLOSURE &amp; PARTICIPATION AGREEMENT
+                        </p>
+                        <p className="text-center text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          IMPORTANT: PLEASE READ CAREFULLY BEFORE COMPLETING YOUR PURCHASE.
+                        </p>
 
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">1. EXPERIENCE PURCHASE</p>
-                          <p>Wingman provides access to curated social, hospitality, nightlife, dining, yacht, entertainment, and lifestyle EXPERIENCES. You are purchasing access to a Wingman-hosted experience and concierge service.</p>
-                          <p className="mt-1.5 font-semibold text-white/60">You are NOT purchasing:</p>
-                          <ul className="mt-1 space-y-0.5 pl-3">
-                            {['Ownership of a VIP table','Ownership of a yacht charter','Ownership of a restaurant reservation','Ownership of a nightclub reservation','Ownership of any venue, hospitality, transportation, or entertainment service'].map(item => (
-                              <li key={item}>· {item}</li>
-                            ))}
-                          </ul>
-                          <p className="mt-1.5">Wingman acts as a host, coordinator, and concierge platform that facilitates access to curated experiences.</p>
-                        </div>
-
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">2. EXPERIENCE AVAILABILITY</p>
-                          <p>All experiences are subject to venue availability, capacity limitations, weather conditions, operational changes, local regulations, and safety considerations. Wingman reserves the right to modify, relocate, reschedule, or substitute an experience when necessary.</p>
-                        </div>
-
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">3. NO GUARANTEE OF SPECIFIC OUTCOMES</p>
-                          <p>Wingman does not guarantee specific seating, guests, social interactions, entertainment, or individuals being present. Every experience is unique and may vary.</p>
-                        </div>
-
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">4. REFUND POLICY</p>
-                          <p>All purchases are final. No refunds will be issued for missed experiences, late arrivals, personal scheduling conflicts, or changes of preference. If an experience becomes unavailable due to circumstances within Wingman's control, Wingman may, at its sole discretion, issue account credit, transfer the booking, offer a replacement, or issue a refund.</p>
-                        </div>
-
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">5. USER CONDUCT</p>
-                          <p>Wingman reserves the right to refuse service, remove participants, cancel bookings, or suspend accounts for behavior deemed inappropriate, disruptive, unsafe, illegal, or harmful to other guests, hosts, venues, or staff.</p>
-                        </div>
-
-                        <div>
-                          <p className="font-bold text-white/80 mb-1">6. LIABILITY</p>
-                          <p>Participation in any Wingman experience is voluntary. Users assume all personal responsibility for their conduct, decisions, transportation, purchases, and participation during any experience.</p>
-                        </div>
+                        {[
+                          {
+                            title: '1. EXPERIENCE PURCHASE',
+                            body: 'Wingman provides hosted lifestyle, nightlife, hospitality, yacht, dining, entertainment, and social experiences. Your purchase grants you access to participate in a Wingman-hosted experience alongside a designated Wingman host and other approved guests.',
+                            notList: ['A VIP table', 'A nightclub table reservation', 'A yacht charter', 'A restaurant reservation', 'Ownership or exclusive control of any venue space', 'Alcohol or beverage packages', 'Transportation services', 'Escort, companionship, dating, or matchmaking services'],
+                            notLabel: 'You are NOT purchasing:',
+                            footer: 'All experiences remain under the management and coordination of the assigned Wingman host.',
+                          },
+                          {
+                            title: '2. WINGMAN HOSTED TABLES',
+                            body: 'For nightlife experiences, participants join a hosted Wingman VIP table experience. The VIP table remains under the control and management of the assigned Wingman host at all times. Guests are purchasing access to the hosted experience and social environment, not ownership, control, or exclusivity of the table. The assigned Wingman host determines table logistics, guest flow, seating arrangements, and operational decisions in coordination with the venue.',
+                          },
+                          {
+                            title: '3. BEVERAGE & HOSPITALITY SERVICES',
+                            body: 'Certain experiences may include beverages, hospitality amenities, or hosted services. Any beverages or hospitality offerings provided during an experience are determined by the Wingman host and may vary based on number of participants, venue policies, event type, capacity limitations, and operational considerations. Wingman does not guarantee specific brands, bottle quantities, beverage selections, seating positions, or hospitality inclusions unless explicitly stated in the experience description.',
+                          },
+                          {
+                            title: '4. SOCIAL INTRODUCTIONS',
+                            body: 'Wingman hosts may facilitate social introductions and networking opportunities during experiences.',
+                            notList: ['Specific individuals will attend', 'Social outcomes', 'Business opportunities', 'Personal relationships', 'Dating outcomes', 'Introductions to any specific guest'],
+                            notLabel: 'Wingman does not guarantee:',
+                            footer: 'All social interactions remain voluntary and subject to venue rules and participant conduct.',
+                          },
+                          {
+                            title: '5. EXPERIENCE AVAILABILITY',
+                            body: 'All experiences are subject to venue capacity, weather conditions, venue policies, government regulations, safety requirements, and operational changes. Wingman reserves the right to modify, substitute, reschedule, relocate, or cancel an experience when necessary.',
+                          },
+                          {
+                            title: '6. REFUND POLICY',
+                            body: 'All bookings are final. No refunds are provided for missed arrivals, late arrivals, personal scheduling conflicts, changes of preference, or failure to attend. If an experience becomes unavailable due to circumstances within Wingman\'s control, Wingman may reschedule the experience, transfer the booking, issue account credit, or issue a refund at its sole discretion.',
+                          },
+                          {
+                            title: '7. USER CONDUCT',
+                            body: 'Wingman reserves the right to remove, deny entry to, suspend, or permanently ban participants who engage in illegal conduct, harassment, violence, excessive intoxication, disruptive behavior, unsafe conduct, or violations of venue policies. No refund will be provided in these circumstances.',
+                          },
+                          {
+                            title: '8. LIABILITY',
+                            body: 'Participation in all experiences is voluntary. Participants assume responsibility for their own decisions, transportation, purchases, conduct, health, safety, and interactions during any Wingman experience.',
+                          },
+                        ].map(section => (
+                          <div key={section.title} className="space-y-1.5">
+                            <p className="font-black text-white/80">{section.title}</p>
+                            <p>{section.body}</p>
+                            {section.notLabel && section.notList && (
+                              <>
+                                <p className="font-semibold text-white/60">{section.notLabel}</p>
+                                <ul className="space-y-0.5 pl-2">
+                                  {section.notList.map(item => <li key={item}>• {item}</li>)}
+                                </ul>
+                              </>
+                            )}
+                            {section.footer && <p>{section.footer}</p>}
+                          </div>
+                        ))}
                       </div>
                     )}
 
-                    {/* Single required checkbox */}
-                    <label
-                      className="flex items-start gap-3 px-4 py-3 cursor-pointer"
-                      style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                    {/* ── Six required checkboxes ─────────────────────────────── */}
+                    <div
+                      className="space-y-0 divide-y"
+                      style={{ borderTop: '1px solid rgba(184,155,77,0.15)', divideColor: 'rgba(184,155,77,0.08)' }}
                     >
-                      <div className="relative flex-shrink-0 mt-0.5">
-                        <input
-                          type="checkbox"
-                          id="disclosure-agree-desktop"
-                          checked={agreedToDisclosure}
-                          onChange={e => setAgreedToDisclosure(e.target.checked)}
-                          className="sr-only"
-                        />
-                        <div
-                          className="w-5 h-5 rounded-md flex items-center justify-center transition-all"
-                          style={agreedToDisclosure
-                            ? { background: '#FFFFFF', border: '2px solid #FFFFFF' }
-                            : { background: 'transparent', border: '2px solid rgba(255,255,255,0.25)' }
-                          }
-                        >
-                          {agreedToDisclosure && (
-                            <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-[11px] leading-relaxed" style={{ color: agreedToDisclosure ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)' }}>
-                        I have read and agree to the <span className="font-bold text-white/70">Wingman Experience Disclosure & User Agreement</span>. I understand I am purchasing an experience, not a specific table, yacht, or reservation.
-                      </p>
-                    </label>
+                      {[
+                        { id: 'chk-1', key: 'chk1', label: 'I understand that I am purchasing access to a hosted Wingman Experience.' },
+                        { id: 'chk-2', key: 'chk2', label: 'I understand that I am not purchasing ownership or exclusive control of a VIP table, yacht, restaurant reservation, or venue space.' },
+                        { id: 'chk-3', key: 'chk3', label: 'I understand that all experiences are managed by the assigned Wingman host.' },
+                        { id: 'chk-4', key: 'chk4', label: 'I understand that hospitality offerings may vary based on the event and participation levels.' },
+                        { id: 'chk-5', key: 'chk5', label: 'I agree to the Wingman Terms & Conditions and Refund Policy.' },
+                        { id: 'chk-6', key: 'chk6', label: 'I voluntarily choose to participate in this experience.' },
+                      ].map(({ id, key, label }) => {
+                        const checked = (agreedToDisclosure as any)[key] ?? false;
+                        return (
+                          <label
+                            key={id}
+                            htmlFor={`${id}-desktop`}
+                            className="flex items-start gap-3 px-4 py-2.5 cursor-pointer"
+                            style={{ background: checked ? 'rgba(184,155,77,0.04)' : 'transparent' }}
+                          >
+                            <div className="relative flex-shrink-0 mt-0.5">
+                              <input
+                                type="checkbox"
+                                id={`${id}-desktop`}
+                                checked={checked}
+                                onChange={e => setAgreedToDisclosure((prev: any) => ({ ...prev, [key]: e.target.checked }))}
+                                className="sr-only"
+                              />
+                              <div
+                                className="w-4 h-4 rounded flex items-center justify-center transition-all"
+                                style={checked
+                                  ? { background: '#B89B4D', border: '2px solid #B89B4D' }
+                                  : { background: 'transparent', border: '2px solid rgba(255,255,255,0.2)' }
+                                }
+                              >
+                                {checked && (
+                                  <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-[10px] leading-relaxed" style={{ color: checked ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)' }}>
+                              {label}
+                            </p>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {/* Short-form blurb above pay button */}
+                  <p className="mt-4 text-[9px] leading-relaxed text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                    By proceeding, you acknowledge that you are purchasing access to a hosted Wingman Experience.
+                    You are not purchasing ownership or exclusive control of a VIP table, yacht charter, restaurant
+                    reservation, or venue space. All experiences are managed by the assigned Wingman host and are
+                    subject to venue policies, availability, and operational conditions.
+                  </p>
 
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-                    disabled={selectedItemIds.length === 0 || !agreedToDisclosure}
-                    className="mt-4 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+                    disabled={selectedItemIds.length === 0 || !Object.values(agreedToDisclosure as Record<string, boolean>).every(Boolean)}
+                    className="mt-3 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
                   >
                     <CreditCardIcon className="w-5 h-5" />
@@ -470,35 +527,33 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <p className="text-sm text-gray-400">{selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''} selected</p>
               <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
-            {/* Mobile disclosure checkbox */}
-            <label className="flex items-start gap-3 mb-3 cursor-pointer">
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  id="disclosure-agree-mobile"
-                  checked={agreedToDisclosure}
-                  onChange={e => setAgreedToDisclosure(e.target.checked)}
-                  className="sr-only"
-                />
+            {/* Mobile disclosure status — shares state with desktop checkboxes */}
+            {(() => {
+              const allChecked = Object.values(agreedToDisclosure).length === 6 && Object.values(agreedToDisclosure).every(Boolean);
+              const checkedCount = Object.values(agreedToDisclosure).filter(Boolean).length;
+              return (
                 <div
-                  className="w-5 h-5 rounded-md flex items-center justify-center transition-all"
-                  style={agreedToDisclosure
-                    ? { background: '#FFFFFF', border: '2px solid #FFFFFF' }
-                    : { background: 'transparent', border: '2px solid rgba(255,255,255,0.3)' }
-                  }
+                  className="flex items-center gap-2 mb-3 rounded-xl px-3 py-2.5"
+                  style={{ background: allChecked ? 'rgba(184,155,77,0.08)' : 'rgba(255,255,255,0.04)', border: allChecked ? '1px solid rgba(184,155,77,0.3)' : '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  {agreedToDisclosure && (
-                    <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  )}
+                  <svg className="w-4 h-4 flex-shrink-0" style={{ color: allChecked ? '#B89B4D' : '#4B5563' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <p className="text-[10px] leading-relaxed flex-1" style={{ color: allChecked ? 'rgba(184,155,77,0.9)' : 'rgba(255,255,255,0.35)' }}>
+                    {allChecked
+                      ? 'Experience Disclosure agreed ✓'
+                      : `Scroll up to agree to Experience Disclosure (${checkedCount}/6 confirmed)`}
+                  </p>
                 </div>
-              </div>
-              <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                I have read and agree to the <span className="font-semibold text-white/60">Wingman Experience Disclosure & User Agreement</span>. I understand I am purchasing an experience, not a specific table, yacht, or reservation.
-              </p>
-            </label>
+              );
+            })()}
+            {/* Short blurb */}
+            <p className="text-[9px] leading-relaxed text-center mb-3" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              By proceeding, you acknowledge you are purchasing access to a hosted Wingman Experience, not ownership of a table, yacht, or venue space.
+            </p>
             <button
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-              disabled={selectedItemIds.length === 0 || !agreedToDisclosure}
+              disabled={selectedItemIds.length === 0 || !(Object.values(agreedToDisclosure).length === 6 && Object.values(agreedToDisclosure).every(Boolean))}
               className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
             >
