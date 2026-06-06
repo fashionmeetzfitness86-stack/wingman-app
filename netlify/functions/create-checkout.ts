@@ -70,6 +70,8 @@ interface BookingPayload {
 
 interface RequestBody {
   bookings: BookingPayload[];
+  /** Legacy cart items (tables, experiences, store) that don't have a scheduleId */
+  genericItems?: { cartItemId: string; name: string; unitPrice: number; quantity: number }[];
   userEmail?: string;
   userId?: string;
   successUrl?: string;
@@ -104,14 +106,15 @@ export default async (req: Request) => {
     const stripe = new Stripe(apiKey, { apiVersion: '2026-02-25.clover' as any });
 
     const body = await req.json() as RequestBody;
-    const { bookings, userEmail, userId, successUrl, cancelUrl } = body;
+    const { bookings, genericItems = [], userEmail, userId, successUrl, cancelUrl } = body;
 
-    if (!bookings || bookings.length === 0) {
+    if ((!bookings || bookings.length === 0) && (!genericItems || genericItems.length === 0)) {
       return new Response(JSON.stringify({ error: 'No bookings provided' }), { status: 400 });
     }
 
     // ── Server-side price resolution ─────────────────────────────────────────
-    // We NEVER use any price the client sent. We derive price from scheduleId.
+    // We NEVER use any price the client sent for scheduled events.
+    // Generic (legacy) items use client price since they have no scheduleId.
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     const resolvedBookings: { cartItemId: string; instanceId: string; quantity: number; unitPrice: number }[] = [];
 
@@ -170,6 +173,22 @@ export default async (req: Request) => {
       });
 
       resolvedBookings.push({ cartItemId, instanceId, quantity, unitPrice: entry.pricePerPerson });
+    }
+
+    // ── Generic (legacy) items ────────────────────────────────────────────────
+    // Tables, experiences, store items sent from old cart path.
+    // These use client-supplied price since they have no PRICE_SCHEDULE entry.
+    for (const gi of genericItems) {
+      if (!gi.cartItemId || !gi.name || gi.quantity < 1) continue;
+      const unitAmountCents = Math.round((gi.unitPrice || 0) * 100);
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: { name: gi.name, description: 'Wingman Experience' },
+          unit_amount: unitAmountCents,
+        },
+        quantity: gi.quantity,
+      });
     }
 
     if (lineItems.length === 0) {

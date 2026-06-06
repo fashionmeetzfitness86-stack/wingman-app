@@ -642,56 +642,82 @@ export const App: React.FC = () => {
                 return;
             }
 
-            // ── Security: build server-trusted booking payloads ──────────────
-            // We NEVER send price/amount to the server.
-            // The Netlify function resolves all prices from its own server-side
-            // PRICE_SCHEDULE. Clients cannot affect what Stripe charges.
-            const bookings = itemsToBook
-                .map(item => {
-                    // For recurring-event cart items, we stored instanceId in cartInstanceMeta
-                    const meta = cartInstanceMeta[item.id];
-                    if (!meta?.instanceId) return null; // non-schedule item (store, table, etc.)
+            // ── Build bookings payload ─────────────────────────────────────────
+            // Event-feed items (have cartInstanceMeta) → use scheduleId for server-side pricing
+            // Legacy items (table, experience, store) → send as generic line items with client price
+            const scheduledBookings: { scheduleId: string; instanceId: string; quantity: number; cartItemId: string }[] = [];
+            const genericItems: { cartItemId: string; name: string; unitPrice: number; quantity: number }[] = [];
 
-                    // Derive scheduleId by stripping the date suffix from instanceId
-                    // e.g. 'fri-nightclub-e11even-2025-06-07' → 'fri-nightclub-e11even'
+            for (const item of itemsToBook) {
+                const meta = cartInstanceMeta[item.id];
+                if (meta?.instanceId) {
+                    // Event-feed item — server resolves price from PRICE_SCHEDULE
                     const scheduleId = meta.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '');
-
-                    return {
+                    scheduledBookings.push({
                         scheduleId,
                         instanceId: meta.instanceId,
                         quantity: meta.partySize || 1,
                         cartItemId: item.id,
-                    };
-                })
-                .filter(Boolean);
-
-            if (bookings.length === 0) {
-                showToast('No scheduleable items in cart to check out.', 'error');
-                return;
+                    });
+                } else {
+                    // Legacy cart item — use client price (table reservation, experience, store item)
+                    const unitPrice = priceForItem(item);
+                    const quantity = item.quantity || 1;
+                    genericItems.push({
+                        cartItemId: item.id,
+                        name: item.name || 'Wingman Experience',
+                        unitPrice,
+                        quantity,
+                    });
+                }
             }
+
+            const totalAmount = [
+                ...scheduledBookings, // prices resolved server-side
+            ].reduce((s, _) => s, 0) + genericItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
 
             setIsCheckoutLoading(true);
             try {
-                localStorage.setItem('wingman_pending_checkout', JSON.stringify({ itemIds, paymentMethod }));
+                // Store FULL cart item data in pending_checkout so finalizeBooking
+                // can reconstruct the booking even after a full page reload (Stripe redirect)
+                localStorage.setItem('wingman_pending_checkout', JSON.stringify({
+                    itemIds,
+                    paymentMethod,
+                    // Snapshot the cart items so they survive the Stripe redirect
+                    itemsSnapshot: itemsToBook,
+                    cartMetaSnapshot: Object.fromEntries(
+                        itemIds
+                            .filter(id => cartInstanceMeta[id])
+                            .map(id => [id, cartInstanceMeta[id]])
+                    ),
+                }));
+
                 const res = await fetch('/.netlify/functions/create-checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        bookings,
+                        bookings: scheduledBookings,
+                        genericItems,
                         userEmail: currentUser.email,
                         userId: String(currentUser.id),
                     }),
                 });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ error: 'Server error' }));
+                    throw new Error(err.error || `Server error ${res.status}`);
+                }
+
                 const data = await res.json();
+
                 if (data.url) {
+                    // Paid event — redirect to Stripe
                     window.location.href = data.url;
                     return;
                 }
-                // ── Free event (total = $0) — simulate Stripe redirect-and-return ──
-                // Instead of bypassing Stripe entirely, we append ?payment=success&session_id=free-{id}
-                // to the URL. The Stripe-return useEffect (already wired) will pick this up, call
-                // verify-session (which handles free-* IDs), then call finalizeBooking and show receipt.
+
                 if (data.free === true) {
+                    // $0 event — simulate Stripe redirect-and-return flow
                     localStorage.removeItem('wingman_pending_checkout');
                     setIsCheckoutLoading(false);
                     const freeSessionId = `free-${Date.now()}`;
@@ -701,11 +727,12 @@ export const App: React.FC = () => {
                     window.location.href = url.toString();
                     return;
                 }
+
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
             } catch (err: any) {
                 localStorage.removeItem('wingman_pending_checkout');
                 setIsCheckoutLoading(false);
-                showToast(err.message || 'Checkout failed', 'error');
+                showToast(err.message || 'Checkout failed. Please try again.', 'error');
                 return;
             }
         }
@@ -713,7 +740,9 @@ export const App: React.FC = () => {
         finalizeBooking(paymentMethod, itemIds);
     };
 
+
     // Stripe return handler — runs once on mount when we land back from Stripe
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const paymentStatus = params.get('payment');
@@ -747,8 +776,18 @@ export const App: React.FC = () => {
                     }
                     const pending = JSON.parse(localStorage.getItem('wingman_pending_checkout') || 'null');
                     if (pending?.itemIds?.length) {
-                        finalizeBooking('usd', pending.itemIds);
-                        showToast('Payment confirmed!', 'success');
+                        // If cartItems was wiped by the page reload, restore from snapshot
+                        if (pending.itemsSnapshot?.length) {
+                            setCartItems(pending.itemsSnapshot);
+                            if (pending.cartMetaSnapshot) {
+                                setCartInstanceMeta(pending.cartMetaSnapshot);
+                            }
+                        }
+                        // Small delay so React state settles before finalizeBooking reads it
+                        setTimeout(() => {
+                            finalizeBooking('usd', pending.itemIds);
+                            showToast('Payment confirmed! Your booking is confirmed.', 'success');
+                        }, 150);
                     }
                     localStorage.removeItem('wingman_pending_checkout');
                 } catch (err: any) {
