@@ -687,12 +687,18 @@ export const App: React.FC = () => {
                     window.location.href = data.url;
                     return;
                 }
-                // ── Free event (total = $0) — confirm directly without Stripe ──
+                // ── Free event (total = $0) — simulate Stripe redirect-and-return ──
+                // Instead of bypassing Stripe entirely, we append ?payment=success&session_id=free-{id}
+                // to the URL. The Stripe-return useEffect (already wired) will pick this up, call
+                // verify-session (which handles free-* IDs), then call finalizeBooking and show receipt.
                 if (data.free === true) {
                     localStorage.removeItem('wingman_pending_checkout');
                     setIsCheckoutLoading(false);
-                    finalizeBooking(paymentMethod, itemIds);
-                    showToast('🎉 Booking confirmed! Your spot is reserved.', 'success');
+                    const freeSessionId = `free-${Date.now()}`;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('payment', 'success');
+                    url.searchParams.set('session_id', freeSessionId);
+                    window.location.href = url.toString();
                     return;
                 }
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
@@ -1900,6 +1906,7 @@ export const App: React.FC = () => {
                     membershipRequests={membershipRequests}
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
+                     instanceBookings={instanceBookings}
                 />;
             case 'wingmanDashboard': {
                 const myWingman = appWingmen.find(p => p.id === currentUser.id);

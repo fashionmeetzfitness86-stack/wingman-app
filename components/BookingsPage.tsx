@@ -1,7 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
 import { Booking, Page, CartItem, Venue, InstanceBooking } from '../types';
-import { bookingHistory } from '../data/mockData';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { LocationMarkerIcon } from './icons/LocationMarkerIcon';
@@ -112,17 +110,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
   const allBookings = useMemo(() => {
-      const normalizedTableBookings = bookingHistory.map(b => ({
-          id: `mock-table-${b.id}`,
-          type: 'table',
-          name: b.venueName,
-          date: b.date,
-          status: b.status,
-          originalData: b,
-          isEvent: false,
-          venueName: b.venueName
-      }));
-
+      // NOTE: static mockData table bookings removed — only show real bookings
       const normalizedSessionBookings = bookedItems.map(item => {
           let venueName = '';
           let status = 'Confirmed';
@@ -159,24 +147,27 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
 
       // Recurring event-feed bookings (InstanceBooking) — the new system
       const normalizedInstanceBookings = instanceBookings.map(b => {
-          const venueName = b.instanceId
-              .replace(/-\d{4}-\d{2}-\d{2}$/, '')
-              .replace(/-/g, ' ')
-              .replace(/\b\w/g, c => c.toUpperCase());
+          // Use guestName field as the human-readable event title when available
+          const eventTitle = b.guestName && b.guestName !== b.instanceId
+              ? b.guestName
+              : b.instanceId
+                  .replace(/-\d{4}-\d{2}-\d{2}$/, '')
+                  .replace(/-/g, ' ')
+                  .replace(/\b\w/g, (c: string) => c.toUpperCase());
           const bookingDate = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '';
           return {
               id: `instance-${b.id}`,
               type: 'instance',
-              name: venueName,
+              name: eventTitle,
               date: bookingDate,
               status: 'Confirmed',
               originalData: b,
               isEvent: true,
-              venueName,
+              venueName: eventTitle,
           };
       });
 
-      return [...normalizedTableBookings, ...normalizedSessionBookings, ...normalizedInstanceBookings];
+      return [...normalizedSessionBookings, ...normalizedInstanceBookings];
   }, [bookedItems, venues, instanceBookings]);
 
   const filteredList = useMemo(() => {
@@ -248,20 +239,26 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                           <div className="flex justify-between items-start">
                               <div>
                                   <p className="font-bold text-white text-lg">{item.name}</p>
-                                  <p className="text-sm text-gray-400">{b.partySize} spot{b.partySize > 1 ? 's' : ''} · via Wingman</p>
+                                  <p className="text-sm text-gray-400">{b.partySize} spot{b.partySize > 1 ? 's' : ''} · Wingman Experience</p>
                               </div>
-                              <span className="text-green-400 font-semibold text-sm">Confirmed</span>
+                              <span className="text-green-400 font-semibold text-sm bg-green-400/10 px-2 py-0.5 rounded-full">Confirmed</span>
                           </div>
                           <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
                               <p className="text-gray-400">{item.date}</p>
-                              <p className="text-gray-300">Party of <span className="font-semibold text-white">{b.partySize}</span></p>
+                              <p className="text-gray-300">Party of <span className="font-semibold text-white">{b.partySize}</span> · <span className="text-white font-semibold">${b.totalPaid > 0 ? b.totalPaid.toLocaleString() : 'FREE'}</span></p>
                           </div>
-                          <div className="mt-3">
+                          <div className="mt-3 flex gap-2">
+                              <button
+                                onClick={() => onNavigate('eventChatsList' as any)}
+                                className="flex-1 bg-white text-black text-sm font-bold py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                💬 Event Chat
+                              </button>
                               <button
                                 onClick={() => onNavigate('chatbot')}
-                                className="w-full bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
                               >
-                                Chat with Wingman
+                                Concierge
                               </button>
                           </div>
                       </div>
