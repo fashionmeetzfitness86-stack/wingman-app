@@ -269,6 +269,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <div className="flex justify-between items-center pt-3 border-t border-gray-800">
                     <p className="font-bold text-white">Total</p>
                     <p className="text-xl font-black text-white">${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  </div>
               
                   {/* ── Experience Disclosure & Participation Agreement ── */}
                   <div
