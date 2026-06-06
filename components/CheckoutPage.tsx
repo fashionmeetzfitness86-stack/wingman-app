@@ -491,21 +491,170 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         {/* ── PURCHASED TAB ── */}
         {activeTab === 'purchased' && (
           sortedBookedItems.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {sortedBookedItems.map(item => (
-                <CartItemCard
-                  key={item.id}
-                  item={item}
-                  venues={venues}
-                  onRemove={onRemoveItem}
-                  onUpdatePaymentOption={onUpdatePaymentOption}
-                  isBooked={true}
-                  onViewReceipt={onViewReceipt}
-                  onStartChat={onStartChat}
-                  currentUser={currentUser}
-                  onCancelRsvp={onCancelRsvp}
-                />
-              ))}
+            <div className="space-y-4 max-w-2xl mx-auto">
+              {/* Summary strip */}
+              <div
+                className="flex items-center justify-between rounded-2xl px-5 py-4"
+                style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)' }}
+              >
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-green-500 mb-0.5">Confirmed Bookings</p>
+                  <p className="text-2xl font-black text-white">{sortedBookedItems.length} Experience{sortedBookedItems.length !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">Total Spent</p>
+                  <p className="text-2xl font-black text-white">
+                    ${sortedBookedItems.reduce((s, i) => s + (i.fullPrice || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Receipt cards */}
+              {sortedBookedItems.map((item, idx) => {
+                const bookingId = item.id.split('-').slice(-2).join('').toUpperCase().slice(0, 8);
+                const bookedDate = item.bookedTimestamp
+                  ? new Date(item.bookedTimestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—';
+                const eventDate = item.date
+                  ? new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+                  : '—';
+                const amount = item.fullPrice || 0;
+                const isFree = amount === 0;
+                const partySize = item.quantity || 1;
+                const guestName = (item as any).guestDetails?.name || currentUser.name || '—';
+                const eventType = item.type.replace(/([A-Z])/g, ' $1').trim();
+
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl overflow-hidden"
+                    style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    {/* Card Header — event image + name */}
+                    <div className="relative">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-32 flex items-center justify-center"
+                          style={{ background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)' }}
+                        >
+                          <span className="text-4xl">⚓</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(17,17,19,1) 0%, rgba(17,17,19,0.4) 60%, transparent 100%)' }} />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <h3 className="text-lg font-black text-white leading-tight">{item.name}</h3>
+                            <p className="text-xs text-gray-400 mt-0.5">{eventDate}</p>
+                          </div>
+                          <span
+                            className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0"
+                            style={{
+                              background: isFree ? 'rgba(34,197,94,0.15)' : 'rgba(184,155,77,0.15)',
+                              color: isFree ? '#22C55E' : '#B89B4D',
+                              border: `1px solid ${isFree ? 'rgba(34,197,94,0.3)' : 'rgba(184,155,77,0.3)'}`,
+                            }}
+                          >
+                            {isFree ? 'Complimentary' : 'Paid'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Receipt body */}
+                    <div className="p-5 space-y-4">
+                      {/* Status banner */}
+                      <div
+                        className="flex items-center gap-3 rounded-xl px-4 py-3"
+                        style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)' }}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-green-400">Booking Confirmed</p>
+                          <p className="text-[10px] text-gray-500">Confirmed on {bookedDate}</p>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Booking ID</p>
+                          <p className="text-xs font-black text-white font-mono">#{bookingId}</p>
+                        </div>
+                      </div>
+
+                      {/* Detail rows */}
+                      <div
+                        className="rounded-xl overflow-hidden"
+                        style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                      >
+                        {[
+                          { label: 'Guest Name', value: guestName },
+                          { label: 'Party Size', value: `${partySize} guest${partySize > 1 ? 's' : ''}` },
+                          { label: 'Experience Type', value: eventType.charAt(0).toUpperCase() + eventType.slice(1) },
+                          { label: 'Payment Method', value: isFree ? 'Complimentary' : 'Credit / Debit Card' },
+                          { label: 'Amount Paid', value: isFree ? 'FREE' : `$${amount.toFixed(2)}`, highlight: true },
+                        ].map(({ label, value, highlight }, i) => (
+                          <div
+                            key={label}
+                            className="flex justify-between items-center px-4 py-3"
+                            style={{
+                              background: i % 2 === 0 ? '#141416' : '#111113',
+                              borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                            }}
+                          >
+                            <span className="text-[11px] text-gray-500 uppercase tracking-wider">{label}</span>
+                            <span
+                              className={`text-sm font-bold ${highlight ? (isFree ? 'text-green-400' : 'text-white') : 'text-white'}`}
+                            >
+                              {value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* QR + booking ref */}
+                      <div
+                        className="flex items-center gap-4 rounded-xl p-4"
+                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+                      >
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=WINGMAN-${bookingId}&bgcolor=111113&color=FFFFFF&qzone=1`}
+                          alt="Booking QR"
+                          className="w-16 h-16 rounded-lg flex-shrink-0"
+                        />
+                        <div>
+                          <p className="text-xs font-bold text-white mb-0.5">Entry Pass</p>
+                          <p className="text-[11px] text-gray-500 leading-relaxed">Show this QR to your Wingman host at the venue entrance.</p>
+                          <p className="text-[10px] font-mono text-gray-600 mt-1">WINGMAN-{bookingId}</p>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => onNavigate('eventChatsList' as Page)}
+                          className="flex-1 text-sm font-bold py-3 rounded-xl transition-all active:scale-[0.98]"
+                          style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)' }}
+                        >
+                          💬 Event Chat
+                        </button>
+                        <button
+                          onClick={() => onViewReceipt(item)}
+                          className="flex-1 text-sm font-bold py-3 rounded-xl transition-all active:scale-[0.98]"
+                          style={{ background: 'rgba(184,155,77,0.1)', color: '#B89B4D', border: '1px solid rgba(184,155,77,0.25)' }}
+                        >
+                          🧾 Full Receipt
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <EmptyState
@@ -515,6 +664,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             />
           )
         )}
+
       </div>
 
       {/* Mobile sticky checkout bar (only on small screens — desktop uses sidebar) */}
