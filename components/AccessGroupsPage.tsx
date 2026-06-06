@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { AccessGroup, User, UserRole, Page, UserAccessLevel, GroupJoinRequest } from '../types';
+import { AccessGroup, User, UserRole, Page, GroupJoinRequest } from '../types';
 import { FeaturedGroupCard } from './FeaturedGroupCard';
 import { BellIcon } from './icons/BellIcon';
 import { LeaveIcon } from './icons/LeaveIcon';
@@ -190,10 +190,9 @@ export const AccessGroupsPage: React.FC<AccessGroupsPageProps> = ({
     }, [approvedGroups, myGroupIds, searchTerm, filter]);
 
     const canCreateGroup = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
-    const canJoinGroups  = currentUser.accessLevel === UserAccessLevel.ACCESS_MALE
-        || currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL
-        || currentUser.role === UserRole.ADMIN
-        || currentUser.role === UserRole.WINGMAN;
+    // All authenticated users can REQUEST to join — admin still approves/rejects.
+    // Restricting the button by access level only frustrates users with no feedback.
+    const canJoinGroups  = true;
 
     const getJoinStatus = (groupId: number) => {
         if (myGroupIds.includes(groupId)) return 'joined';

@@ -276,7 +276,9 @@ export const App: React.FC = () => {
     const [friendZoneChatMessages, setFriendZoneChatMessages] = useState<FriendZoneChatMessage[]>(mockFriendZoneChatMessages);
     const [wingmanChats, setWingmanChats] = useState<WingmanChat[]>(mockWingmanChats);
     const [wingmanChatMessages, setWingmanChatMessages] = useState<WingmanChatMessage[]>(mockWingmanChatMessages);
-    const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>([]);
+    const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_group_join_requests') ?? '[]'); } catch { return []; }
+    });
     const [wingmanApplications, setWingmanApplications] = useState(mockWingmanApplications);
     // Membership access requests — separate system from WingmanApplication
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
@@ -431,6 +433,7 @@ export const App: React.FC = () => {
     // Fix: persist cart checkout metadata so refresh mid-checkout doesn't break booking
     useEffect(() => { try { localStorage.setItem('wingman_cart_instance_meta', JSON.stringify(cartInstanceMeta)); } catch {} }, [cartInstanceMeta]);
     useEffect(() => { try { localStorage.setItem('wingman_pending_reservations', JSON.stringify(pendingCartReservations)); } catch {} }, [pendingCartReservations]);
+    useEffect(() => { try { localStorage.setItem('wingman_group_join_requests', JSON.stringify(groupJoinRequests)); } catch {} }, [groupJoinRequests]);
 
     // Defensive scroll-lock cleanup: if a modal closed badly and left body in
     // position:fixed (iOS Safari scroll-lock technique), reset it on every nav.
@@ -1081,7 +1084,8 @@ export const App: React.FC = () => {
             timestamp: Date.now()
         };
         setGroupJoinRequests(prev => [...prev, newReq]);
-        showToast('Request to join sent!', 'success');
+        const groupName = appAccessGroups.find(g => g.id === groupId)?.name || 'group';
+        showToast(`Request to join "${groupName}" sent! You'll be notified when approved.`, 'success');
     };
 
     const handleApproveGroupRequest = (requestId: number) => {
