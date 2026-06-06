@@ -666,7 +666,7 @@ export const App: React.FC = () => {
                 .filter(Boolean);
 
             if (bookings.length === 0) {
-                showToast('Cart total is $0 — nothing to charge.', 'error');
+                showToast('No scheduleable items in cart to check out.', 'error');
                 return;
             }
 
@@ -685,6 +685,14 @@ export const App: React.FC = () => {
                 const data = await res.json();
                 if (data.url) {
                     window.location.href = data.url;
+                    return;
+                }
+                // ── Free event (total = $0) — confirm directly without Stripe ──
+                if (data.free === true) {
+                    localStorage.removeItem('wingman_pending_checkout');
+                    setIsCheckoutLoading(false);
+                    finalizeBooking(paymentMethod, itemIds);
+                    showToast('🎉 Booking confirmed! Your spot is reserved.', 'success');
                     return;
                 }
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
