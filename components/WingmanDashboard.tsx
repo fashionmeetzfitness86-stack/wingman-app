@@ -302,7 +302,7 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = (props) => {
                                 label="Rating"
                                 value={wingman.rating.toFixed(1)}
                                 change={wingman.rating >= 4.5 ? '+0.1' : '—'}
-                                changeType={wingman.rating >= 4.5 ? 'positive' : 'neutral'}
+                                changeType={wingman.rating >= 4.5 ? 'positive' : 'negative'}
                                 onClick={() => onNavigate('wingmanStats')}
                             />
                         </div>

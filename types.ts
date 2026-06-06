@@ -521,6 +521,17 @@ export interface GroupJoinRequest {
   timestamp: number;
 }
 
+// Group chat messages — persisted to localStorage per group
+export interface GroupMessage {
+  id: number;
+  groupId: number;
+  userId: number;
+  userName: string;
+  userPhoto: string;
+  text: string;
+  sentAt: string; // ISO 8601
+}
+
 export interface VenueReview {
   id: number;
   venueId: number;
@@ -590,6 +601,7 @@ export interface AppNotification {
   isPush?: boolean;
   itemId?: number | string;
   itemType?: 'event' | 'venue';
+  targetUserId?: number; // if set, only show this notification to this user
 }
 
 export interface PushCampaign {

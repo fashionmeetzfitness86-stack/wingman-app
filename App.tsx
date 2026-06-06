@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, formatTimeRemaining } from './utils/accessControl';
-import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage } from './types';
+import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
 
@@ -276,7 +275,12 @@ export const App: React.FC = () => {
     const [friendZoneChatMessages, setFriendZoneChatMessages] = useState<FriendZoneChatMessage[]>(mockFriendZoneChatMessages);
     const [wingmanChats, setWingmanChats] = useState<WingmanChat[]>(mockWingmanChats);
     const [wingmanChatMessages, setWingmanChatMessages] = useState<WingmanChatMessage[]>(mockWingmanChatMessages);
-    const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>([]);
+    const [groupJoinRequests, setGroupJoinRequests] = useState<GroupJoinRequest[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_group_join_requests') ?? '[]'); } catch { return []; }
+    });
+    const [groupMessages, setGroupMessages] = useState<GroupMessage[]>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_group_messages') ?? '[]'); } catch { return []; }
+    });
     const [wingmanApplications, setWingmanApplications] = useState(mockWingmanApplications);
     // Membership access requests — separate system from WingmanApplication
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
@@ -431,6 +435,8 @@ export const App: React.FC = () => {
     // Fix: persist cart checkout metadata so refresh mid-checkout doesn't break booking
     useEffect(() => { try { localStorage.setItem('wingman_cart_instance_meta', JSON.stringify(cartInstanceMeta)); } catch {} }, [cartInstanceMeta]);
     useEffect(() => { try { localStorage.setItem('wingman_pending_reservations', JSON.stringify(pendingCartReservations)); } catch {} }, [pendingCartReservations]);
+    useEffect(() => { try { localStorage.setItem('wingman_group_join_requests', JSON.stringify(groupJoinRequests)); } catch {} }, [groupJoinRequests]);
+    useEffect(() => { try { localStorage.setItem('wingman_group_messages', JSON.stringify(groupMessages)); } catch {} }, [groupMessages]);
 
     // Defensive scroll-lock cleanup: if a modal closed badly and left body in
     // position:fixed (iOS Safari scroll-lock technique), reset it on every nav.
@@ -660,7 +666,7 @@ export const App: React.FC = () => {
                 .filter(Boolean);
 
             if (bookings.length === 0) {
-                showToast('Cart total is $0 — nothing to charge.', 'error');
+                showToast('No scheduleable items in cart to check out.', 'error');
                 return;
             }
 
@@ -679,6 +685,14 @@ export const App: React.FC = () => {
                 const data = await res.json();
                 if (data.url) {
                     window.location.href = data.url;
+                    return;
+                }
+                // ── Free event (total = $0) — confirm directly without Stripe ──
+                if (data.free === true) {
+                    localStorage.removeItem('wingman_pending_checkout');
+                    setIsCheckoutLoading(false);
+                    finalizeBooking(paymentMethod, itemIds);
+                    showToast('🎉 Booking confirmed! Your spot is reserved.', 'success');
                     return;
                 }
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
@@ -1081,27 +1095,97 @@ export const App: React.FC = () => {
             timestamp: Date.now()
         };
         setGroupJoinRequests(prev => [...prev, newReq]);
-        showToast('Request to join sent!', 'success');
+        const groupName = group?.name || 'group';
+        showToast(`Request to join "${groupName}" sent! You'll be notified when approved.`, 'success');
+
+        // Notify admin / group creator in the bell
+        setNotifications(prev => [{
+            id: Date.now() + 1,
+            text: `👤 ${currentUser.name} wants to join "${groupName}"`,
+            time: 'Just now',
+            read: false,
+            link: { page: 'accessGroupFeed' as Page, params: { groupId } },
+            targetUserId: group?.creatorId,
+        }, ...prev]);
     };
 
     const handleApproveGroupRequest = (requestId: number) => {
         const request = groupJoinRequests.find(r => r.id === requestId);
         if (!request) return;
 
-        setAppAccessGroups(prev => prev.map(g => {
-            if (g.id === request.groupId) {
-                return { ...g, memberIds: [...g.memberIds, request.userId] };
-            }
-            return g;
-        }));
+        const group = appAccessGroups.find(g => g.id === request.groupId);
+        const groupName = group?.name || 'group';
+
+        // Add user to group's memberIds
+        setAppAccessGroups(prev => prev.map(g =>
+            g.id === request.groupId
+                ? { ...g, memberIds: [...g.memberIds, request.userId] }
+                : g
+        ));
+
+        // Update appUsers so the approved user's accessGroupIds is current
+        setAppUsers(prev => prev.map(u =>
+            u.id === request.userId
+                ? { ...u, accessGroupIds: [...(u.accessGroupIds || []), request.groupId] }
+                : u
+        ));
+
+        // If the currently logged-in user is the one being approved, update currentUser too
+        if (request.userId === currentUser.id) {
+            setCurrentUser(prev => ({
+                ...prev,
+                accessGroupIds: [...(prev.accessGroupIds || []), request.groupId],
+            }));
+        }
 
         setGroupJoinRequests(prev => prev.filter(r => r.id !== requestId));
-        showToast('Member approved', 'success');
+
+        // Notify the approved user via bell
+        setNotifications(prev => [{
+            id: Date.now(),
+            text: `✅ You've been approved to join "${groupName}"! Welcome to the community.`,
+            time: 'Just now',
+            read: false,
+            link: { page: 'accessGroupFeed' as Page, params: { groupId: request.groupId } },
+            targetUserId: request.userId,
+        }, ...prev]);
+
+        showToast(`${group ? `"${groupName}"` : 'Member'} approved!`, 'success');
     };
 
     const handleRejectGroupRequest = (requestId: number) => {
+        const request = groupJoinRequests.find(r => r.id === requestId);
+        if (!request) return;
+
+        const group = appAccessGroups.find(g => g.id === request.groupId);
+        const groupName = group?.name || 'group';
+
         setGroupJoinRequests(prev => prev.filter(r => r.id !== requestId));
-        showToast('Request rejected', 'success');
+
+        // Notify the rejected user
+        setNotifications(prev => [{
+            id: Date.now(),
+            text: `Your request to join "${groupName}" was not approved at this time.`,
+            time: 'Just now',
+            read: false,
+            targetUserId: request.userId,
+        }, ...prev]);
+
+        showToast('Request declined.', 'success');
+    };
+
+    const handleSendGroupMessage = (groupId: number, text: string) => {
+        if (!text.trim()) return;
+        const msg: GroupMessage = {
+            id: Date.now(),
+            groupId,
+            userId: currentUser.id,
+            userName: currentUser.name,
+            userPhoto: currentUser.profilePhoto,
+            text: text.trim(),
+            sentAt: new Date().toISOString(),
+        };
+        setGroupMessages(prev => [...prev, msg]);
     };
     
     const handleToggleTask = (challengeId: number, taskId: number) => {
@@ -1897,18 +1981,15 @@ export const App: React.FC = () => {
                 return <AccessGroupFeedPage 
                     groupId={pageParams.groupId} 
                     currentUser={currentUser} 
-                    allPosts={[]} 
                     allGroups={appAccessGroups} 
-                    onToggleLike={(id) => {
-                        setAppAccessGroups(prev => prev.map(g => g.id === id
-                            ? { ...g, likeCount: ((g as any).likeCount ?? 0) + 1 }
-                            : g
-                        ));
-                    }} 
                     groupJoinRequests={groupJoinRequests}
                     onApproveRequest={handleApproveGroupRequest}
                     onRejectRequest={handleRejectGroupRequest}
                     users={appUsers}
+                    groupMessages={groupMessages}
+                    onSendMessage={handleSendGroupMessage}
+                    onNavigate={handleNavigate}
+                    onRequestJoin={handleRequestJoinGroup}
                 />;
             case 'myItineraries':
                 return <MyItinerariesPage 
@@ -1941,9 +2022,21 @@ export const App: React.FC = () => {
                             return exists ? prev.map(it => it.id === i.id ? i as any : it) : [...prev, i as any];
                         });
                         showToast('Itinerary saved.', 'success');
-                        handleNavigate('myItineraries');
+                        // After save, return to the detail page so the user sees their updated itinerary
+                        if (i.id) {
+                            handleNavigate('itineraryDetails', { itineraryId: i.id });
+                        } else {
+                            handleNavigate('myItineraries');
+                        }
                     }} 
-                    onCancel={() => handleNavigate('myItineraries')} 
+                    onCancel={() => {
+                        // Back → go to itineraryDetails if editing an existing one, otherwise list
+                        if (pageParams.itineraryId) {
+                            handleNavigate('itineraryDetails', { itineraryId: pageParams.itineraryId });
+                        } else {
+                            handleNavigate('myItineraries');
+                        }
+                    }} 
                     itinerary={existingItinerary} 
                     venues={appVenues} 
                     events={appEvents} 
@@ -2477,7 +2570,7 @@ export const App: React.FC = () => {
                     <NotificationsPanel 
                         isOpen={isNotificationsOpen} 
                         onClose={() => setIsNotificationsOpen(false)} 
-                        notifications={notifications} 
+                        notifications={notifications.filter(n => !n.targetUserId || n.targetUserId === currentUser.id)} 
                         onNavigate={(link) => { 
                             setIsNotificationsOpen(false); 
                             if (link) handleNavigate(link.page, link.params); 

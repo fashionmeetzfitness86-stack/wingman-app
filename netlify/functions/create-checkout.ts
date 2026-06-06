@@ -36,6 +36,14 @@ const PRICE_SCHEDULE: ScheduleEntry[] = [
   // ── Sunday ──
   { id: 'sun-dinner-komodo',         title: 'Sunday Dinner @ Komodo',         pricePerPerson: 400, maxPerBooking: 2 },
   { id: 'sun-yacht-key-biscayne',    title: 'Sunday Yacht — Key Biscayne',    pricePerPerson: 350 },
+  // ── TEST (free) — remove before public launch ──
+  { id: 'test-yacht-free-sun',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-mon',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-tue',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-wed',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-thu',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-fri',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
+  { id: 'test-yacht-free-sat',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
 ];
 
 // Build a lookup map for O(1) access
@@ -166,6 +174,22 @@ export default async (req: Request) => {
 
     if (lineItems.length === 0) {
       return new Response(JSON.stringify({ error: 'No valid bookings after validation' }), { status: 400 });
+    }
+
+    // ── Free booking bypass ───────────────────────────────────────────────────
+    // Stripe cannot process $0 charges. If the entire order is free,
+    // return a special free=true response so the client can confirm
+    // the booking directly without going through Stripe.
+    const totalCents = resolvedBookings.reduce((sum, b) => sum + b.unitPrice * b.quantity * 100, 0);
+    if (totalCents === 0) {
+      return new Response(
+        JSON.stringify({
+          free: true,
+          confirmed: true,
+          bookings: resolvedBookings,
+        }),
+        { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
     }
 
     let origin = 'https://wingman-app.netlify.app';

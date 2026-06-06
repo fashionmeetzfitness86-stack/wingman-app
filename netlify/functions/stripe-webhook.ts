@@ -42,7 +42,7 @@ export default async (req: Request) => {
   let event: Stripe.Event;
 
   try {
-    const stripe = new Stripe(getStripeKey(), { apiVersion: '2025-04-30.basil' });
+    const stripe = new Stripe(getStripeKey(), { apiVersion: '2026-02-25.clover' });
     const rawBody = await req.text();
 
     if (webhookSecret) {
