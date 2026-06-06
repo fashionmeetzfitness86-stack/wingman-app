@@ -14,8 +14,11 @@ export const ACCESS_STORAGE_KEY  = 'wm_access';
 export const PASSCODE_STORAGE_KEY = 'wm_admin_passcode';
 export const ACCESS_DURATION_MS  = 24 * 60 * 60 * 1000; // 24 hours
 
-// ─── Default passcode (admin can change) ──────────────────────
-const DEFAULT_PASSCODE = 'WINGMAN24';
+// ─── Default passcode ─────────────────────────────────────────
+// NO hardcoded fallback — admin MUST set a passcode via the Admin Dashboard
+// before the gate will accept any entry. This prevents the dev default from
+// being used as a backdoor in production.
+const DEFAULT_PASSCODE = null;
 
 export interface AccessSession {
   email: string;
@@ -26,7 +29,7 @@ export interface AccessSession {
 
 // ─── Admin passcode management ────────────────────────────────
 
-export function getAdminPasscode(): string {
+export function getAdminPasscode(): string | null {
   try {
     const stored = localStorage.getItem(PASSCODE_STORAGE_KEY);
     if (stored) {
@@ -34,7 +37,7 @@ export function getAdminPasscode(): string {
       return parsed.code;
     }
   } catch {}
-  return DEFAULT_PASSCODE;
+  return DEFAULT_PASSCODE; // null — admin must set a passcode in the dashboard
 }
 
 export function setAdminPasscode(code: string): void {
@@ -93,6 +96,8 @@ export function clearAccessSession(): void {
 
 export function validatePasscode(input: string): boolean {
   const adminCode = getAdminPasscode();
+  // Reject all attempts if no passcode has been configured by admin
+  if (!adminCode) return false;
   return input.trim().toUpperCase() === adminCode.toUpperCase();
 }
 
