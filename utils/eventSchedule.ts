@@ -212,15 +212,6 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     coverImage: IMG.yacht1,
     isActive: true,
   },
-
-  // ── TEST EVENT — $0 Yacht Party (runs every day so it always appears) ─────
-  { id: 'test-yacht-free-sun', dayOfWeek: 0, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-mon', dayOfWeek: 1, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-tue', dayOfWeek: 2, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-wed', dayOfWeek: 3, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-thu', dayOfWeek: 4, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-fri', dayOfWeek: 5, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
-  { id: 'test-yacht-free-sat', dayOfWeek: 6, experienceType: 'Yacht', title: '[TEST] Wingman Yacht Experience', venue: 'Bayside Marketplace Marina', address: '401 Biscayne Blvd, Miami, FL 33132', time: '4:00 PM', arrivalTime: '4:00 PM', pricePerPerson: 0, totalCapacity: 20, bookingRules: {}, coverImage: IMG.yacht2, isActive: true },
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────

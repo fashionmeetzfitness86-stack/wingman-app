@@ -18,6 +18,7 @@
  */
 
 import Stripe from 'stripe';
+import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 
 const getStripeKey = (): string => {
   const key =
@@ -72,37 +73,53 @@ export default async (req: Request) => {
       return new Response(JSON.stringify({ received: true }), { status: 200 });
     }
 
-    // Extract the cart context we embedded at checkout time
-    const cartContext = session.metadata?.cartContext
+    // Extract the cart context we embedded at checkout time.
+    // create-checkout stores it under `cart_context` (snake_case) — must match.
+    const rawCartContext = session.metadata?.cart_context || '';
+    const cartContext = rawCartContext
       ? (() => {
-          try { return JSON.parse(session.metadata!.cartContext!); }
+          try { return JSON.parse(rawCartContext); }
           catch { return null; }
         })()
       : null;
 
-    console.log('[Wingman] ✅ checkout.session.completed', {
+    console.log('[Wingman] checkout.session.completed', {
       sessionId:      session.id,
       amountTotal:    session.amount_total,
       customerEmail:  session.customer_details?.email,
       cartContext,
     });
 
-    // ── Webhook confirmed record ──────────────────────────────────────────────
-    // The client polls verify-session on redirect; webhook acts as a fallback.
-    // Since this is a serverless function without a shared DB, we log the
-    // confirmation. To make this production-grade, write to Supabase here:
-    //
-    //   import { createClient } from '@supabase/supabase-js';
-    //   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
-    //   await supabase.from('confirmed_bookings').insert({
-    //     stripe_session_id:  session.id,
-    //     customer_email:     session.customer_details?.email,
-    //     amount_total_cents: session.amount_total,
-    //     cart_context:       cartContext,
-    //     confirmed_at:       new Date().toISOString(),
-    //   });
-
-    console.log('[Wingman] Booking confirmed via webhook for session:', session.id);
+    // ── Persist the confirmed booking ─────────────────────────────────────────
+    // The client polls verify-session on redirect; this webhook is the durable
+    // source of truth so a booking survives even if the browser closes before
+    // the redirect lands. Upsert on stripe_session_id makes retries idempotent.
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { error } = await supabase
+        .from('confirmed_bookings')
+        .upsert(
+          {
+            stripe_session_id:  session.id,
+            user_id:            session.metadata?.userId || null,
+            customer_email:     session.customer_details?.email || null,
+            amount_total_cents: session.amount_total ?? 0,
+            currency:           session.currency || 'usd',
+            cart_context:       cartContext,
+            confirmed_at:       new Date().toISOString(),
+          },
+          { onConflict: 'stripe_session_id' }
+        );
+      if (error) {
+        // Returning 500 makes Stripe retry the webhook, which is what we want
+        // if the DB write failed transiently.
+        console.error('[Wingman] Failed to persist confirmed booking:', error.message);
+        return new Response(JSON.stringify({ error: 'persist_failed' }), { status: 500 });
+      }
+      console.log('[Wingman] Booking persisted for session:', session.id);
+    } else {
+      console.warn('[Wingman] Supabase admin not configured — booking NOT persisted:', session.id);
+    }
   }
 
   // Acknowledge all other event types

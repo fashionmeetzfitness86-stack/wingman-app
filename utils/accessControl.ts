@@ -131,8 +131,9 @@ export interface PasscodeLead {
 }
 
 export function recordPasscodeLead(email: string, fullName: string = ''): void {
+  const normalized = email.trim().toLowerCase();
+  // Keep a local copy as an offline fallback…
   try {
-    const normalized = email.trim().toLowerCase();
     const existing: PasscodeLead[] = JSON.parse(
       localStorage.getItem(LEADS_STORE_KEY) ?? '[]'
     );
@@ -140,6 +141,17 @@ export function recordPasscodeLead(email: string, fullName: string = ''): void {
     const filtered = existing.filter(l => l.email !== normalized);
     filtered.push({ email: normalized, fullName: fullName.trim(), capturedAt: Date.now() });
     localStorage.setItem(LEADS_STORE_KEY, JSON.stringify(filtered));
+  } catch {}
+
+  // …and persist to the server so the business actually receives the lead.
+  // Fire-and-forget: never block or break the access flow on a network error.
+  try {
+    void fetch('/.netlify/functions/capture-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: normalized, fullName: fullName.trim() }),
+      keepalive: true,
+    }).catch(() => {});
   } catch {}
 }
 

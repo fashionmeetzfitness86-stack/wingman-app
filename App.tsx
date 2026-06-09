@@ -716,18 +716,6 @@ export const App: React.FC = () => {
                     return;
                 }
 
-                if (data.free === true) {
-                    // $0 event — simulate Stripe redirect-and-return flow
-                    localStorage.removeItem('wingman_pending_checkout');
-                    setIsCheckoutLoading(false);
-                    const freeSessionId = `free-${Date.now()}`;
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('payment', 'success');
-                    url.searchParams.set('session_id', freeSessionId);
-                    window.location.href = url.toString();
-                    return;
-                }
-
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
             } catch (err: any) {
                 localStorage.removeItem('wingman_pending_checkout');

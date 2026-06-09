@@ -270,7 +270,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                   return <EventBookingCard key={item.id} item={cartItem} venue={venue} status={item.status} onNavigate={onNavigate} />;
               } else if (item.type === 'table' && 'tableTier' in item.originalData) {
                   // It's a mock Booking
-                  return <BookingCard key={item.id} booking={item.originalData as Booking} onNavigate={onNavigate} />;
+                  return <BookingCard key={item.id} booking={item.originalData as unknown as Booking} onNavigate={onNavigate} />;
               } else if (item.type === 'table') {
                    // It's a CartItem of type table
                    const cartItem = item.originalData as CartItem;

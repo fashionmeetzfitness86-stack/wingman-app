@@ -366,7 +366,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     {/* ── Six required checkboxes ─────────────────────────────── */}
                     <div
                       className="space-y-0 divide-y"
-                      style={{ borderTop: '1px solid rgba(184,155,77,0.15)', divideColor: 'rgba(184,155,77,0.08)' }}
+                      style={{ borderTop: '1px solid rgba(184,155,77,0.15)' }}
                     >
                       {[
                         { id: 'chk-1', key: 'chk1', label: 'I understand that I am purchasing access to a hosted Wingman Experience.' },
