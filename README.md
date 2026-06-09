@@ -31,6 +31,7 @@ See [`.env.example`](./.env.example) for the full list. Set the same keys in
 | `STRIPE_WEBHOOK_SECRET` | server | Verifies Stripe webhook signatures |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | server | Service-role writes (bookings, leads) |
 | `RESEND_API_KEY` / `RESEND_FROM` | server | Welcome email |
+| `ADMIN_EMAILS` | server | Allowlist for the admin "Live" data view (comma-separated) |
 | `ALLOWED_ORIGINS` | server | Optional extra CORS origins (comma-separated) |
 
 > The server-only keys (`STRIPE_*`, `SUPABASE_SERVICE_KEY`) must **never** be
