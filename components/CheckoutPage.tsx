@@ -49,7 +49,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   currentUser, watchlist, cartItems = [], bookedItems, venues,
   onRemoveItem, onUpdatePaymentOption, onConfirmCheckout, onMoveToCart,
   onViewReceipt, userTokenBalance, onStartChat, onCancelRsvp,
-  initialTab = 'cart', onNavigate, allInstances = [], currentUserCanBook = true
+  initialTab = 'cart', onNavigate, allInstances = [], currentUserCanBook = true,
+  isCheckoutLoading = false
 }) => {
   const [activeTab, setActiveTab] = useState<'cart' | 'watchlist' | 'purchased'>(initialTab);
   const [paymentMethod, setPaymentMethod] = useState<'usd' | 'cashapp'>('usd');
@@ -57,6 +58,18 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [selectedInstance, setSelectedInstance] = useState<EventInstance | null>(null);
   const [agreedToDisclosure, setAgreedToDisclosure] = useState<Record<string, boolean>>({});
   const [disclosureExpanded, setDisclosureExpanded] = useState(false);
+
+  // ── Disclosure gate (legal) ───────────────────────────────────────────────
+  // All six acknowledgements are REQUIRED before checkout. We check explicit
+  // keys — NOT Object.values(...).every(Boolean), which returns true for an
+  // empty {} and would let users pay without agreeing to anything.
+  const REQUIRED_DISCLOSURE_KEYS = ['chk1', 'chk2', 'chk3', 'chk4', 'chk5', 'chk6'];
+  const allDisclosuresAgreed = REQUIRED_DISCLOSURE_KEYS.every(
+    key => agreedToDisclosure[key] === true
+  );
+  const disclosuresCheckedCount = REQUIRED_DISCLOSURE_KEYS.filter(
+    key => agreedToDisclosure[key] === true
+  ).length;
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -423,12 +436,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-                    disabled={selectedItemIds.length === 0 || !Object.values(agreedToDisclosure as Record<string, boolean>).every(Boolean)}
+                    disabled={selectedItemIds.length === 0 || !allDisclosuresAgreed || isCheckoutLoading}
                     className="mt-3 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
                   >
                     <CreditCardIcon className="w-5 h-5" />
-                    Confirm &amp; Pay ({selectedItemIds.length} item{selectedItemIds.length !== 1 ? 's' : ''})
+                    {isCheckoutLoading
+                      ? 'Processing…'
+                      : `Confirm & Pay (${selectedItemIds.length} item${selectedItemIds.length !== 1 ? 's' : ''})`}
                   </button>
                 </div>
               </div>
@@ -680,8 +695,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
             {/* Mobile disclosure status — shares state with desktop checkboxes */}
             {(() => {
-              const allChecked = Object.values(agreedToDisclosure).length === 6 && Object.values(agreedToDisclosure).every(Boolean);
-              const checkedCount = Object.values(agreedToDisclosure).filter(Boolean).length;
+              const allChecked = allDisclosuresAgreed;
+              const checkedCount = disclosuresCheckedCount;
               return (
                 <div
                   className="flex items-center gap-2 mb-3 rounded-xl px-3 py-2.5"
@@ -704,12 +719,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </p>
             <button
               onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
-              disabled={selectedItemIds.length === 0 || !(Object.values(agreedToDisclosure).length === 6 && Object.values(agreedToDisclosure).every(Boolean))}
+              disabled={selectedItemIds.length === 0 || !allDisclosuresAgreed || isCheckoutLoading}
               className="w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
             >
               <CreditCardIcon className="w-5 h-5" />
-              Confirm &amp; Pay
+              {isCheckoutLoading ? 'Processing…' : 'Confirm & Pay'}
             </button>
           </div>
         </div>
