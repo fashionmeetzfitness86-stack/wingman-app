@@ -123,7 +123,14 @@ export const App: React.FC = () => {
     const [appUsers, setAppUsers] = useState<User[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_users');
-            return saved ? JSON.parse(saved) : users;
+            if (!saved) return users;
+            // Merge: seed users (e.g. the admin account) are always kept fresh by id,
+            // so a stale cached list can never drop or out-date them — while any
+            // user-created accounts (non-seed ids) are preserved.
+            const parsed: User[] = JSON.parse(saved);
+            const seedIds = new Set(users.map(u => u.id));
+            const savedNonSeed = parsed.filter(u => !seedIds.has(u.id));
+            return [...users, ...savedNonSeed];
         } catch (e) {
             return users;
         }
