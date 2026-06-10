@@ -200,7 +200,14 @@ export const App: React.FC = () => {
         }
     });
 
-    const [currentPage, setCurrentPage] = useState<Page>('home');
+    const [currentPage, setCurrentPage] = useState<Page>(() => {
+        // Deep-link support for /admin — only honoured for admin accounts.
+        try {
+            const path = window.location.pathname.replace(/\/+$/, '');
+            if (path === '/admin' && currentUser?.role === UserRole.ADMIN) return 'adminDashboard';
+        } catch {}
+        return 'home';
+    });
     const [pageParams, setPageParams] = useState<any>({});
     // Navigation history stack — enables true "Go Back" from any page
     const [pageHistory, setPageHistory] = useState<Array<{ page: Page; params: any }>>([]);
@@ -388,6 +395,19 @@ export const App: React.FC = () => {
 
     // Derived early — must be before any useEffect that references it (avoids TDZ crash)
     const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
+
+    // Keep the URL in sync with the admin dashboard so /admin is shareable
+    // and survives a refresh.
+    useEffect(() => {
+        try {
+            const path = window.location.pathname.replace(/\/+$/, '');
+            if (currentPage === 'adminDashboard' && path !== '/admin') {
+                window.history.replaceState({}, '', '/admin');
+            } else if (currentPage !== 'adminDashboard' && path === '/admin') {
+                window.history.replaceState({}, '', '/');
+            }
+        } catch {}
+    }, [currentPage]);
 
     // Re-validate session every minute (handles expiry while app is open)
     useEffect(() => {
@@ -2535,7 +2555,10 @@ export const App: React.FC = () => {
                 localStorage.removeItem('wingman_currentUserId');
             }
             setPasscodeAccessActive(true);
-            setCurrentPage('home');
+            // If they deep-linked to /admin and are an admin, drop them straight
+            // into the dashboard; otherwise go home.
+            const path = (() => { try { return window.location.pathname.replace(/\/+$/, ''); } catch { return ''; } })();
+            setCurrentPage(path === '/admin' && found.role === UserRole.ADMIN ? 'adminDashboard' : 'home');
             return true;
         };
         const handleCreateAccount = () => {
