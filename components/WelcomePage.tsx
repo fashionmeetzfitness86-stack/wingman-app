@@ -17,6 +17,7 @@ import {
   ACCESS_DURATION_MS,
 } from '../utils/accessControl';
 import { supabase } from '../lib/supabase';
+import loginLogo from '../assets/login-logo-white.png';
 
 // ─── Icons ────────────────────────────────────────────────────
 
@@ -208,9 +209,9 @@ const LoginScreen: React.FC<{
 
       <div className="flex-1 flex items-center justify-center px-5 py-8">
         <div className="w-full max-w-sm">
-          {/* Logo */}
-          <div className="mb-10 text-center">
-            <WingmanWordmark />
+          {/* Logo — login page only */}
+          <div className="mb-10 flex justify-center">
+            <img src={loginLogo} alt="WINGMAN" className="h-16 w-auto" />
           </div>
 
           <div className="text-center mb-8">
