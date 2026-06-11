@@ -1,100 +1,15 @@
 
 import { Venue, Wingman, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, WingmanApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
 
-// Mock Users
+// Mock Users — only the admin and Wingman host seed entries
 export const users: User[] = [
   {
-    id: 101,
-    name: 'John Doe',
-    email: 'john@example.com',
-    profilePhoto: 'https://i.pravatar.cc/150?u=101',
-    accessLevel: UserAccessLevel.ACCESS_MALE,
-    role: UserRole.USER,
-    city: 'Miami',
-    joinDate: '2023-01-15',
-    instagramHandle: 'johndoe',
-    phoneNumber: '+15550101',
-    preferences: { music: ['House', 'Hip Hop'], activities: ['Nightclub', 'Dining'], personality: 'Social', timeOfDay: 'Nighttime' },
-    status: 'active',
-    approvalStatus: 'approved',
-    subscriptionStatus: 'active',
-    friends: [102]
-  },
-  {
-    id: 102,
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    profilePhoto: 'https://i.pravatar.cc/150?u=102',
-    accessLevel: UserAccessLevel.APPROVED_GIRL,
-    role: UserRole.USER,
-    city: 'Miami',
-    joinDate: '2023-02-20',
-    instagramHandle: 'janesmith',
-    phoneNumber: '+15550102',
-    preferences: { music: ['Pop', 'EDM'], activities: ['Pool Party', 'Lounge'], personality: 'Energetic', timeOfDay: 'Both' },
-    status: 'active',
-    approvalStatus: 'approved',
-    subscriptionStatus: 'active',
-    friends: [101]
-  },
-  {
-    id: 103,
-    name: 'Newbie Nick',
-    email: 'nick@general.com',
-    profilePhoto: 'https://i.pravatar.cc/150?u=103',
-    accessLevel: UserAccessLevel.GENERAL,
-    role: UserRole.USER,
-    city: 'Miami',
-    joinDate: '2024-01-01',
-    instagramHandle: 'newbie_nick',
-    phoneNumber: '+15550103',
-    preferences: { music: ['Top 40'], activities: ['Dining'], personality: 'Observer', timeOfDay: 'Daytime' },
-    status: 'active',
-    approvalStatus: 'pending',
-    subscriptionStatus: 'free_tier',
-    friends: []
-  },
-  {
-    id: 104,
-    name: 'Alex Google',
-    email: 'alex@google.com',
-    profilePhoto: 'https://lh3.googleusercontent.com/a/ACg8ocIq8jF8=s96-c', // Generic google-like placeholder URL
-    accessLevel: UserAccessLevel.ACCESS_MALE,
-    role: UserRole.USER,
-    city: 'New York',
-    joinDate: '2023-05-10',
-    instagramHandle: 'alex_g',
-    phoneNumber: '+15550104',
-    status: 'active',
-    approvalStatus: 'pending',
-    subscriptionStatus: 'free_tier',
-    bio: 'Logged in via Google',
-    preferences: { music: ['Tech House'], activities: ['Rooftop'], personality: 'Chill', timeOfDay: 'Nighttime' }
-  },
-  {
-    id: 105,
-    name: 'Sarah Facebook',
-    email: 'sarah@facebook.com',
-    profilePhoto: 'https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=12345&height=200&width=200&ext=12345', // Generic FB-like
-    accessLevel: UserAccessLevel.APPROVED_GIRL,
-    role: UserRole.USER,
-    city: 'Los Angeles',
-    joinDate: '2023-06-15',
-    instagramHandle: 'sarah_fb',
-    phoneNumber: '+15550105',
-    status: 'active',
-    approvalStatus: 'rejected',
-    subscriptionStatus: 'suspended',
-    bio: 'Logged in via Facebook',
-    preferences: { music: ['Hip Hop', 'R&B'], activities: ['Nightclub'], personality: 'Social', timeOfDay: 'Both' }
-  },
-  {
-    id: 1, // Wingman host — THE single host of all experiences
+    id: 1, // Wingman host
     name: 'Anderson',
     email: 'anderson@example.com',
     profilePhoto: 'https://i.pravatar.cc/150?u=1',
     accessLevel: UserAccessLevel.PROMO,
-    role: UserRole.WINGMAN, // Updated: now the Wingman host role
+    role: UserRole.WINGMAN,
     city: 'Miami',
     joinDate: '2022-11-01',
     instagramHandle: 'anderson_promo',
@@ -249,11 +164,8 @@ export const bottles: Bottle[] = [
     { id: 'b10', name: 'Ace of Spades Gold', price: 800 }, // New
 ];
 
-// Mock Booking History
-export const bookingHistory: Booking[] = [
-    { id: 1, userId: 101, venueName: 'LIV', wingmanName: 'Anderson', date: '2023-10-15', tableTier: 'Dance Floor Table', status: 'Completed' },
-    { id: 2, userId: 102, venueName: 'Story', wingmanName: 'Anderson', date: '2023-11-20', tableTier: 'VIP Booth', status: 'Confirmed' }
-];
+// Booking history starts empty — populated by real user bookings
+export const bookingHistory: Booking[] = [];
 
 // Mock Transactions
 export const mockTokenTransactions: Transaction[] = [
@@ -261,27 +173,14 @@ export const mockTokenTransactions: Transaction[] = [
     { type: 'spend', amount: 200, reason: 'Event Ticket', date: '2023-12-05', time: '09:30 PM', itemName: 'Neon Party' }
 ];
 
-// Mock Access Groups
-export const accessGroups: AccessGroup[] = [
-    { id: 1, name: 'Miami VIPs', description: 'Exclusive group for high rollers', coverImage: 'https://picsum.photos/seed/g1/400/300', memberIds: [101, 102], creatorId: 1, status: 'approved', creationDate: '2023-01-01', isFeatured: true },
-    { id: 2, name: 'Techno Lovers', description: 'For those who love the beat', coverImage: 'https://picsum.photos/seed/g2/400/300', memberIds: [102], creatorId: 102, status: 'approved', creationDate: '2023-03-15' }
-];
+// Access groups start empty
+export const accessGroups: AccessGroup[] = [];
 
-// Mock Group Posts
-export const groupPosts: GroupPost[] = [
-    { id: 1, groupId: 1, authorId: 1, content: 'Welcome everyone! Get ready for the weekend.', timestamp: '2h ago', likes: [101, 102] }
-];
+// Group posts start empty
+export const groupPosts: GroupPost[] = [];
 
-// Mock Itineraries
-export const itineraries: Itinerary[] = [
-    {
-        id: 1, creatorId: 101, title: 'My Birthday Bash', description: 'Planning for next month', date: '2024-05-20', sharedWithUserIds: [], isPublic: false,
-        items: [
-            { id: 'i1', type: 'venue', itemId: 1, startTime: '11:00 PM' },
-            { id: 'i2', type: 'note', customTitle: 'After party', startTime: '03:00 AM', notes: 'At the villa' }
-        ]
-    }
-];
+// Itineraries start empty
+export const itineraries: Itinerary[] = [];
 
 // Mock Events
 export const events: Event[] = [
@@ -410,74 +309,36 @@ export const mockNotifications: AppNotification[] = [
     { id: 2, text: 'New event: Neon Night', time: '3h ago', read: true, link: { page: 'eventTimeline' } }
 ];
 
-// Mock Chats
-export const mockGuestlistChats: GuestlistChat[] = [
-    { id: 1, venueId: 1, date: '2025-06-15', wingmanId: 1, memberIds: [101, 1] }
-];
+// Guestlist chats start empty
+export const mockGuestlistChats: GuestlistChat[] = [];
 
-export const mockGuestlistChatMessages: GuestlistChatMessage[] = [
-    { id: 1, chatId: 1, senderId: 1, text: 'Hey! Looking forward to seeing you.', timestamp: '10:00 AM' }
-];
+export const mockGuestlistChatMessages: GuestlistChatMessage[] = [];
 
-export const mockEventChats: EventChat[] = [
-    { id: 1, eventId: 202, memberIds: [101, 102] }
-];
+// Event chats start empty
+export const mockEventChats: EventChat[] = [];
 
-export const mockEventChatMessages: EventChatMessage[] = [
-    { id: 1, chatId: 1, senderId: 101, text: 'Is anyone else going?', timestamp: '09:00 AM' }
-];
+export const mockEventChatMessages: EventChatMessage[] = [];
 
-// Mock Friend Zone Chats
-export const mockFriendZoneChats: FriendZoneChat[] = [
-    {
-        id: 1,
-        name: "Weekend Plans 🥂",
-        creatorId: 101,
-        memberIds: [101, 102],
-        wingmanIds: []
-    },
-    {
-        id: 2,
-        name: "Birthday Trip 🌴",
-        creatorId: 102,
-        memberIds: [102, 101],
-        wingmanIds: [1] // Anderson added
-    }
-];
+// Friend zone chats start empty
+export const mockFriendZoneChats: FriendZoneChat[] = [];
 
-export const mockFriendZoneChatMessages: FriendZoneChatMessage[] = [
-    { id: 1, chatId: 1, senderId: 101, text: "Are we going out this Saturday?", timestamp: "10:00 AM" },
-    { id: 2, chatId: 1, senderId: 102, text: "Yes! I want to go to LIV.", timestamp: "10:05 AM" },
-    { id: 3, chatId: 2, senderId: 102, text: "Hey guys, planning my bday for next month.", timestamp: "Yesterday" },
-    { id: 4, chatId: 2, senderId: 1, text: "Let me know the dates, I can sort you out with a table.", timestamp: "Yesterday" }
-];
+export const mockFriendZoneChatMessages: FriendZoneChatMessage[] = [];
 
-export const mockGroupChatMessages: any[] = [
-    { senderId: 101, text: 'Hey everyone!', timestamp: '10:00 AM' }
-];
+// Group chat messages start empty
+export const mockGroupChatMessages: any[] = [];
 
-// Mock Wingman Chats
-export const mockWingmanChats: WingmanChat[] = [
-    { id: 1, userId: 101, title: 'LIV Booking Inquiry', status: 'open', createdAt: '2023-12-01T10:00:00Z' }
-];
+// Wingman chats start empty
+export const mockWingmanChats: WingmanChat[] = [];
 
-export const mockWingmanChatMessages: WingmanChatMessage[] = [
-    { id: 1, chatId: 1, senderId: 101, text: 'Hey Wingman, can you secure a table for LIV this Saturday?', timestamp: '2023-12-01T10:00:00Z' },
-    { id: 2, chatId: 1, senderId: 'wingman', text: 'Absolutely. What is your budget?', timestamp: '2023-12-01T10:05:00Z' }
-];
+export const mockWingmanChatMessages: WingmanChatMessage[] = [];
 
-// Mock Requests
-export const mockInvitationRequests: EventInvitationRequest[] = [
-    { id: 1, userId: 101, eventId: 204, status: 'pending' }
-];
+// Invitation requests start empty
+export const mockInvitationRequests: EventInvitationRequest[] = [];
 
-export const mockEventInvitations: EventInvitation[] = [
-    { id: 1, eventId: 202, inviterId: 102, inviteeId: 101, status: 'pending', timestamp: '2024-01-01T10:00:00Z' }
-];
+export const mockEventInvitations: EventInvitation[] = [];
 
-export const mockGuestlistJoinRequests: GuestlistJoinRequest[] = [
-    { id: 1, userId: 102, venueId: 1, wingmanId: 1, date: '2025-06-15', status: 'pending', attendanceStatus: 'pending', isVip: true }
-];
+// Guestlist join requests start empty
+export const mockGuestlistJoinRequests: GuestlistJoinRequest[] = [];
 
 export const mockWingmanApplications: WingmanApplication[] = [
     {

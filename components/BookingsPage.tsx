@@ -5,13 +5,13 @@ import { CalendarIcon } from './icons/CalendarIcon';
 import { LocationMarkerIcon } from './icons/LocationMarkerIcon';
 
 interface BookingsPageProps {
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Page, params?: any) => void;
   bookedItems?: CartItem[];
   venues?: Venue[];
   instanceBookings?: InstanceBooking[];
 }
 
-const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void }> = ({ booking, onNavigate }) => {
+const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page, params?: any) => void }> = ({ booking, onNavigate }) => {
     const renderBookingStatus = (status: Booking['status']) => {
         switch (status) {
             case 'Confirmed':
@@ -40,7 +40,7 @@ const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void
             </div>
             <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
                 <button 
-                  onClick={() => alert('Opening receipt...')}
+                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
                   className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
                 >
                   View Receipt
@@ -57,7 +57,7 @@ const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page) => void
     );
 };
 
-const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string, onNavigate: (page: Page) => void }> = ({ item, venue, status, onNavigate }) => {
+const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string, onNavigate: (page: Page, params?: any) => void }> = ({ item, venue, status, onNavigate }) => {
     let statusColor = 'text-blue-400';
     if (status === 'Approved' || status === 'Confirmed') statusColor = 'text-green-400 bg-green-900/20 border-green-900/50';
     else if (status === 'Pending' || status === 'Under Review') statusColor = 'text-yellow-400 bg-yellow-900/20 border-yellow-900/50';
@@ -86,7 +86,7 @@ const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string
             
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                 <button 
-                  onClick={() => alert('Opening receipt...')}
+                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
                   className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
                 >
                   View Receipt
@@ -289,14 +289,14 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedIt
                             </div>
                             <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
                                 <button 
-                                  onClick={() => alert('Opening receipt...')}
+                                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
                                   className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
                                 >
                                   View Receipt
                                 </button>
                                 <button 
                                   onClick={() => onNavigate('chatbot')} 
-                                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
+                                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
                                   style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
                                 >
                                   Chat with Wingman

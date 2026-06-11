@@ -212,6 +212,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = [
     coverImage: IMG.yacht1,
     isActive: true,
   },
+
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────
