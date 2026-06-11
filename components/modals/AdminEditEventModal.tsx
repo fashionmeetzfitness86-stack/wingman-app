@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Event, Venue, UserAccessLevel } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 import { CloudArrowUpIcon } from '../icons/CloudArrowUpIcon';
@@ -13,265 +13,421 @@ interface AdminEditEventModalProps {
   onSave: (event: Event) => void;
 }
 
-export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event, venues, isOpen, onClose, onSave }) => {
-    const [editedEvent, setEditedEvent] = useState<Partial<Event>>(event || {});
+// ── Brand token ───────────────────────────────────────────────────────────────
+const ACCENT = '#E040FB';
 
-    useEffect(() => {
-        setEditedEvent(event ? {
-            ...event,
-            accessLevels: event.accessLevels || Object.values(UserAccessLevel) // Default to all if undefined
-        } : {
-            type: 'EXCLUSIVE',
-            priceFemale: 0,
-            priceMale: 100,
-            accessLevels: Object.values(UserAccessLevel) // Default to all for new
-        });
-    }, [event, isOpen]);
+// ── Shared field components ───────────────────────────────────────────────────
+const Label: React.FC<{ children: React.ReactNode; required?: boolean }> = ({ children, required }) => (
+  <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+    {children}{required && <span style={{ color: ACCENT }}> *</span>}
+  </label>
+);
 
-    const handleSave = () => {
-        if (!editedEvent.title || !editedEvent.date || !editedEvent.venueId || !editedEvent.image) {
-            (window as any).showAppToast?.('Please fill out all required fields, including an image.');
-            return;
-        }
-        
-        // Recurrence Validation
-        if (editedEvent.recurrence && (!editedEvent.recurrence.frequency || !editedEvent.recurrence.endDate)) {
-            (window as any).showAppToast?.('Please provide frequency and end date for recurring events.');
-            return;
-        }
+const baseInput = {
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 12,
+  color: '#fff',
+  padding: '11px 14px',
+  fontSize: 14,
+  width: '100%',
+  outline: 'none',
+  transition: 'all 0.2s',
+} as React.CSSProperties;
 
-        // Price Validation
-        if ((editedEvent.priceFemale !== undefined && editedEvent.priceFemale < 0) ||
-            (editedEvent.priceMale !== undefined && editedEvent.priceMale < 0) ||
-            (editedEvent.priceGeneral !== undefined && editedEvent.priceGeneral < 0)) {
-            (window as any).showAppToast?.('Prices cannot be negative.');
-            return;
-        }
-
-        // Capacity Validation
-        if (editedEvent.capacity !== undefined && editedEvent.capacity < 0) {
-            (window as any).showAppToast?.('Capacity cannot be negative.');
-            return;
-        }
-
-        onSave(editedEvent as Event);
-    };
-
-    const handleChange = (field: keyof Event, value: any) => {
-        setEditedEvent(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleAccessLevelToggle = (level: UserAccessLevel) => {
-        setEditedEvent(prev => {
-            const currentLevels = prev.accessLevels || [];
-            const newLevels = currentLevels.includes(level)
-                ? currentLevels.filter(l => l !== level)
-                : [...currentLevels, level];
-            return { ...prev, accessLevels: newLevels };
-        });
-    };
-
-    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                handleChange('image', reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (editedEvent.videoUrl?.startsWith('blob:')) {
-                URL.revokeObjectURL(editedEvent.videoUrl);
-            }
-            const objectUrl = URL.createObjectURL(file);
-            handleChange('videoUrl', objectUrl);
-        }
-    };
-
-    const handleRecurrenceChange = (isRecurring: boolean) => {
-        setEditedEvent(prev => {
-            const newEvent = {...prev};
-            if (isRecurring) {
-                if (!newEvent.recurrence) {
-                    newEvent.recurrence = { frequency: 'weekly', endDate: '' };
-                }
-            } else {
-                delete newEvent.recurrence;
-            }
-            return newEvent;
-        });
-    };
-    
-    const handleRecurrenceDetailChange = (field: 'frequency' | 'endDate', value: any) => {
-        setEditedEvent(prev => ({
-            ...prev,
-            recurrence: {
-                ...prev.recurrence!,
-                [field]: value,
-            },
-        }));
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true">
-            <div className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg m-4 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center p-4 border-b border-gray-800">
-                    <h2 className="text-xl font-bold text-white">{event ? 'Edit Event' : 'Add New Event'}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800" aria-label="Close">
-                        <CloseIcon className="w-6 h-6" />
-                    </button>
-                </div>
-                <div className="p-6 space-y-4 overflow-y-auto">
-                    <InputField label="Event Title" value={editedEvent.title || ''} onChange={e => handleChange('title', e.target.value)} required />
-                    <SelectField label="Venue" value={String(editedEvent.venueId || '')} onChange={e => handleChange('venueId', parseInt(e.target.value, 10))} options={venues.map(v => ({ label: v.name, value: v.id }))} required />
-                    <InputField label="Start Date" type="date" value={editedEvent.date || ''} onChange={e => handleChange('date', e.target.value)} required />
-                    <SelectField label="Event Type" value={editedEvent.type || 'EXCLUSIVE'} onChange={e => handleChange('type', e.target.value as 'EXCLUSIVE' | 'INVITE ONLY')} options={['EXCLUSIVE', 'INVITE ONLY']} required />
-                    
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Permitted Access Levels</label>
-                        <div className="space-y-2">
-                            {Object.values(UserAccessLevel).map(level => (
-                                <label key={level} className="flex items-center gap-3 bg-gray-800 p-3 rounded-lg cursor-pointer hover:bg-gray-700">
-                                    <input
-                                        type="checkbox"
-                                        checked={editedEvent.accessLevels?.includes(level) ?? true}
-                                        onChange={() => handleAccessLevelToggle(level)}
-                                        className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-gray-300 focus:ring-pink-500"
-                                    />
-                                    <span className="text-white">{level}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <TextAreaField label="Description" value={editedEvent.description || ''} onChange={e => handleChange('description', e.target.value)} />
-                    
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Event Image <span className="text-red-500">*</span></label>
-                        {editedEvent.image ? (
-                            <div className="relative">
-                                <img src={editedEvent.image} alt="Event preview" className="w-full h-48 object-cover rounded-lg" />
-                                <button
-                                    type="button"
-                                    onClick={() => handleChange('image', '')}
-                                    className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white hover:bg-red-600"
-                                    aria-label="Remove image"
-                                >
-                                    <TrashIcon className="w-5 h-5" />
-                                </button>
-                            </div>
-                        ) : (
-                            <label htmlFor="image-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-amber-400">
-                                <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-amber-400 font-semibold">Click to upload</span>
-                                <span className="text-xs text-gray-500 mt-1">PNG or JPG</span>
-                                <input id="image-upload" type="file" className="sr-only" onChange={handleImageFileChange} accept="image/png, image/jpeg" />
-                            </label>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Event Video (Optional)</label>
-                        {editedEvent.videoUrl ? (
-                            <div className="relative">
-                                <video src={editedEvent.videoUrl} controls className="w-full h-48 rounded-lg bg-black" />
-                                <button
-                                    type="button"
-                                    onClick={() => handleChange('videoUrl', '')}
-                                    className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white hover:bg-red-600"
-                                    aria-label="Remove video"
-                                >
-                                    <TrashIcon className="w-5 h-5" />
-                                </button>
-                            </div>
-                        ) : (
-                            <label htmlFor="video-upload" className="cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-amber-400">
-                                <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                <span className="text-amber-400 font-semibold">Click to upload video</span>
-                                <span className="text-xs text-gray-500 mt-1">MP4, MOV, etc.</span>
-                                <input id="video-upload" type="file" className="sr-only" onChange={handleVideoFileChange} accept="video/*" />
-                            </label>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <InputField label="Female Price" type="number" min="0" value={String(editedEvent.priceFemale ?? 0)} onChange={e => handleChange('priceFemale', parseFloat(e.target.value))} />
-                        <InputField label="Male Price" type="number" min="0" value={String(editedEvent.priceMale ?? 0)} onChange={e => handleChange('priceMale', parseFloat(e.target.value))} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <InputField label="General Price" type="number" min="0" value={String(editedEvent.priceGeneral ?? '')} onChange={e => handleChange('priceGeneral', e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Optional"/>
-                        <InputField label="Capacity" type="number" min="0" value={String(editedEvent.capacity ?? '')} onChange={e => handleChange('capacity', e.target.value ? parseInt(e.target.value, 10) : undefined)} placeholder="Optional"/>
-                    </div>
-
-                    <div className="border-t border-gray-700 pt-4 mt-4">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input 
-                                type="checkbox"
-                                checked={!!editedEvent.recurrence}
-                                onChange={(e) => handleRecurrenceChange(e.target.checked)}
-                                className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-gray-300 focus:ring-pink-500"
-                            />
-                            <span className="font-semibold text-white">Make this a recurring event</span>
-                        </label>
-
-                        {editedEvent.recurrence && (
-                            <div className="grid grid-cols-2 gap-4 mt-4 pl-8 animate-fade-in">
-                                <SelectField 
-                                    label="Frequency"
-                                    value={editedEvent.recurrence.frequency}
-                                    onChange={e => handleRecurrenceDetailChange('frequency', e.target.value)}
-                                    options={['daily', 'weekly', 'monthly']}
-                                    required
-                                />
-                                <InputField 
-                                    label="End Date"
-                                    type="date"
-                                    value={editedEvent.recurrence.endDate}
-                                    onChange={e => handleRecurrenceDetailChange('endDate', e.target.value)}
-                                    required
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
-                    <button onClick={onClose} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-                    <button onClick={handleSave} className="bg-amber-400 text-black font-bold py-2 px-4 rounded-lg">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    );
+const focusStyle = (el: HTMLElement) => {
+  el.style.border = `1px solid ${ACCENT}80`;
+  el.style.boxShadow = `0 0 0 3px ${ACCENT}15`;
+};
+const blurStyle = (el: HTMLElement) => {
+  el.style.border = '1px solid rgba(255,255,255,0.08)';
+  el.style.boxShadow = 'none';
 };
 
-const InputField: React.FC<{ label: string; value: string; onChange: (e: any) => void; type?: string; required?: boolean; placeholder?: string; min?: string; }> = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">{label} {props.required && <span className="text-red-500">*</span>}</label>
-        <input className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400" {...props} />
-    </div>
+const InputField: React.FC<{
+  label: string; value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string; required?: boolean; placeholder?: string; min?: string;
+}> = ({ label, required, ...props }) => (
+  <div>
+    <Label required={required}>{label}</Label>
+    <input
+      {...props}
+      style={baseInput}
+      className="appearance-none"
+      onFocus={e => focusStyle(e.currentTarget)}
+      onBlur={e => blurStyle(e.currentTarget)}
+    />
+  </div>
 );
 
-const TextAreaField: React.FC<{ label: string; value: string; onChange: (e: any) => void; }> = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
-        <textarea rows={3} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400 resize-none" {...props} />
-    </div>
+const TextAreaField: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }> = ({ label, ...props }) => (
+  <div>
+    <Label>{label}</Label>
+    <textarea
+      rows={3}
+      {...props}
+      className="resize-none"
+      style={{ ...baseInput, lineHeight: 1.6 }}
+      onFocus={e => focusStyle(e.currentTarget)}
+      onBlur={e => blurStyle(e.currentTarget)}
+    />
+  </div>
 );
 
-const SelectField: React.FC<{ label: string; value: string; onChange: (e: any) => void; options: (string | { label: string, value: any })[]; required?: boolean; }> = ({ label, value, onChange, options, required }) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">{label} {required && <span className="text-red-500">*</span>}</label>
-        <select value={value} onChange={onChange} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 focus:ring-amber-400 focus:border-amber-400">
-            <option value="" disabled>-- Select --</option>
-            {options.map(opt => (
-                typeof opt === 'string' ? <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option> : <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-        </select>
-    </div>
+const SelectField: React.FC<{
+  label: string; value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: (string | { label: string; value: any })[];
+  required?: boolean;
+}> = ({ label, value, onChange, options, required }) => (
+  <div>
+    <Label required={required}>{label}</Label>
+    <select
+      value={value}
+      onChange={onChange}
+      className="appearance-none"
+      style={baseInput}
+      onFocus={e => focusStyle(e.currentTarget)}
+      onBlur={e => blurStyle(e.currentTarget)}
+    >
+      <option value="" disabled>— Select —</option>
+      {options.map(opt =>
+        typeof opt === 'string'
+          ? <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
+          : <option key={opt.value} value={opt.value}>{opt.label}</option>
+      )}
+    </select>
+  </div>
 );
+
+// ── Upload zone ───────────────────────────────────────────────────────────────
+const UploadZone: React.FC<{
+  label: string; accept: string; required?: boolean;
+  onFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  icon?: React.ReactNode; hint: string;
+  inputId: string;
+}> = ({ label, accept, required, onFile, hint, inputId }) => (
+  <label
+    htmlFor={inputId}
+    className="cursor-pointer flex flex-col items-center gap-2 rounded-2xl py-6 transition-all hover:opacity-80"
+    style={{ background: 'rgba(255,255,255,0.03)', border: `2px dashed rgba(255,255,255,0.09)` }}
+  >
+    <svg className="w-8 h-8" style={{ color: 'rgba(255,255,255,0.2)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+    </svg>
+    <span className="text-sm font-semibold" style={{ color: ACCENT }}>{label}</span>
+    <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{hint}</span>
+    {required && <span className="text-[10px]" style={{ color: ACCENT }}>Required</span>}
+    <input id={inputId} type="file" className="sr-only" onChange={onFile} accept={accept} />
+  </label>
+);
+
+// ── Section divider ───────────────────────────────────────────────────────────
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <div className="space-y-3">
+    <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>{title}</p>
+    {children}
+  </div>
+);
+
+// ── Main modal ────────────────────────────────────────────────────────────────
+export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event, venues, isOpen, onClose, onSave }) => {
+  const [editedEvent, setEditedEvent] = useState<Partial<Event>>(event || {});
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setSaved(false);
+    setEditedEvent(event ? {
+      ...event,
+      accessLevels: event.accessLevels || Object.values(UserAccessLevel),
+    } : {
+      type: 'EXCLUSIVE',
+      priceFemale: 0,
+      priceMale: 100,
+      accessLevels: Object.values(UserAccessLevel),
+    });
+  }, [event, isOpen]);
+
+  const handleSave = () => {
+    if (!editedEvent.title || !editedEvent.date || !editedEvent.venueId || !editedEvent.image) {
+      (window as any).showAppToast?.('Please fill out all required fields, including an image.');
+      return;
+    }
+    if (editedEvent.recurrence && (!editedEvent.recurrence.frequency || !editedEvent.recurrence.endDate)) {
+      (window as any).showAppToast?.('Please provide frequency and end date for recurring events.');
+      return;
+    }
+    if ((editedEvent.priceFemale ?? 0) < 0 || (editedEvent.priceMale ?? 0) < 0 || (editedEvent.priceGeneral ?? 0) < 0) {
+      (window as any).showAppToast?.('Prices cannot be negative.');
+      return;
+    }
+    if ((editedEvent.capacity ?? 0) < 0) {
+      (window as any).showAppToast?.('Capacity cannot be negative.');
+      return;
+    }
+    onSave(editedEvent as Event);
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onClose(); }, 800);
+  };
+
+  const handleChange = (field: keyof Event, value: any) =>
+    setEditedEvent(prev => ({ ...prev, [field]: value }));
+
+  const handleAccessLevelToggle = (level: UserAccessLevel) => {
+    setEditedEvent(prev => {
+      const current = prev.accessLevels || [];
+      return { ...prev, accessLevels: current.includes(level) ? current.filter(l => l !== level) : [...current, level] };
+    });
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => handleChange('image', reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (editedEvent.videoUrl?.startsWith('blob:')) URL.revokeObjectURL(editedEvent.videoUrl);
+      handleChange('videoUrl', URL.createObjectURL(file));
+    }
+  };
+
+  const handleRecurrenceChange = (isRecurring: boolean) => {
+    setEditedEvent(prev => {
+      const e = { ...prev };
+      if (isRecurring) { if (!e.recurrence) e.recurrence = { frequency: 'weekly', endDate: '' }; }
+      else { delete e.recurrence; }
+      return e;
+    });
+  };
+
+  const handleRecurrenceDetailChange = (field: 'frequency' | 'endDate', value: any) => {
+    setEditedEvent(prev => ({ ...prev, recurrence: { ...prev.recurrence!, [field]: value } }));
+  };
+
+  if (!isOpen) return null;
+
+  const isNew = !event;
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 animate-fade-in"
+      style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(10px)' }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="w-full m-4 flex flex-col"
+        style={{
+          maxWidth: 560,
+          maxHeight: '92vh',
+          background: '#0F0F14',
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 22,
+          boxShadow: `0 0 100px rgba(0,0,0,0.9), 0 0 40px ${ACCENT}15`,
+          fontFamily: "'Space Grotesk', sans-serif",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ── Header ──────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: ACCENT }}>
+              {isNew ? 'New Event' : 'Edit Event'}
+            </p>
+            <h2 className="text-xl font-black text-white leading-tight">
+              {editedEvent.title || (isNew ? 'Create Event' : 'Edit Event')}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
+          >
+            <CloseIcon className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* ── Body ────────────────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6" style={{ scrollbarWidth: 'none' }}>
+
+          {/* Basic info */}
+          <Section title="Basic Info">
+            <InputField label="Event Title" value={editedEvent.title || ''} onChange={e => handleChange('title', e.target.value)} required />
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField label="Venue" value={String(editedEvent.venueId || '')} onChange={e => handleChange('venueId', parseInt(e.target.value, 10))} options={venues.map(v => ({ label: v.name, value: v.id }))} required />
+              <SelectField label="Event Type" value={editedEvent.type || 'EXCLUSIVE'} onChange={e => handleChange('type', e.target.value as 'EXCLUSIVE' | 'INVITE ONLY')} options={['EXCLUSIVE', 'INVITE ONLY']} required />
+            </div>
+            <InputField label="Start Date" type="date" value={editedEvent.date || ''} onChange={e => handleChange('date', e.target.value)} required />
+            <TextAreaField label="Description" value={editedEvent.description || ''} onChange={e => handleChange('description', e.target.value)} />
+          </Section>
+
+          {/* Access levels */}
+          <Section title="Permitted Access Levels">
+            <div className="grid grid-cols-2 gap-2">
+              {Object.values(UserAccessLevel).map(level => {
+                const checked = editedEvent.accessLevels?.includes(level) ?? true;
+                return (
+                  <label
+                    key={level}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer transition-all"
+                    style={{
+                      background: checked ? `${ACCENT}12` : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${checked ? `${ACCENT}35` : 'rgba(255,255,255,0.07)'}`,
+                    }}
+                  >
+                    <div
+                      className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
+                      style={{ background: checked ? ACCENT : 'rgba(255,255,255,0.08)', border: `1px solid ${checked ? ACCENT : 'rgba(255,255,255,0.15)'}` }}
+                    >
+                      {checked && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      )}
+                    </div>
+                    <input type="checkbox" checked={checked} onChange={() => handleAccessLevelToggle(level)} className="sr-only" />
+                    <span className="text-xs font-semibold truncate" style={{ color: checked ? '#fff' : 'rgba(255,255,255,0.4)' }}>{level}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </Section>
+
+          {/* Media */}
+          <Section title="Media">
+            {/* Image */}
+            <div>
+              <Label required>Event Image</Label>
+              {editedEvent.image ? (
+                <div className="relative rounded-2xl overflow-hidden">
+                  <img src={editedEvent.image} alt="Event" className="w-full h-44 object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('image', '')}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                    style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}
+                  >
+                    <TrashIcon className="w-4 h-4 text-red-400" />
+                  </button>
+                </div>
+              ) : (
+                <UploadZone label="Click to upload image" accept="image/png,image/jpeg" required onFile={handleImageFileChange} hint="PNG or JPG recommended" inputId="event-image-upload" />
+              )}
+            </div>
+
+            {/* Video */}
+            <div>
+              <Label>Event Video <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400, textTransform: 'none', fontSize: 11, letterSpacing: 'normal' }}>(Optional)</span></Label>
+              {editedEvent.videoUrl ? (
+                <div className="relative rounded-2xl overflow-hidden">
+                  <video src={editedEvent.videoUrl} controls className="w-full h-44 bg-black" />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('videoUrl', '')}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}
+                  >
+                    <TrashIcon className="w-4 h-4 text-red-400" />
+                  </button>
+                </div>
+              ) : (
+                <UploadZone label="Click to upload video" accept="video/*" onFile={handleVideoFileChange} hint="MP4, MOV, etc." inputId="event-video-upload" />
+              )}
+            </div>
+          </Section>
+
+          {/* Pricing */}
+          <Section title="Pricing">
+            <div className="grid grid-cols-2 gap-3">
+              <InputField label="Female Price ($)" type="number" min="0" value={String(editedEvent.priceFemale ?? 0)} onChange={e => handleChange('priceFemale', parseFloat(e.target.value))} />
+              <InputField label="Male Price ($)" type="number" min="0" value={String(editedEvent.priceMale ?? 0)} onChange={e => handleChange('priceMale', parseFloat(e.target.value))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <InputField label="General Price ($)" type="number" min="0" value={String(editedEvent.priceGeneral ?? '')} onChange={e => handleChange('priceGeneral', e.target.value ? parseFloat(e.target.value) : undefined)} placeholder="Optional" />
+              <InputField label="Capacity" type="number" min="0" value={String(editedEvent.capacity ?? '')} onChange={e => handleChange('capacity', e.target.value ? parseInt(e.target.value, 10) : undefined)} placeholder="Optional" />
+            </div>
+          </Section>
+
+          {/* Recurrence */}
+          <Section title="Schedule">
+            <label
+              className="flex items-center gap-3 rounded-xl px-4 py-3 cursor-pointer transition-all"
+              style={{
+                background: editedEvent.recurrence ? `${ACCENT}10` : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${editedEvent.recurrence ? `${ACCENT}30` : 'rgba(255,255,255,0.07)'}`,
+              }}
+            >
+              <div
+                className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+                style={{ background: editedEvent.recurrence ? ACCENT : 'rgba(255,255,255,0.08)', border: `1px solid ${editedEvent.recurrence ? ACCENT : 'rgba(255,255,255,0.15)'}` }}
+              >
+                {editedEvent.recurrence && (
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
+              </div>
+              <input type="checkbox" checked={!!editedEvent.recurrence} onChange={e => handleRecurrenceChange(e.target.checked)} className="sr-only" />
+              <div>
+                <p className="text-sm font-bold text-white">Recurring event</p>
+                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Repeat this event on a schedule</p>
+              </div>
+            </label>
+
+            {editedEvent.recurrence && (
+              <div className="grid grid-cols-2 gap-3 animate-fade-in">
+                <SelectField label="Frequency" value={editedEvent.recurrence.frequency} onChange={e => handleRecurrenceDetailChange('frequency', e.target.value)} options={['daily', 'weekly', 'monthly']} required />
+                <InputField label="End Date" type="date" value={editedEvent.recurrence.endDate} onChange={e => handleRecurrenceDetailChange('endDate', e.target.value)} required />
+              </div>
+            )}
+          </Section>
+        </div>
+
+        {/* ── Footer ──────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.5)' }}
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95"
+            style={{
+              background: saved
+                ? 'linear-gradient(135deg,#22c55e,#16a34a)'
+                : `linear-gradient(135deg, ${ACCENT}, #7B61FF)`,
+              boxShadow: saved ? '0 4px 20px rgba(34,197,94,0.35)' : `0 4px 20px ${ACCENT}35`,
+              minWidth: 140,
+              justifyContent: 'center',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            {saved ? (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                Saved!
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z" /><path strokeLinecap="round" strokeLinejoin="round" d="M17 3v4H7V3" /></svg>
+                Save Changes
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
