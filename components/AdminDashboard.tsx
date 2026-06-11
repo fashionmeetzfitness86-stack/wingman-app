@@ -76,6 +76,7 @@ interface AdminDashboardProps {
     onBulkUpdateEvents?: (eventIds: (number | string)[], updates: Partial<Event>) => void;
     onApproveUser?: (userId: number) => void;
     onRejectUser?: (userId: number) => void;
+    onDeleteUser?: (userId: number) => void;
     membershipRequests: MembershipRequest[];
     onApproveMembershipRequest: (requestId: number) => void;
     onRejectMembershipRequest: (requestId: number) => void;
@@ -721,7 +722,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         <div className="flex justify-end mb-4">
                             <button onClick={props.onAddUser} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Create User</button>
                         </div>
-                        {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={u => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
+                        {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={u => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} onDelete={props.onDeleteUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
                     </div>
                 );
             case 'accessControl':
