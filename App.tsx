@@ -1717,6 +1717,7 @@ export const App: React.FC = () => {
                     currentUser={currentUser}
                     onOpenMenu={() => setIsMenuOpen(true)}
                     onRequestAccess={() => setIsMembershipRequestOpen(true)}
+                    isPasscodeUser={isPasscodeOnlyUser}
                />;
             case 'directory':
                 return <WingmanDirectory 
