@@ -175,19 +175,36 @@ export const App: React.FC = () => {
     });
     
     // State
+    // ── Guest placeholder — used when no real session exists ──────────────
+    // IMPORTANT: id must NOT match any seed user id (1 or 999).
+    // This object is never written to localStorage — the gate will fire.
+    const GUEST_USER: User = {
+        id: 0,
+        name: 'Guest',
+        email: '',
+        profilePhoto: '',
+        accessLevel: UserAccessLevel.GENERAL,
+        role: UserRole.USER,
+        status: 'active',
+        approvalStatus: 'pending',
+        subscriptionStatus: 'free_tier',
+        joinDate: '',
+    };
+
     const [currentUser, setCurrentUser] = useState<User>(() => {
         try {
-            // Try to find the last logged in user ID
             const savedId = localStorage.getItem('wingman_currentUserId');
             if (savedId) {
-                // Look up the fresh user data from appUsers using the ID
-                const found = appUsers.find(u => u.id === parseInt(savedId, 10));
+                // Prefer the persisted full user blob for speed; fall back to in-memory list
+                const storedUsers = localStorage.getItem('wingman_users');
+                const allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : users;
+                const found = allUsers.find(u => u.id === parseInt(savedId, 10));
                 if (found) return found;
             }
-            // Fallback to first user if no saved ID or user not found
-            return appUsers[0] || users[0];
-        } catch (e) {
-             return users[0];
+            // No session → return a neutral guest; gate will show
+            return GUEST_USER;
+        } catch {
+            return GUEST_USER;
         }
     });
 
@@ -487,8 +504,9 @@ export const App: React.FC = () => {
     useEffect(() => { localStorage.setItem('wingman_venues', JSON.stringify(appVenues)); }, [appVenues]);
     useEffect(() => { localStorage.setItem('wingman_challenges', JSON.stringify(appChallenges)); }, [appChallenges]);
     useEffect(() => { 
-        // Always update persisted current user data when currentUser state changes
-        if (currentUser) {
+        // Only persist session for real logged-in users (id > 0).
+        // Guest (id === 0) must never be written — that would bypass the gate.
+        if (currentUser && currentUser.id > 0) {
             localStorage.setItem('wingman_currentUserId', currentUser.id.toString()); 
         }
     }, [currentUser]);
@@ -2541,14 +2559,29 @@ export const App: React.FC = () => {
     if (!isLoggedInUser && !passcodeAccessActive) {
         const handleLogin = async (email: string, password: string, stayLoggedIn: boolean = true): Promise<boolean> => {
             const normalizedEmail = email.toLowerCase();
-            const found = appUsers.find(u => u.email.toLowerCase() === normalizedEmail);
 
-            // Try Supabase Auth first — this is the source of truth for credentials.
+            // Search in-memory state first, then fall back to the persisted
+            // wingman_users store so onboarding-created accounts are always found
+            // even if appUsers state hasn't yet merged the new entry.
+            let found = appUsers.find(u => u.email.toLowerCase() === normalizedEmail);
+            if (!found) {
+                try {
+                    const raw = localStorage.getItem('wingman_users');
+                    if (raw) {
+                        const stored: User[] = JSON.parse(raw);
+                        found = stored.find(u => u.email.toLowerCase() === normalizedEmail);
+                        // If found in storage but not in state, hydrate state
+                        if (found) setAppUsers(prev => prev.some(u => u.id === found!.id) ? prev : [...prev, found!]);
+                    }
+                } catch {}
+            }
+
+            // Try Supabase Auth first
             const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
             const supabaseOk = !error && !!data?.session;
 
-            // Fallback: legacy localStorage password store, for users who haven't been migrated yet.
-            const legacyOk = !supabaseOk && !!found && hasUserPassword(found.email) && verifyUserPassword(found.email, password);
+            // Fallback: localStorage password store for onboarding-created accounts
+            const legacyOk = !supabaseOk && hasUserPassword(normalizedEmail) && verifyUserPassword(normalizedEmail, password);
 
             if (!supabaseOk && !legacyOk) return false;
             if (!found) return false;
@@ -2562,8 +2595,6 @@ export const App: React.FC = () => {
                 localStorage.removeItem('wingman_currentUserId');
             }
             setPasscodeAccessActive(true);
-            // If they deep-linked to /admin and are an admin, drop them straight
-            // into the dashboard; otherwise go home.
             const path = (() => { try { return window.location.pathname.replace(/\/+$/, ''); } catch { return ''; } })();
             setCurrentPage(path === '/admin' && found.role === UserRole.ADMIN ? 'adminDashboard' : 'home');
             return true;
