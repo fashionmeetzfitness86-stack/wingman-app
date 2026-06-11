@@ -27,6 +27,7 @@ interface ProfilePageProps {
   favoriteVenueIds: number[];
   venues: Venue[];
   onViewVenueDetails: (venue: Venue) => void;
+  onLogout?: () => void;
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -115,7 +116,7 @@ const VibePill: React.FC<{ children: string }> = ({ children }) => (
 
 // ── Main Page ──────────────────────────────────────────────────
 export const ProfilePage: React.FC<ProfilePageProps> = ({
-  onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails,
+  onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails, onLogout,
 }) => {
   const user = currentUser;
   if (!user) return null;
@@ -423,6 +424,34 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Log Out ────────────────────────────────────────────── */}
+      {onLogout && (
+        <div className="px-5 mt-4 mb-2">
+          <button
+            id="profile-logout-btn"
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-[0.98] group"
+            style={{
+              background: 'rgba(239,68,68,0.06)',
+              border: '1px solid rgba(239,68,68,0.15)',
+            }}
+          >
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}
+            >
+              <svg className="w-4.5 h-4.5" style={{ color: '#ef4444' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+              </svg>
+            </div>
+            <span className="text-sm font-bold" style={{ color: '#ef4444' }}>Log Out</span>
+            <svg className="w-4 h-4 ml-auto" style={{ color: 'rgba(239,68,68,0.4)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* ── Appearance ─────────────────────────────────────────── */}
       {user.appearance && (

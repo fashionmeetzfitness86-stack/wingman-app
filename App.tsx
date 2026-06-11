@@ -1368,11 +1368,13 @@ export const App: React.FC = () => {
         localStorage.removeItem('wingman_realAdminUserId');
         localStorage.removeItem('wm_access');
         sessionStorage.removeItem('wingman_currentUserId_session');
+        sessionStorage.removeItem(ONBOARDING_DISMISSED_KEY);
         setRealAdminUser(null);
         setPasscodeAccessActive(false);
-        setCurrentUser(appUsers[0]);
+        setCurrentUser(GUEST_USER);   // re-triggers the passcode/login gate
+        setCurrentPage('home');
         setIsMenuOpen(false);
-        showToast('Logged out', 'success');
+        showToast('Logged out successfully', 'success');
     };
 
     // ── Passcode 24h deadline enforcement ─────────────────────────────────────
@@ -1920,6 +1922,7 @@ export const App: React.FC = () => {
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     venues={appVenues} 
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
+                    onLogout={handleLogout}
                 />;
             case 'adminDashboard':
                 return <AdminDashboard 
