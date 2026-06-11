@@ -220,7 +220,7 @@ const LoginScreen: React.FC<{
             <p className="text-xs text-gray-500">Log in to access your exclusive concierge.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div>
               <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Email Address
@@ -378,7 +378,7 @@ const ForgotPasswordScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                 <div>
                   <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
                     Email Address
@@ -594,7 +594,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               {/* Full Name */}
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -606,7 +606,9 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
                   value={fullName}
                   onChange={e => { setFullName(e.target.value); setError(''); }}
                   placeholder="Your full name"
-                  autoComplete="name"
+                  autoComplete="off"
+                  readOnly
+                  onFocus={e => e.currentTarget.removeAttribute('readOnly')}
                   autoFocus
                   className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
                   style={{
@@ -627,7 +629,9 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
                   value={email}
                   onChange={e => { setEmail(e.target.value); setError(''); }}
                   placeholder="you@example.com"
-                  autoComplete="email"
+                  autoComplete="off"
+                  readOnly
+                  onFocus={e => e.currentTarget.removeAttribute('readOnly')}
                   className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
                   style={{
                     background: 'rgba(255,255,255,0.05)',
