@@ -18,6 +18,7 @@ import { ChartPieIcon } from './icons/ChartPieIcon';
 import { CreditCardIcon } from './icons/CreditCardIcon';
 import { CalendarDaysIcon } from './icons/CalendarDaysIcon';
 import { KeyIcon } from './icons/KeyIcon';
+import profileLogo from '../assets/profile-logo.png';
 
 interface ProfilePageProps {
   onNavigate: (page: Page) => void;
@@ -139,8 +140,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   return (
     <div className="min-h-screen animate-fade-in pb-36" style={{ background: '#080808' }}>
 
+      {/* ── Brand logo ─────────────────────────────────────────── */}
+      <div className="flex justify-center pt-6 pb-1">
+        <img src={profileLogo} alt="WINGMAN" className="h-10 w-auto" />
+      </div>
+
       {/* ── Hero Card ──────────────────────────────────────────── */}
-      <div className="relative px-5 pt-8 pb-0">
+      <div className="relative px-5 pt-3 pb-0">
         <div
           className="rounded-3xl p-6 relative overflow-hidden"
           style={{
