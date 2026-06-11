@@ -19,6 +19,7 @@ interface HomeScreenProps {
   currentUser: User;
   onOpenMenu?: () => void;
   onRequestAccess?: () => void;
+  isPasscodeUser?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -379,10 +380,12 @@ const PendingHome: React.FC<{ user: User; onNavigate: (p: Page) => void; onReque
 
 // ─── Root Component ───────────────────────────────────────────────────────────
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess, isPasscodeUser }) => {
   const isAdmin   = currentUser.role === UserRole.ADMIN;
   const isWingman = currentUser.role === UserRole.WINGMAN;
-  const isApproved = currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active';
+  // Passcode users have proven access — show the full member experience
+  const isApproved = isPasscodeUser ||
+    (currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active');
 
   const handleDashboardShortcut = () => {
     if (isAdmin)   return onNavigate('adminDashboard');
