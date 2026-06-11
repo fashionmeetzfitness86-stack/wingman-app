@@ -19,9 +19,10 @@ import { CloseIcon } from './icons/CloseIcon';
 import { UserAnalyticsModal } from './modals/UserAnalyticsModal';
 import { WingmanStatsModal } from './modals/WingmanStatsModal';
 import { AccessControlTab } from './admin/AccessControlTab';
+import { AdminLiveData } from './admin/AdminLiveData';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type PrimaryTab = 'overview' | 'bookings' | 'events' | 'users' | 'accessControl' | 'approvals';
+type PrimaryTab = 'overview' | 'live' | 'bookings' | 'events' | 'users' | 'accessControl' | 'approvals';
 type LegacyTab = 'analytics' | 'wingmanStats' | 'wingmen' | 'venues' | 'store' | 'pushNotifications';
 
 interface AdminDashboardProps {
@@ -673,6 +674,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         switch (activeTab) {
             case 'overview':
                 return <OverviewTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} events={props.events} membershipRequests={props.membershipRequests} wingmanApplications={props.wingmanApplications} invitationRequests={props.invitationRequests} onGoTo={handleGoTo} />;
+            case 'live':
+                return <AdminLiveData />;
             case 'bookings':
                 return <BookingsTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} venues={props.venues} wingmen={props.wingmen} instanceBookings={props.instanceBookings || []} />;
             case 'events':
@@ -757,6 +760,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             {/* ── Primary Navigation ──────────────────────────────────────── */}
             <div className="flex border-b border-[#1C1D22] mb-2 overflow-x-auto no-scrollbar gap-1">
                 <TabBtn label="Overview"       active={!isLegacyActive && activeTab === 'overview'}       onClick={() => handleGoTo('overview')} />
+                <TabBtn label="Live"           active={!isLegacyActive && activeTab === 'live'}           onClick={() => handleGoTo('live')} />
                 <TabBtn label="Bookings"       active={!isLegacyActive && activeTab === 'bookings'}       onClick={() => handleGoTo('bookings')} />
                 <TabBtn label="Events"         active={!isLegacyActive && activeTab === 'events'}         onClick={() => handleGoTo('events')} />
                 <TabBtn label="Users"          active={!isLegacyActive && activeTab === 'users'}          badge={pendingApprovalsCount}  onClick={() => handleGoTo('users')} />

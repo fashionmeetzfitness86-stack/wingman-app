@@ -123,7 +123,14 @@ export const App: React.FC = () => {
     const [appUsers, setAppUsers] = useState<User[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_users');
-            return saved ? JSON.parse(saved) : users;
+            if (!saved) return users;
+            // Merge: seed users (e.g. the admin account) are always kept fresh by id,
+            // so a stale cached list can never drop or out-date them — while any
+            // user-created accounts (non-seed ids) are preserved.
+            const parsed: User[] = JSON.parse(saved);
+            const seedIds = new Set(users.map(u => u.id));
+            const savedNonSeed = parsed.filter(u => !seedIds.has(u.id));
+            return [...users, ...savedNonSeed];
         } catch (e) {
             return users;
         }
@@ -200,7 +207,14 @@ export const App: React.FC = () => {
         }
     });
 
-    const [currentPage, setCurrentPage] = useState<Page>('home');
+    const [currentPage, setCurrentPage] = useState<Page>(() => {
+        // Deep-link support for /admin — only honoured for admin accounts.
+        try {
+            const path = window.location.pathname.replace(/\/+$/, '');
+            if (path === '/admin' && currentUser?.role === UserRole.ADMIN) return 'adminDashboard';
+        } catch {}
+        return 'home';
+    });
     const [pageParams, setPageParams] = useState<any>({});
     // Navigation history stack — enables true "Go Back" from any page
     const [pageHistory, setPageHistory] = useState<Array<{ page: Page; params: any }>>([]);
@@ -389,6 +403,19 @@ export const App: React.FC = () => {
     // Derived early — must be before any useEffect that references it (avoids TDZ crash)
     const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
 
+    // Keep the URL in sync with the admin dashboard so /admin is shareable
+    // and survives a refresh.
+    useEffect(() => {
+        try {
+            const path = window.location.pathname.replace(/\/+$/, '');
+            if (currentPage === 'adminDashboard' && path !== '/admin') {
+                window.history.replaceState({}, '', '/admin');
+            } else if (currentPage !== 'adminDashboard' && path === '/admin') {
+                window.history.replaceState({}, '', '/');
+            }
+        } catch {}
+    }, [currentPage]);
+
     // Re-validate session every minute (handles expiry while app is open)
     useEffect(() => {
         if (isLoggedInUser) return;
@@ -576,8 +603,18 @@ export const App: React.FC = () => {
         showToast("Moved to Cart", "success");
     };
 
-    const finalizeBooking = (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
-        const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
+    const finalizeBooking = (
+        paymentMethod: 'tokens' | 'usd' | 'cashapp',
+        itemIds: string[],
+        // When called from the Stripe-return handler after a full page reload,
+        // the live cart state is stale/empty, so the caller passes the snapshot
+        // captured at checkout time. Reading from these instead of component
+        // state avoids the stale-closure bug (C4) that dropped bookings.
+        overrides?: { items?: CartItem[]; meta?: Record<string, any> }
+    ) => {
+        const sourceItems = overrides?.items ?? cartItems;
+        const sourceMeta = overrides?.meta ?? cartInstanceMeta;
+        const itemsToBook = sourceItems.filter(i => itemIds.includes(i.id));
         const timestamp = Date.now();
 
         const newBookedItems = itemsToBook.map(item => ({
@@ -592,7 +629,7 @@ export const App: React.FC = () => {
 
         const newInstanceBookings: InstanceBooking[] = [];
         for (const id of itemIds) {
-            const meta = cartInstanceMeta[id];
+            const meta = sourceMeta[id];
             if (meta) {
                 newInstanceBookings.push({
                     id: `ib-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -716,18 +753,6 @@ export const App: React.FC = () => {
                     return;
                 }
 
-                if (data.free === true) {
-                    // $0 event — simulate Stripe redirect-and-return flow
-                    localStorage.removeItem('wingman_pending_checkout');
-                    setIsCheckoutLoading(false);
-                    const freeSessionId = `free-${Date.now()}`;
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('payment', 'success');
-                    url.searchParams.set('session_id', freeSessionId);
-                    window.location.href = url.toString();
-                    return;
-                }
-
                 throw new Error(data.error || 'Could not start checkout. Please try again.');
             } catch (err: any) {
                 localStorage.removeItem('wingman_pending_checkout');
@@ -776,24 +801,27 @@ export const App: React.FC = () => {
                     }
                     const pending = JSON.parse(localStorage.getItem('wingman_pending_checkout') || 'null');
                     if (pending?.itemIds?.length) {
-                        // If cartItems was wiped by the page reload, restore from snapshot
-                        if (pending.itemsSnapshot?.length) {
-                            setCartItems(pending.itemsSnapshot);
-                            if (pending.cartMetaSnapshot) {
-                                setCartInstanceMeta(pending.cartMetaSnapshot);
-                            }
-                        }
-                        // Small delay so React state settles before finalizeBooking reads it
-                        setTimeout(() => {
-                            finalizeBooking('usd', pending.itemIds);
-                            showToast('Payment confirmed! Your booking is confirmed.', 'success');
-                        }, 150);
+                        // Create the booking straight from the snapshot captured at
+                        // checkout time. We pass the data explicitly so finalizeBooking
+                        // never has to read live cart state (which is empty/stale after
+                        // the Stripe redirect reload). No setTimeout — the booking is
+                        // built synchronously from data we already hold.
+                        finalizeBooking('usd', pending.itemIds, {
+                            items: pending.itemsSnapshot,
+                            meta: pending.cartMetaSnapshot,
+                        });
+                        showToast('Payment confirmed! Your booking is confirmed.', 'success');
                     }
+                    // Only clear the pending record AFTER the booking was created, so a
+                    // failure above leaves it intact for a retry instead of dropping a
+                    // paid booking (C3).
                     localStorage.removeItem('wingman_pending_checkout');
-                } catch (err: any) {
-                    showToast(err.message || 'Could not verify payment.', 'error');
-                } finally {
                     cleanUrl();
+                } catch (err: any) {
+                    // Leave BOTH wingman_pending_checkout and the session_id in the URL
+                    // intact, so simply reloading the page re-runs verification and
+                    // creates the booking — rather than losing a paid booking (C3).
+                    showToast(err.message || 'Could not verify payment. Refresh to retry.', 'error');
                 }
             })();
         }
@@ -2534,7 +2562,10 @@ export const App: React.FC = () => {
                 localStorage.removeItem('wingman_currentUserId');
             }
             setPasscodeAccessActive(true);
-            setCurrentPage('home');
+            // If they deep-linked to /admin and are an admin, drop them straight
+            // into the dashboard; otherwise go home.
+            const path = (() => { try { return window.location.pathname.replace(/\/+$/, ''); } catch { return ''; } })();
+            setCurrentPage(path === '/admin' && found.role === UserRole.ADMIN ? 'adminDashboard' : 'home');
             return true;
         };
         const handleCreateAccount = () => {

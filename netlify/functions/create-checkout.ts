@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { jsonResponse, preflight } from './_shared/cors';
 
 // ─── Server-side price authority ─────────────────────────────────────────────
 // This is the SINGLE SOURCE OF TRUTH for pricing.
@@ -73,18 +74,10 @@ interface RequestBody {
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export default async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
-    });
-  }
+  if (req.method === 'OPTIONS') return preflight(req);
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+    return jsonResponse(req, { error: 'Method not allowed' }, 405);
   }
 
   try {
@@ -101,7 +94,7 @@ export default async (req: Request) => {
     const { bookings, genericItems = [], userEmail, userId, successUrl, cancelUrl } = body;
 
     if ((!bookings || bookings.length === 0) && (!genericItems || genericItems.length === 0)) {
-      return new Response(JSON.stringify({ error: 'No bookings provided' }), { status: 400 });
+      return jsonResponse(req, { error: 'No bookings provided' }, 400);
     }
 
     // ── Server-side price resolution ─────────────────────────────────────────
@@ -114,10 +107,7 @@ export default async (req: Request) => {
       const { scheduleId, instanceId, quantity, cartItemId } = booking;
 
       if (!scheduleId || !instanceId || !quantity || !cartItemId) {
-        return new Response(
-          JSON.stringify({ error: `Invalid booking payload: missing required field` }),
-          { status: 400 }
-        );
+        return jsonResponse(req, { error: `Invalid booking payload: missing required field` }, 400);
       }
 
       // Strip the date suffix to get the base schedule ID
@@ -127,27 +117,18 @@ export default async (req: Request) => {
       const entry = PRICE_MAP.get(derivedScheduleId);
 
       if (!entry) {
-        return new Response(
-          JSON.stringify({ error: `Unknown schedule: ${derivedScheduleId}. Booking rejected.` }),
-          { status: 400 }
-        );
+        return jsonResponse(req, { error: `Unknown schedule: ${derivedScheduleId}. Booking rejected.` }, 400);
       }
 
       // Enforce booking rules server-side
       if (entry.maxPerBooking && quantity > entry.maxPerBooking) {
-        return new Response(
-          JSON.stringify({
-            error: `${entry.title} has a max of ${entry.maxPerBooking} per booking. Requested ${quantity}.`,
-          }),
-          { status: 400 }
-        );
+        return jsonResponse(req, {
+          error: `${entry.title} has a max of ${entry.maxPerBooking} per booking. Requested ${quantity}.`,
+        }, 400);
       }
 
       if (quantity < 1 || quantity > 20) {
-        return new Response(
-          JSON.stringify({ error: `Invalid quantity: ${quantity}` }),
-          { status: 400 }
-        );
+        return jsonResponse(req, { error: `Invalid quantity: ${quantity}` }, 400);
       }
 
       const unitAmountCents = Math.round(entry.pricePerPerson * 100);
@@ -184,23 +165,19 @@ export default async (req: Request) => {
     }
 
     if (lineItems.length === 0) {
-      return new Response(JSON.stringify({ error: 'No valid bookings after validation' }), { status: 400 });
+      return jsonResponse(req, { error: 'No valid bookings after validation' }, 400);
     }
 
-    // ── Free booking bypass ───────────────────────────────────────────────────
-    // Stripe cannot process $0 charges. If the entire order is free,
-    // return a special free=true response so the client can confirm
-    // the booking directly without going through Stripe.
-    const totalCents = resolvedBookings.reduce((sum, b) => sum + b.unitPrice * b.quantity * 100, 0);
-    if (totalCents === 0) {
-      return new Response(
-        JSON.stringify({
-          free: true,
-          confirmed: true,
-          bookings: resolvedBookings,
-        }),
-        { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-      );
+    // ── Reject $0 orders ──────────────────────────────────────────────────────
+    // Stripe cannot process $0 charges, and we deliberately do NOT offer a
+    // client-trusted "free" bypass (it was previously exploitable — any client
+    // could self-issue a `free-` session id). All live products are paid; a $0
+    // total means a misconfigured price, so we reject rather than confirm.
+    const subtotalCents =
+      resolvedBookings.reduce((sum, b) => sum + b.unitPrice * b.quantity * 100, 0) +
+      genericItems.reduce((sum, gi) => sum + Math.round((gi.unitPrice || 0) * 100) * gi.quantity, 0);
+    if (subtotalCents <= 0) {
+      return jsonResponse(req, { error: 'Order total must be greater than zero.' }, 400);
     }
 
     let origin = 'https://wingman-app.netlify.app';
@@ -228,14 +205,9 @@ export default async (req: Request) => {
       cancel_url: cancelUrl || `${origin}/?payment=cancelled`,
     });
 
-    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse(req, { url: session.url, sessionId: session.id });
   } catch (error: any) {
     console.error('Checkout error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Checkout failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse(req, { error: error.message || 'Checkout failed' }, 500);
   }
 };
