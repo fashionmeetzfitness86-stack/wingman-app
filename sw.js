@@ -14,8 +14,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'WINGMAN';
   const options = {
     body: data.body,
-    icon: 'https://picsum.photos/seed/logo/192/192', // Placeholder icon
-    badge: 'https://picsum.photos/seed/badge/96/96' // Placeholder badge
+    icon: '/wingman-icon-192.png',  // Place a 192×192 PNG in public/
+    badge: '/wingman-badge-96.png'  // Place a 96×96 monochrome PNG in public/
   };
 
   event.waitUntil(self.registration.showNotification(title, options));

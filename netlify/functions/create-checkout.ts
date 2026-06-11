@@ -36,14 +36,6 @@ const PRICE_SCHEDULE: ScheduleEntry[] = [
   // ── Sunday ──
   { id: 'sun-dinner-komodo',         title: 'Sunday Dinner @ Komodo',         pricePerPerson: 400, maxPerBooking: 2 },
   { id: 'sun-yacht-key-biscayne',    title: 'Sunday Yacht — Key Biscayne',    pricePerPerson: 350 },
-  // ── TEST (free) — remove before public launch ──
-  { id: 'test-yacht-free-sun',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-mon',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-tue',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-wed',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-thu',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-fri',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
-  { id: 'test-yacht-free-sat',       title: '[TEST] Wingman Yacht Experience', pricePerPerson: 0 },
 ];
 
 // Build a lookup map for O(1) access

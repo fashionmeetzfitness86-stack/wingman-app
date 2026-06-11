@@ -635,7 +635,7 @@ export const App: React.FC = () => {
     };
 
     const handleConfirmCheckout = async (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
-        if (paymentMethod === 'usd') {
+        if (paymentMethod === 'usd' || paymentMethod === 'cashapp') {
             const itemsToBook = cartItems.filter(i => itemIds.includes(i.id));
             if (itemsToBook.length === 0) {
                 showToast('No items selected.', 'error');
@@ -837,7 +837,7 @@ export const App: React.FC = () => {
                 id: newMessage.id + 1,
                 chatId: actualChatId!,
                 senderId: 'wingman',
-                text: 'Thank you for contacting Wingman.\n\nFor immediate assistance, reservations, questions, information, or any concerns, please contact our concierge team directly at:\n\n📞 (305) 764-2406\n\nA member of our team will be happy to assist you with bookings, event details, VIP experiences, membership inquiries, and support.\n\nWe look forward to helping elevate your experience.',
+                text: 'Thank you for contacting Wingman.\n\nFor immediate assistance, reservations, questions, information, or any concerns, please contact our concierge team directly at:\n\n📞 (305) 764-2406\n\nA member of our team will be happy to assist you with bookings, event details, VIP experiences, and support.\n\nWe look forward to helping elevate your experience.',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setWingmanChatMessages(prev => [...prev, replyMessage]);
@@ -2573,7 +2573,7 @@ export const App: React.FC = () => {
                     )}
                     {currentPage !== 'home' && (
                         <Header
-                            title={currentPage.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim()}
+                            title={currentPage === 'chatbot' ? 'Chat Room' : currentPage.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim()}
                             onOpenMenu={() => setIsMenuOpen(true)} 
                             onOpenNotifications={() => setIsNotificationsOpen(true)} 
                             onOpenGroupChat={() => handleNavigate('accessGroups')} 
