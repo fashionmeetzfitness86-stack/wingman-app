@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import loginLogo from '../assets/login-logo-white.png';
 import { HomeIcon } from './icons/HomeIcon';
 import { BookTableIcon } from './icons/BookTableIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
@@ -119,11 +120,13 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <h2 className="text-xl font-bold text-white">Menu</h2>
+          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
+            <div className="flex items-center gap-3">
+              <img src={loginLogo} alt="WINGMAN" className="h-8 w-auto object-contain" style={{ filter: 'brightness(1.05)' }} />
+            </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-400 hover:text-white transition-colors p-1"
               aria-label="Close menu"
             >
               <CloseIcon className="w-6 h-6" />
