@@ -1,314 +1,422 @@
 import React, { useState, useMemo } from 'react';
-import { Booking, Page, CartItem, Venue, InstanceBooking } from '../types';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { CalendarIcon } from './icons/CalendarIcon';
-import { LocationMarkerIcon } from './icons/LocationMarkerIcon';
+import { Page, CartItem, Venue, InstanceBooking, EventInstance } from '../types';
+
+// ── Icons ────────────────────────────────────────────────────────────────────
+
+const IcoChevronLeft = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+  </svg>
+);
+const IcoCalendar = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
+const IcoUsers = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+const IcoDollar = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+const IcoChat = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </svg>
+);
+const IcoTicket = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+  </svg>
+);
+const IcoStar = () => (
+  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+  </svg>
+);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '—';
+  try {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    });
+  } catch { return dateStr; }
+}
+
+function typeLabel(type: string): { label: string; color: string; bg: string } {
+  switch (type) {
+    case 'Nightclub': return { label: '🌙 Nightclub',  color: '#9CA3AF', bg: 'rgba(156,163,175,0.12)' };
+    case 'Dinner':    return { label: '🍽️ Dinner',    color: '#F59E0B', bg: 'rgba(245,158,11,0.12)'  };
+    case 'Yacht':     return { label: '⛵ Yacht',       color: '#06B6D4', bg: 'rgba(6,182,212,0.12)'  };
+    default:          return { label: '✨ Experience', color: '#A78BFA', bg: 'rgba(167,139,250,0.12)' };
+  }
+}
+
+function statusPill(status: string) {
+  switch (status) {
+    case 'Confirmed':
+      return { label: 'Confirmed', color: '#22C55E', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' };
+    case 'Completed':
+      return { label: 'Completed', color: '#A78BFA', bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.25)' };
+    case 'Under Review':
+      return { label: 'Under Review', color: '#FBBF24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' };
+    case 'Restricted':
+    case 'Cancelled':
+      return { label: status, color: '#EF4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.25)' };
+    default:
+      return { label: status, color: '#60A5FA', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)' };
+  }
+}
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 
 interface BookingsPageProps {
   onNavigate: (page: Page, params?: any) => void;
   bookedItems?: CartItem[];
   venues?: Venue[];
   instanceBookings?: InstanceBooking[];
+  allInstances?: EventInstance[];
 }
-
-const BookingCard: React.FC<{ booking: Booking, onNavigate: (page: Page, params?: any) => void }> = ({ booking, onNavigate }) => {
-    const renderBookingStatus = (status: Booking['status']) => {
-        switch (status) {
-            case 'Confirmed':
-                return <span className="text-blue-400 font-semibold">{status}</span>;
-            case 'Completed':
-                return <span className="text-green-400 font-semibold">{status}</span>;
-            case 'Cancelled':
-                return <span className="text-red-400 font-semibold">{status}</span>;
-            default:
-                return <span className="text-gray-400 font-semibold">{status}</span>;
-        }
-    };
-
-    return (
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
-            <div className="flex justify-between items-start">
-                <div>
-                    <p className="font-bold text-white text-lg">{booking.venueName}</p>
-                    <p className="text-sm text-gray-400">with {booking.wingmanName}</p>
-                </div>
-                {renderBookingStatus(booking.status)}
-            </div>
-            <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
-                <p className="text-gray-400">{booking.date}</p>
-                <p className="text-gray-300">Table: <span className="font-semibold text-white">{booking.tableTier}</span></p>
-            </div>
-            <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
-                <button 
-                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
-                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                >
-                  View Receipt
-                </button>
-                <button 
-                  onClick={() => onNavigate('chatbot')} 
-                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
-                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
-                >
-                  Chat with Wingman
-                </button>
-            </div>
-        </div>
-    );
-};
-
-const EventBookingCard: React.FC<{ item: CartItem, venue?: Venue, status: string, onNavigate: (page: Page, params?: any) => void }> = ({ item, venue, status, onNavigate }) => {
-    let statusColor = 'text-blue-400';
-    if (status === 'Approved' || status === 'Confirmed') statusColor = 'text-green-400 bg-green-900/20 border-green-900/50';
-    else if (status === 'Pending' || status === 'Under Review') statusColor = 'text-yellow-400 bg-yellow-900/20 border-yellow-900/50';
-    else if (status === 'Rejected' || status === 'Restricted') statusColor = 'text-red-400 bg-red-900/20 border-red-900/50';
-    else statusColor = 'text-blue-400 bg-blue-900/20 border-blue-900/50';
-
-    return (
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex flex-col gap-4">
-            <div className="flex gap-4">
-                <img src={item.image} alt={item.name} className="w-20 h-20 rounded object-cover flex-shrink-0" />
-                <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-white text-lg">{item.name}</h3>
-                        <span className={`text-xs px-2 py-1 rounded font-bold border ${statusColor}`}>{status}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                        <LocationMarkerIcon className="w-4 h-4" />
-                        <span>{venue?.name || 'Unknown Venue'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span>{item.date || item.sortableDate}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                <button 
-                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
-                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                >
-                  View Receipt
-                </button>
-                <button 
-                  onClick={() => onNavigate('chatbot')} 
-                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black hover:bg-white text-white text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
-                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
-                >
-                  Chat with Wingman
-                </button>
-            </div>
-        </div>
-    );
-};
 
 type FilterType = 'All' | 'Tables' | 'Events';
 
-export const BookingsPage: React.FC<BookingsPageProps> = ({ onNavigate, bookedItems = [], venues = [], instanceBookings = [] }) => {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+// ── Main Component ────────────────────────────────────────────────────────────
+
+export const BookingsPage: React.FC<BookingsPageProps> = ({
+  onNavigate,
+  bookedItems = [],
+  venues = [],
+  instanceBookings = [],
+  allInstances = [],
+}) => {
+  const [activeTab, setActiveTab]     = useState<'upcoming' | 'past'>('upcoming');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
+  // ── Build unified booking list ──────────────────────────────────────────────
   const allBookings = useMemo(() => {
-      // NOTE: static mockData table bookings removed — only show real bookings
-      const normalizedSessionBookings = bookedItems.map(item => {
-          let venueName = '';
-          let status = 'Confirmed';
+    // CartItem bookings (tables, events, guestlist)
+    const fromCart = bookedItems.map(item => {
+      let venueName = '';
+      let status = 'Confirmed';
+      let image = item.image || '';
+      let date = item.sortableDate || item.date || '';
 
-          if (item.type === 'table' && item.tableDetails) {
-              venueName = item.tableDetails.venue.name;
-          }
-          else if (item.type === 'event' && item.eventDetails) {
-              const v = venues.find(v => v.id === item.eventDetails!.event.venueId);
-              venueName = v ? v.name : 'Unknown Venue';
-          } else if (item.type === 'guestlist' && item.guestlistDetails) {
-              venueName = item.guestlistDetails.venue.name;
-              if (item.guestlistDetails.status) {
-                  let s = item.guestlistDetails.status;
-                  if (s === 'pending') status = 'Under Review';
-                  else if (s === 'rejected') status = 'Restricted';
-                  else status = s.charAt(0).toUpperCase() + s.slice(1);
-              } else {
-                  status = 'Under Review';
-              }
-          }
+      if (item.type === 'table' && item.tableDetails) {
+        venueName = item.tableDetails.venue.name;
+        image = item.tableDetails.venue.coverImage || image;
+      } else if (item.type === 'event' && item.eventDetails) {
+        const v = venues.find(v => v.id === item.eventDetails!.event.venueId);
+        venueName = v?.name ?? 'Unknown Venue';
+      } else if (item.type === 'guestlist' && item.guestlistDetails) {
+        venueName = item.guestlistDetails.venue.name;
+        image = item.guestlistDetails.venue.coverImage || image;
+        const s = item.guestlistDetails.status;
+        if (s === 'pending')   status = 'Under Review';
+        else if (s === 'rejected') status = 'Restricted';
+        else status = s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Under Review';
+      }
 
-          return {
-              id: item.id,
-              type: item.type,
-              name: item.name,
-              date: item.sortableDate || item.date || '',
-              status: status, 
-              originalData: item,
-              isEvent: item.type === 'event' || item.type === 'guestlist',
-              venueName: venueName
-          };
-      });
+      return {
+        id: String(item.id),
+        type: item.type as string,
+        name: item.name,
+        date,
+        status,
+        image,
+        venueName,
+        partySize: 1,
+        totalPaid: item.fullPrice ?? item.depositPrice ?? 0,
+        experienceType: 'Experience',
+        isEvent: item.type === 'event' || item.type === 'guestlist',
+        originalData: item,
+      };
+    });
 
-      // Recurring event-feed bookings (InstanceBooking) — the new system
-      const normalizedInstanceBookings = instanceBookings.map(b => {
-          // Use guestName field as the human-readable event title when available
-          const eventTitle = b.guestName && b.guestName !== b.instanceId
-              ? b.guestName
-              : b.instanceId
-                  .replace(/-\d{4}-\d{2}-\d{2}$/, '')
-                  .replace(/-/g, ' ')
-                  .replace(/\b\w/g, (c: string) => c.toUpperCase());
-          const bookingDate = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '';
-          return {
-              id: `instance-${b.id}`,
-              type: 'instance',
-              name: eventTitle,
-              date: bookingDate,
-              status: 'Confirmed',
-              originalData: b,
-              isEvent: true,
-              venueName: eventTitle,
-          };
-      });
+    // InstanceBookings (event-feed recurring events — the main booking system)
+    const fromInstances = instanceBookings.map(b => {
+      // Look up the actual event instance to get real title, image, venue, type
+      const inst = allInstances.find(i => i.instanceId === b.instanceId);
+      const title   = inst?.title   || b.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const image   = inst?.coverImage || '';
+      const venue   = inst?.venue   || '';
+      const expType = inst?.experienceType || 'Experience';
+      const date    = inst?.date    || b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '';
 
-      return [...normalizedSessionBookings, ...normalizedInstanceBookings];
-  }, [bookedItems, venues, instanceBookings]);
+      return {
+        id: `instance-${b.id}`,
+        type: 'instance',
+        name: title,
+        date,
+        status: 'Confirmed',
+        image,
+        venueName: venue,
+        partySize: b.partySize,
+        totalPaid: b.totalPaid,
+        experienceType: expType,
+        isEvent: true,
+        originalData: b,
+      };
+    });
 
+    return [...fromCart, ...fromInstances];
+  }, [bookedItems, venues, instanceBookings, allInstances]);
+
+  // ── Filter / sort ───────────────────────────────────────────────────────────
   const filteredList = useMemo(() => {
-      const today = new Date().toISOString().split('T')[0];
-      
-      return allBookings.filter(item => {
-          // Tab filter (Upcoming vs Past)
-          const isPast = item.date < today;
-          if (activeTab === 'upcoming' && isPast) return false;
-          if (activeTab === 'past' && !isPast) return false;
-
-          // Type filter
-          if (activeFilter === 'Tables' && item.type !== 'table' && item.type !== 'guestlist') return false;
-          if (activeFilter === 'Events' && !item.isEvent) return false;
-
-          return true;
-      }).sort((a, b) => {
-          // Sort by date
-          return activeTab === 'upcoming' 
-            ? new Date(a.date).getTime() - new Date(b.date).getTime() 
-            : new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
+    const today = new Date().toISOString().split('T')[0];
+    return allBookings
+      .filter(item => {
+        const isPast = item.date < today;
+        if (activeTab === 'upcoming' && isPast)  return false;
+        if (activeTab === 'past'     && !isPast) return false;
+        if (activeFilter === 'Tables' && item.type !== 'table' && item.type !== 'guestlist') return false;
+        if (activeFilter === 'Events' && !item.isEvent) return false;
+        return true;
+      })
+      .sort((a, b) =>
+        activeTab === 'upcoming'
+          ? new Date(a.date).getTime() - new Date(b.date).getTime()
+          : new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
   }, [allBookings, activeTab, activeFilter]);
 
+  const totalCount = allBookings.length;
+
+  // ── UI ──────────────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 md:p-8 animate-fade-in text-white pb-24">
-      <button onClick={() => onNavigate('back' as Page)} className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-6 text-sm font-semibold">
-        <ChevronLeftIcon className="w-5 h-5"/>
-        Back to Profile
-      </button>
-
-      <h1 className="text-3xl font-bold text-white mb-6">My Bookings</h1>
-
-      <div className="flex border-b border-gray-700 mb-6">
+    <div
+      className="min-h-screen pb-28 animate-fade-in"
+      style={{ background: '#0F0F14', fontFamily: "'Space Grotesk', sans-serif" }}
+    >
+      {/* ── Header ── */}
+      <div className="px-5 pt-10 pb-4">
         <button
-          onClick={() => setActiveTab('upcoming')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'upcoming' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
+          onClick={() => onNavigate('back' as Page)}
+          className="inline-flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors mb-6 text-sm font-semibold"
         >
-          Upcoming
+          <IcoChevronLeft />
+          Back
         </button>
-        <button
-          onClick={() => setActiveTab('past')}
-          className={`px-4 py-2 text-lg font-semibold transition-colors ${activeTab === 'past' ? 'text-gray-300 border-b-2 border-[#FFFFFF]' : 'text-gray-400'}`}
-        >
-          Past
-        </button>
+
+        <div className="flex items-end justify-between">
+          <div>
+            <h1
+              className="text-3xl font-black text-white"
+              style={{ letterSpacing: '-0.03em' }}
+            >
+              My Bookings
+            </h1>
+            {totalCount > 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                {totalCount} reservation{totalCount !== 1 ? 's' : ''} total
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
-          {['All', 'Tables', 'Events'].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter as FilterType)}
-                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap ${activeFilter === filter ? 'bg-white text-black' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
-              >
-                  {filter}
-              </button>
+      {/* ── Tab bar ── */}
+      <div className="px-5 mb-5">
+        <div
+          className="flex rounded-2xl p-1"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {(['upcoming', 'past'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold capitalize transition-all"
+              style={
+                activeTab === tab
+                  ? { background: 'rgba(255,255,255,0.12)', color: '#fff' }
+                  : { color: '#6B7280' }
+              }
+            >
+              {tab}
+            </button>
           ))}
+        </div>
       </div>
 
-      <div className="space-y-4">
+      {/* ── Filters ── */}
+      <div className="px-5 mb-6">
+        <div className="flex gap-2">
+          {(['All', 'Events', 'Tables'] as FilterType[]).map(f => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className="px-4 py-1.5 rounded-full text-xs font-bold transition-all"
+              style={
+                activeFilter === f
+                  ? { background: '#fff', color: '#000' }
+                  : { background: 'rgba(255,255,255,0.06)', color: '#9CA3AF', border: '1px solid rgba(255,255,255,0.08)' }
+              }
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Booking cards ── */}
+      <div className="px-5 space-y-4">
         {filteredList.length > 0 ? (
           filteredList.map(item => {
-              if (item.type === 'instance') {
-                  // It's an InstanceBooking from the recurring event feed
-                  const b = item.originalData as InstanceBooking;
-                  return (
-                      <div key={item.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                          <div className="flex justify-between items-start">
-                              <div>
-                                  <p className="font-bold text-white text-lg">{item.name}</p>
-                                  <p className="text-sm text-gray-400">{b.partySize} spot{b.partySize > 1 ? 's' : ''} · Wingman Experience</p>
-                              </div>
-                              <span className="text-green-400 font-semibold text-sm bg-green-400/10 px-2 py-0.5 rounded-full">Confirmed</span>
-                          </div>
-                          <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
-                              <p className="text-gray-400">{item.date}</p>
-                              <p className="text-gray-300">Party of <span className="font-semibold text-white">{b.partySize}</span> · <span className="text-white font-semibold">${b.totalPaid > 0 ? b.totalPaid.toLocaleString() : 'FREE'}</span></p>
-                          </div>
-                          <div className="mt-3 flex gap-2">
-                              <button
-                                onClick={() => onNavigate('eventChatsList' as any)}
-                                className="flex-1 bg-white text-black text-sm font-bold py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                              >
-                                💬 Event Chat
-                              </button>
-                              <button
-                                onClick={() => onNavigate('chatbot')}
-                                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                              >
-                                Concierge
-                              </button>
-                          </div>
+            const pill    = statusPill(item.status);
+            const typeCfg = typeLabel(item.experienceType);
+            const b       = item.originalData as InstanceBooking;
+
+            return (
+              <div
+                key={item.id}
+                className="rounded-3xl overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                {/* Cover image */}
+                {item.image ? (
+                  <div className="relative w-full" style={{ height: 160 }}>
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(15,15,20,0.95) 100%)' }}
+                    />
+                    {/* Status pill overlaid on image */}
+                    <div className="absolute top-3 right-3">
+                      <span
+                        className="text-xs font-bold px-2.5 py-1 rounded-full"
+                        style={{ background: pill.bg, color: pill.color, border: `1px solid ${pill.border}` }}
+                      >
+                        {pill.label}
+                      </span>
+                    </div>
+                    {/* Type badge */}
+                    <div className="absolute bottom-3 left-3">
+                      <span
+                        className="text-xs font-bold px-2.5 py-1 rounded-full"
+                        style={{ background: typeCfg.bg, color: typeCfg.color, border: `1px solid ${typeCfg.color}30` }}
+                      >
+                        {typeCfg.label}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  // No image fallback — gradient placeholder
+                  <div
+                    className="relative w-full flex items-center justify-center"
+                    style={{ height: 80, background: 'linear-gradient(135deg, rgba(167,139,250,0.1), rgba(99,102,241,0.1))' }}
+                  >
+                    <span className="text-2xl opacity-30">🎟️</span>
+                    <div className="absolute top-3 right-3">
+                      <span
+                        className="text-xs font-bold px-2.5 py-1 rounded-full"
+                        style={{ background: pill.bg, color: pill.color, border: `1px solid ${pill.border}` }}
+                      >
+                        {pill.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Card body */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h3 className="font-black text-white text-base leading-tight">{item.name}</h3>
+                    {item.venueName && item.venueName !== item.name && (
+                      <p className="text-xs text-gray-500 mt-0.5">{item.venueName}</p>
+                    )}
+                  </div>
+
+                  {/* Meta row */}
+                  <div className="flex items-center gap-4 flex-wrap">
+                    {item.date && (
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <IcoCalendar />
+                        <span>{formatDate(item.date)}</span>
                       </div>
-                  );
-              } else if (item.isEvent) {
-                  // It's a CartItem of type event or guestlist
-                  const cartItem = item.originalData as CartItem;
-                  const venue = venues.find(v => v.name === item.venueName);
-                  return <EventBookingCard key={item.id} item={cartItem} venue={venue} status={item.status} onNavigate={onNavigate} />;
-              } else if (item.type === 'table' && 'tableTier' in item.originalData) {
-                  // It's a mock Booking
-                  return <BookingCard key={item.id} booking={item.originalData as unknown as Booking} onNavigate={onNavigate} />;
-              } else if (item.type === 'table') {
-                   // It's a CartItem of type table
-                   const cartItem = item.originalData as CartItem;
-                   return (
-                       <div key={item.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="font-bold text-white text-lg">{item.venueName}</p>
-                                    <p className="text-sm text-gray-400">with {cartItem.tableDetails?.wingman?.name || 'N/A'}</p>
-                                </div>
-                                <span className="text-blue-400 font-semibold">Confirmed</span>
-                            </div>
-                            <div className="border-t border-gray-800 mt-3 pt-3 flex justify-between items-center text-sm">
-                                <p className="text-gray-400">{item.date}</p>
-                                <p className="text-gray-300">Table: <span className="font-semibold text-white">{cartItem.tableDetails?.tableOption?.name || 'Standard'}</span></p>
-                            </div>
-                            <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-sm">
-                                <button 
-                                  onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
-                                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                                >
-                                  View Receipt
-                                </button>
-                                <button 
-                                  onClick={() => onNavigate('chatbot')} 
-                                  className="flex-1 bg-[#FFFFFF] hover:bg-gray-200 text-black text-sm font-semibold py-2 rounded-lg transition-colors border border-gray-500"
-                                  style={{ boxShadow: '0 4px 12px rgba(156,163,175,0.3)' }}
-                                >
-                                  Chat with Wingman
-                                </button>
-                            </div>
+                    )}
+                    {item.type === 'instance' && (
+                      <>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <IcoUsers />
+                          <span>Party of {b.partySize}</span>
                         </div>
-                   )
-              }
-              return null;
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <IcoDollar />
+                          <span>{b.totalPaid > 0 ? `$${b.totalPaid.toLocaleString()}` : 'Complimentary'}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => onNavigate('eventChatsList' as any)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-white transition-all active:scale-[0.98]"
+                      style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <IcoChat />
+                      Event Chat
+                    </button>
+                    <button
+                      onClick={() => onNavigate('checkout', { initialTab: 'purchased' })}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
+                        color: '#000',
+                      }}
+                    >
+                      <IcoTicket />
+                      View Receipt
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
           })
         ) : (
-          <p className="text-gray-400 text-center py-16">No bookings found.</p>
+          /* ── Empty state ── */
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div
+              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="text-gray-600">
+                <IcoStar />
+              </div>
+            </div>
+            <p className="text-white font-black text-xl mb-2" style={{ letterSpacing: '-0.02em' }}>
+              {activeTab === 'upcoming' ? 'No upcoming bookings' : 'No past bookings'}
+            </p>
+            <p className="text-xs text-gray-600 max-w-xs leading-relaxed mb-6">
+              {activeTab === 'upcoming'
+                ? 'Reserve your spot at an exclusive Wingman experience to see it here.'
+                : "Your completed experiences will appear here once they've passed."}
+            </p>
+            {activeTab === 'upcoming' && (
+              <button
+                onClick={() => onNavigate('eventTimeline')}
+                className="px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 60%, #374151 100%)',
+                  color: '#000',
+                }}
+              >
+                Browse Experiences →
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
