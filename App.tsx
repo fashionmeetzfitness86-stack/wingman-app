@@ -482,54 +482,100 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // once on mount
 
-    // ── Fetch server-side passcode leads for admin (cross-device) ──────────
-    // Calls the admin-data Netlify function which reads from Supabase.
-    // Gracefully does nothing if Supabase is not configured or admin
-    // isn't authenticated via Supabase.
-    useEffect(() => {
-        const fetchServerLeads = async () => {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session?.access_token) return;
-                const res = await fetch('/.netlify/functions/admin-data', {
-                    headers: { Authorization: `Bearer ${session.access_token}` },
-                });
-                if (!res.ok) return;
-                const json = await res.json();
-                const serverLeads: Array<{ email: string; full_name?: string; captured_at?: string }> = json.leads || [];
-                if (!serverLeads.length) return;
-                setAppUsers(prev => {
-                    let updated = [...prev];
-                    let changed = false;
-                    for (const lead of serverLeads) {
-                        const email = (lead.email || '').toLowerCase();
-                        if (!email) continue;
-                        if (!updated.some(u => u.email.toLowerCase() === email)) {
-                            const newId = Date.now() + Math.floor(Math.random() * 99999);
-                            updated.push({
-                                id: newId,
-                                name: lead.full_name || lead.email,
-                                email,
-                                profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
-                                accessLevel: UserAccessLevel.GENERAL,
-                                role: UserRole.USER,
-                                status: 'active' as const,
-                                approvalStatus: 'pending' as const,
-                                subscriptionStatus: 'free_tier' as const,
-                                joinDate: lead.captured_at
-                                    ? new Date(lead.captured_at).toISOString().split('T')[0]
-                                    : new Date().toISOString().split('T')[0],
-                            });
+    // ── Fetch server-side leads for admin (cross-device) ─────────────────
+    // Calls get-leads Netlify function — works WITHOUT a Supabase session
+    // so the local mock admin account can pull cross-device data.
+    // Merges both passcode leads and registered user profiles into appUsers.
+    const fetchServerLeads = useCallback(async (adminEmail: string) => {
+        if (!adminEmail) return;
+        try {
+            const res = await fetch('/.netlify/functions/get-leads', {
+                headers: { 'x-admin-email': adminEmail.trim().toLowerCase() },
+            });
+            if (!res.ok) return;
+            const json = await res.json();
+
+            type LeadRow    = { email: string; full_name?: string; captured_at?: string };
+            type ProfileRow = { id: string; name: string; email: string; phone?: string; city?: string; profile_photo?: string; approval_status?: string; created_at?: string };
+
+            const serverLeads: LeadRow[]       = json.leads    || [];
+            const serverProfiles: ProfileRow[] = json.profiles || [];
+
+            setAppUsers(prev => {
+                let updated = [...prev];
+                let changed = false;
+
+                // Merge passcode leads
+                for (const lead of serverLeads) {
+                    const email = (lead.email || '').toLowerCase();
+                    if (!email) continue;
+                    if (!updated.some(u => u.email.toLowerCase() === email)) {
+                        const newId = Date.now() + Math.floor(Math.random() * 99999);
+                        updated.push({
+                            id: newId,
+                            name: lead.full_name || lead.email,
+                            email,
+                            profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
+                            accessLevel: UserAccessLevel.GENERAL,
+                            role: UserRole.USER,
+                            status: 'active' as const,
+                            approvalStatus: 'pending' as const,
+                            subscriptionStatus: 'free_tier' as const,
+                            joinDate: lead.captured_at
+                                ? new Date(lead.captured_at).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                        });
+                        changed = true;
+                    }
+                }
+
+                // Merge registered user profiles
+                for (const profile of serverProfiles) {
+                    const email = (profile.email || '').toLowerCase();
+                    if (!email) continue;
+                    const existingIdx = updated.findIndex(u => u.email.toLowerCase() === email);
+                    if (existingIdx === -1) {
+                        // New user not seen on this device — add them
+                        const newId = Number(profile.id) || (Date.now() + Math.floor(Math.random() * 99999));
+                        updated.push({
+                            id: newId,
+                            name: profile.name || email,
+                            email,
+                            phoneNumber: profile.phone,
+                            city: profile.city,
+                            profilePhoto: profile.profile_photo || `https://i.pravatar.cc/150?u=${newId}`,
+                            accessLevel: UserAccessLevel.GENERAL,
+                            role: UserRole.USER,
+                            status: 'active' as const,
+                            approvalStatus: (profile.approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
+                            subscriptionStatus: 'free_tier' as const,
+                            joinDate: profile.created_at
+                                ? new Date(profile.created_at).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                        });
+                        changed = true;
+                    } else {
+                        // Sync approval status from Supabase (admin may have approved on another device)
+                        const existing = updated[existingIdx];
+                        const serverStatus = (profile.approval_status as 'pending' | 'approved' | 'rejected') || 'pending';
+                        if (existing.approvalStatus !== serverStatus) {
+                            updated[existingIdx] = { ...existing, approvalStatus: serverStatus };
                             changed = true;
                         }
                     }
-                    return changed ? [...updated] : prev;
-                });
-            } catch { /* silent fail — Supabase may not be configured */ }
-        };
-        void fetchServerLeads();
+                }
+
+                return changed ? [...updated] : prev;
+            });
+        } catch { /* silent fail — function may not be deployed yet */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // once on mount
+    }, []);
+
+    // Run once on mount
+    useEffect(() => {
+        void fetchServerLeads(currentUser.email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
@@ -1567,6 +1613,21 @@ export const App: React.FC = () => {
         setShowOnboarding(false);
         setOnboardingDismissed(false);
 
+        // ── Fire-and-forget: save profile to Supabase so admin sees it cross-device ──
+        void fetch('/.netlify/functions/register-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id:           newId,
+                name:         newUser.name,
+                email:        newUser.email,
+                phone:        newUser.phoneNumber || '',
+                city:         newUser.city || '',
+                profilePhoto: newUser.profilePhoto || '',
+                joinDate:     newUser.joinDate,
+            }),
+        }).catch(() => { /* non-fatal — localStorage is still the source of truth */ });
+
         // ── Replay pending booking intent ─────────────────────────────────
         // If the user tapped Reserve before their profile existed, we saved
         // that booking. Now that the profile is created, process it and send
@@ -2062,6 +2123,8 @@ export const App: React.FC = () => {
                     onLogout={handleLogout}
                 />;
             case 'adminDashboard':
+                // Refresh cross-device leads every time admin opens the dashboard
+                void fetchServerLeads(currentUser.email);
                 return <AdminDashboard 
                     users={appUsers} 
                     wingmen={appWingmen} 
