@@ -406,7 +406,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
             <img
               src={loginLogo}
               alt="Wingman"
-              className="h-16 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           </div>
         <div className="flex items-center gap-2">
