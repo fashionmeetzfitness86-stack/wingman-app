@@ -2178,6 +2178,13 @@ export const App: React.FC = () => {
                         setWingmanApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
                         showToast('Application rejected', 'success');
                     }} 
+                    onApproveUser={handleApproveUser}
+                    onRejectUser={handleRejectUser}
+                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); setCartItems(prev => prev.filter(i => i.buyerId !== userId)); }}
+                    onClearAllUsers={() => {
+                        // Keep only admin and wingman accounts — wipe all regular users
+                        setAppUsers(prev => prev.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.WINGMAN));
+                    }}
                     bookedItems={bookedItems} 
                     guestlistRequests={guestlistJoinRequests} 
                     allRsvps={[]} 
@@ -2190,9 +2197,7 @@ export const App: React.FC = () => {
                     onDeleteCampaign={handleDeleteCampaign}
                     onBulkDeleteEvents={(ids) => { setAppEvents(prev => prev.filter(e => !ids.includes(e.id))); showToast(`${ids.length} events deleted`, 'success'); }}
                     onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
-                    onApproveUser={handleApproveUser}
-                    onRejectUser={handleRejectUser}
-                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); showToast('User deleted', 'success'); }}
+
                     membershipRequests={membershipRequests}
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}

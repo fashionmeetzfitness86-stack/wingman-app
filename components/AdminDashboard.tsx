@@ -77,6 +77,7 @@ interface AdminDashboardProps {
     onApproveUser?: (userId: number) => void;
     onRejectUser?: (userId: number) => void;
     onDeleteUser?: (userId: number) => void;
+    onClearAllUsers?: () => void;
     membershipRequests: MembershipRequest[];
     onApproveMembershipRequest: (requestId: number) => void;
     onRejectMembershipRequest: (requestId: number) => void;
@@ -501,6 +502,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     // Save-all state
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+    // Clear-all state
+    const [clearStatus, setClearStatus] = useState<'idle' | 'clearing' | 'done' | 'error'>('idle');
+
+    const handleClearAll = async () => {
+        const confirmed = window.confirm(
+            '⚠️ This will permanently delete ALL non-admin users from the dashboard and Supabase.\n\nThis cannot be undone. Continue?'
+        );
+        if (!confirmed) return;
+        setClearStatus('clearing');
+        try {
+            await fetch('/.netlify/functions/clear-users', {
+                method: 'DELETE',
+                headers: { 'x-admin-email': props.users.find(u => u.role === UserRole.ADMIN)?.email || '' },
+            });
+            props.onClearAllUsers?.();
+            setClearStatus('done');
+            setTimeout(() => setClearStatus('idle'), 3000);
+        } catch {
+            setClearStatus('error');
+            setTimeout(() => setClearStatus('idle'), 3000);
+        }
+    };
+
     const handleSaveAll = async () => {
         setSaveStatus('saving');
         try {
@@ -757,6 +781,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             </div>
                         )}
                         <div className="flex justify-end items-center gap-3 mb-4">
+                            {/* ── Clear All Users ── */}
+                            <button
+                                onClick={handleClearAll}
+                                disabled={clearStatus === 'clearing'}
+                                className="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-md transition-all duration-200 disabled:opacity-60"
+                                style={{
+                                    background: clearStatus === 'done'
+                                        ? 'rgba(34,197,94,0.1)'
+                                        : 'rgba(239,68,68,0.08)',
+                                    border: clearStatus === 'done'
+                                        ? '1px solid rgba(34,197,94,0.3)'
+                                        : '1px solid rgba(239,68,68,0.25)',
+                                    color: clearStatus === 'done' ? '#22c55e' : '#f87171',
+                                }}
+                            >
+                                {clearStatus === 'clearing' && (
+                                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                    </svg>
+                                )}
+                                {clearStatus === 'clearing' ? 'Clearing…'
+                                    : clearStatus === 'done'  ? '✓ Cleared'
+                                    : '🗑 Clear all users'}
+                            </button>
+
+                            {/* ── Save All Changes ── */}
                             <button
                                 onClick={handleSaveAll}
                                 disabled={saveStatus === 'saving'}
