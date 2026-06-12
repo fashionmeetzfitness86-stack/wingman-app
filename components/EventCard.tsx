@@ -67,7 +67,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         try {
             await navigator.share(shareData);
         } catch (error) {
-            console.error('Error sharing:', error);
+            // share not supported — silent fallback to clipboard
         }
     } else {
         try {
@@ -75,7 +75,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
-            console.error('Failed to copy: ', err);
+            // clipboard not supported — silent
             (window as any).showAppToast?.('Sharing is not supported on this browser. Could not copy link.');
         }
     }

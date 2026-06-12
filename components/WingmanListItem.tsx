@@ -46,7 +46,7 @@ export const WingmanListItem: React.FC<WingmanListItemProps> = ({ wingman, onVie
       try {
         await navigator.share(shareData);
       } catch (error) {
-        console.error('Error sharing:', error);
+        // share not supported — silent fallback to clipboard
       }
     } else {
       try {
@@ -54,7 +54,7 @@ export const WingmanListItem: React.FC<WingmanListItemProps> = ({ wingman, onVie
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       } catch (err) {
-        console.error('Failed to copy: ', err);
+        // clipboard not supported — silent
       }
     }
   };
