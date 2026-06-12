@@ -1696,12 +1696,27 @@ export const App: React.FC = () => {
         }, ...prev]);
     };
 
-    // canBook = true when admin/wingman, OR when user's profile is admin-approved.
-    // subscriptionStatus is deliberately NOT a booking gate here — admin approval is the only requirement.
+    // ── Profile completion score (0–100) ──────────────────────────────────
+    // Weights: name 15, email 20, phone 25, photo 30, city 10 = 100
+    const getProfileCompletion = (u: typeof currentUser): number => {
+        if (!u) return 0;
+        const nameParts = (u.name || '').trim().split(/\s+/);
+        return [
+            nameParts.length >= 2 && nameParts[0] && nameParts[1] ? 15 : (nameParts[0] ? 8 : 0),
+            u.email ? 20 : 0,
+            u.phoneNumber ? 25 : 0,
+            (u.profilePhoto && u.profilePhoto.length > 4) ? 30 : 0,
+            u.city ? 10 : 0,
+        ].reduce((a, b) => a + b, 0);
+    };
+
+    // canBook = true for admins/wingmen always.
+    // Regular users need admin approval AND profile ≥ 80% complete.
+    const profileCompletion = getProfileCompletion(currentUser);
     const canBook =
         currentUser?.role === UserRole.ADMIN ||
         currentUser?.role === UserRole.WINGMAN ||
-        currentUser?.approvalStatus === 'approved';
+        (currentUser?.approvalStatus === 'approved' && profileCompletion >= 80);
 
     // --- Pass 2: User approval handlers ---
     // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.

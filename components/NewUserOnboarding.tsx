@@ -564,8 +564,11 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
             <Field label="Phone Number" error={errors.phone}>
               <Input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={e => { setPhone(e.target.value); clearErr('phone'); }}
+                onFocus={e => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                 placeholder="+1 (305) 000-0000"
                 hasError={!!errors.phone}
               />
@@ -862,7 +865,7 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
           background: '#111',
           border: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 -16px 64px rgba(0,0,0,0.9)',
-          maxHeight: '85vh',
+          maxHeight: 'min(90dvh, 90vh)',  // dvh shrinks when iOS keyboard is open
         }}
       >
         {/* Header */}
@@ -926,12 +929,12 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
             </button>
           </div>
 
-          {/* Skip option — visible but secondary */}
+          {/* Skip option */}
           <button
             onClick={onDismiss}
             className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors py-1"
           >
-            Skip for now — you have 24 hrs to complete your profile
+            Skip for now — complete your profile later to book experiences
           </button>
         </div>
       </div>

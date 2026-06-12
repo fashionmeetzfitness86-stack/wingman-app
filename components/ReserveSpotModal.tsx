@@ -360,13 +360,80 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
 
               {/* ── ACCESS DENIED ── */}
               {!isBooked && !canBook && event.status !== 'sold-out' && event.status !== 'cancelled' && (
-                <div className="flex flex-col items-center gap-2 py-3 text-center">
-                  <span style={{ color: '#6B7280' }}><IcoLock /></span>
-                  <p className="text-sm text-gray-400">
-                    {currentUser.approvalStatus !== 'approved'
-                      ? 'Apply for membership to book Wingman experiences.'
-                      : 'An active subscription is required to book.'}
-                  </p>
+                <div className="flex flex-col gap-3 py-2">
+                  {currentUser.approvalStatus !== 'approved' ? (
+                    /* Pending / not yet approved */
+                    <div
+                      className="rounded-2xl p-4 flex items-start gap-3"
+                      style={{ background: 'rgba(224,64,251,0.07)', border: '1px solid rgba(224,64,251,0.2)' }}
+                    >
+                      <span className="text-xl flex-shrink-0">🔒</span>
+                      <div>
+                        <p className="text-sm font-bold text-white mb-1">
+                          Create a profile to book Wingman experiences
+                        </p>
+                        <p className="text-xs text-gray-400 leading-relaxed">
+                          {currentUser.approvalStatus === 'rejected'
+                            ? 'Your application was not approved. Contact support for more info.'
+                            : 'Your profile is under review. Once approved by our team you\'ll be able to book — we\'ll let you know!'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Approved but profile < 80% */
+                    <div
+                      className="rounded-2xl p-4 flex flex-col gap-3"
+                      style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl flex-shrink-0">📋</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-white mb-1">
+                            Complete your profile to book
+                          </p>
+                          <p className="text-xs text-gray-400 leading-relaxed">
+                            Your profile needs to be at least <span className="text-white font-semibold">80% complete</span> to book a Wingman experience. Add your phone number and a profile photo to unlock booking.
+                          </p>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div>
+                        <div className="flex justify-between text-[10px] text-gray-500 mb-1">
+                          <span>Profile completion</span>
+                          <span style={{ color: '#F59E0B' }}>{[
+                            currentUser.name?.trim().split(/\s+/).length >= 2 ? 15 : 0,
+                            currentUser.email ? 20 : 0,
+                            currentUser.phoneNumber ? 25 : 0,
+                            (currentUser.profilePhoto && currentUser.profilePhoto.length > 4) ? 30 : 0,
+                            currentUser.city ? 10 : 0,
+                          ].reduce((a, b) => a + b, 0)}%</span>
+                        </div>
+                        <div className="w-full h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                          <div
+                            className="h-2 rounded-full transition-all"
+                            style={{
+                              width: [
+                                currentUser.name?.trim().split(/\s+/).length >= 2 ? 15 : 0,
+                                currentUser.email ? 20 : 0,
+                                currentUser.phoneNumber ? 25 : 0,
+                                (currentUser.profilePhoto && currentUser.profilePhoto.length > 4) ? 30 : 0,
+                                currentUser.city ? 10 : 0,
+                              ].reduce((a, b) => a + b, 0) + '%',
+                              background: 'linear-gradient(90deg, #F59E0B, #EF4444)',
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-gray-600 mt-1.5">
+                          Missing: {[
+                            !(currentUser.name?.trim().split(/\s+/).length >= 2) && 'full name',
+                            !currentUser.phoneNumber && 'phone number',
+                            !(currentUser.profilePhoto && currentUser.profilePhoto.length > 4) && 'profile photo',
+                            !currentUser.city && 'city',
+                          ].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
