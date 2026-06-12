@@ -91,8 +91,8 @@ const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?:
 
 // ─── Photo Crop Editor ────────────────────────────────────────────────────────
 
-const SIZE = 240; // display canvas size (px)
-const OUTPUT = 256; // exported image size (px)
+const SIZE   = 264; // canvas CSS display size (px) — fits all phones
+const OUTPUT = 512; // exported circular image size (px)
 
 const PhotoCropEditor: React.FC<{
   src: string;
@@ -102,47 +102,62 @@ const PhotoCropEditor: React.FC<{
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef    = useRef<HTMLImageElement | null>(null);
 
-  // crop state
   const [zoom,    setZoom]    = useState(1);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
-  const [rotate,  setRotate]  = useState(0); // 0 / 90 / 180 / 270
+  const [rotate,  setRotate]  = useState(0);
   const [loaded,  setLoaded]  = useState(false);
 
-  // drag state (refs to avoid stale closure)
-  const dragging   = useRef(false);
-  const dragStart  = useRef({ x: 0, y: 0 });
-  const offsetSnap = useRef({ x: 0, y: 0 });
+  // Keep a ref to zoom so touch handlers always see the latest value
+  const zoomRef = useRef(zoom);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+
+  // drag state
+  const dragging      = useRef(false);
+  const dragStart     = useRef({ x: 0, y: 0 });
+  const offsetSnap    = useRef({ x: 0, y: 0 });
+  // touch state
+  const lastTouch     = useRef<{ x: number; y: number } | null>(null);
+  const lastPinchDist = useRef<number | null>(null);  // two-finger pinch
 
   // ── Load image ──────────────────────────────────────────────────
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
-      // fit the image inside the crop circle by default
       const rads = (rotate * Math.PI) / 180;
       const cos  = Math.abs(Math.cos(rads));
       const sin  = Math.abs(Math.sin(rads));
       const rotW = img.naturalWidth * cos + img.naturalHeight * sin;
       const rotH = img.naturalWidth * sin + img.naturalHeight * cos;
-      const fitZoom = Math.max(SIZE / rotW, SIZE / rotH);
-      setZoom(fitZoom);
+      const fit  = Math.max(SIZE / rotW, SIZE / rotH);
+      setZoom(fit);
+      zoomRef.current = fit;
       setOffsetX(0);
       setOffsetY(0);
       setLoaded(true);
     };
+    img.crossOrigin = 'anonymous';
     img.src = src;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  // ── Draw canvas ─────────────────────────────────────────────────
+  // ── Draw canvas (DPR-aware for crisp retina rendering) ──────────
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     const img    = imgRef.current;
     if (!canvas || !img || !loaded) return;
-    const ctx = canvas.getContext('2d')!;
+
+    const dpr = window.devicePixelRatio || 1;
     const r   = SIZE / 2;
 
+    // Scale internal pixel buffer to device resolution
+    canvas.width  = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+
+    const ctx = canvas.getContext('2d')!;
+    // Reset transform to DPR scale so all drawing uses CSS coords
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, SIZE, SIZE);
 
     // clip to circle
@@ -151,7 +166,6 @@ const PhotoCropEditor: React.FC<{
     ctx.arc(r, r, r, 0, Math.PI * 2);
     ctx.clip();
 
-    // apply pan + zoom + rotate from centre
     ctx.translate(r + offsetX, r + offsetY);
     ctx.rotate((rotate * Math.PI) / 180);
     ctx.scale(zoom, zoom);
@@ -162,15 +176,15 @@ const PhotoCropEditor: React.FC<{
     ctx.beginPath();
     ctx.arc(r, r, r - 1, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(224,64,251,0.7)';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth   = 2.5;
     ctx.stroke();
 
-    // crosshair guide lines (subtle)
+    // guide lines
     ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth   = 1;
     ctx.beginPath();
-    ctx.moveTo(r, 4); ctx.lineTo(r, SIZE - 4);
-    ctx.moveTo(4, r); ctx.lineTo(SIZE - 4, r);
+    ctx.moveTo(r, 4);    ctx.lineTo(r, SIZE - 4);
+    ctx.moveTo(4, r);    ctx.lineTo(SIZE - 4, r);
     ctx.stroke();
   }, [zoom, offsetX, offsetY, rotate, loaded]);
 
@@ -178,8 +192,8 @@ const PhotoCropEditor: React.FC<{
 
   // ── Mouse drag ──────────────────────────────────────────────────
   const onMouseDown = (e: React.MouseEvent) => {
-    dragging.current  = true;
-    dragStart.current = { x: e.clientX, y: e.clientY };
+    dragging.current   = true;
+    dragStart.current  = { x: e.clientX, y: e.clientY };
     offsetSnap.current = { x: offsetX, y: offsetY };
   };
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -189,51 +203,72 @@ const PhotoCropEditor: React.FC<{
   }, []);
   const onMouseUp = useCallback(() => { dragging.current = false; }, []);
 
-  // ── Touch drag ──────────────────────────────────────────────────
-  const lastTouch = useRef<{ x: number; y: number } | null>(null);
+  // ── Touch: single-finger pan + two-finger pinch-to-zoom ─────────
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      lastTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      offsetSnap.current = { x: offsetX, y: offsetY };
-      dragging.current = true;
+      lastTouch.current      = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      offsetSnap.current     = { x: offsetX, y: offsetY };
+      dragging.current       = true;
+      lastPinchDist.current  = null;
+    } else if (e.touches.length === 2) {
+      // Start of a pinch gesture — record initial finger distance
+      dragging.current = false;
+      const dx = e.touches[1].clientX - e.touches[0].clientX;
+      const dy = e.touches[1].clientY - e.touches[0].clientY;
+      lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
     }
   };
-  const onTouchMove = useCallback((e: TouchEvent) => {
-    if (!dragging.current || !lastTouch.current || e.touches.length !== 1) return;
-    e.preventDefault();
-    const dx = e.touches[0].clientX - lastTouch.current.x;
-    const dy = e.touches[0].clientY - lastTouch.current.y;
-    lastTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    setOffsetX(x => x + dx);
-    setOffsetY(y => y + dy);
-  }, []);
-  const onTouchEnd = useCallback(() => { dragging.current = false; }, []);
 
-  // ── Wheel zoom ──────────────────────────────────────────────────
+  const onTouchMove = useCallback((e: TouchEvent) => {
+    e.preventDefault(); // prevent page scroll while interacting with crop
+    if (e.touches.length === 2 && lastPinchDist.current !== null) {
+      // ── Pinch-to-zoom ──
+      const dx   = e.touches[1].clientX - e.touches[0].clientX;
+      const dy   = e.touches[1].clientY - e.touches[0].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const scale = dist / lastPinchDist.current;
+      setZoom(z => Math.min(5, Math.max(0.3, z * scale)));
+      lastPinchDist.current = dist;
+    } else if (e.touches.length === 1 && dragging.current && lastTouch.current) {
+      // ── Single-finger pan ──
+      const dx = e.touches[0].clientX - lastTouch.current.x;
+      const dy = e.touches[0].clientY - lastTouch.current.y;
+      lastTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      setOffsetX(x => x + dx);
+      setOffsetY(y => y + dy);
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    dragging.current      = false;
+    lastPinchDist.current = null;
+  }, []);
+
+  // ── Scroll wheel zoom ────────────────────────────────────────────
   const onWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     setZoom(z => Math.min(5, Math.max(0.3, z - e.deltaY * 0.002)));
   }, []);
 
-  // attach global listeners
+  // Attach non-passive listeners directly on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    canvas.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('mouseup',  onMouseUp);
+    canvas.addEventListener('wheel',     onWheel,     { passive: false });
     canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-    canvas.addEventListener('touchend', onTouchEnd);
+    canvas.addEventListener('touchend',  onTouchEnd);
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      canvas.removeEventListener('wheel', onWheel);
+      window.removeEventListener('mouseup',  onMouseUp);
+      canvas.removeEventListener('wheel',     onWheel);
       canvas.removeEventListener('touchmove', onTouchMove);
-      canvas.removeEventListener('touchend', onTouchEnd);
+      canvas.removeEventListener('touchend',  onTouchEnd);
     };
   }, [onMouseMove, onMouseUp, onWheel, onTouchMove, onTouchEnd]);
 
-  // ── Export crop ─────────────────────────────────────────────────
+  // ── Export final crop ────────────────────────────────────────────
   const handleConfirm = () => {
     const img = imgRef.current;
     if (!img) return;
@@ -259,40 +294,44 @@ const PhotoCropEditor: React.FC<{
   const handleRotate = () => setRotate(r => (r + 90) % 360);
   const handleCenter = () => { setOffsetX(0); setOffsetY(0); };
   const handleFit    = () => {
-    const img = imgRef.current;
-    if (!img) return;
+    const img = imgRef.current; if (!img) return;
     const rads = (rotate * Math.PI) / 180;
     const cos  = Math.abs(Math.cos(rads));
     const sin  = Math.abs(Math.sin(rads));
     const rotW = img.naturalWidth * cos + img.naturalHeight * sin;
     const rotH = img.naturalWidth * sin + img.naturalHeight * cos;
     setZoom(Math.max(SIZE / rotW, SIZE / rotH));
-    setOffsetX(0);
-    setOffsetY(0);
+    setOffsetX(0); setOffsetY(0);
   };
   const handleFill = () => {
-    const img = imgRef.current;
-    if (!img) return;
+    const img = imgRef.current; if (!img) return;
     const rads = (rotate * Math.PI) / 180;
     const cos  = Math.abs(Math.cos(rads));
     const sin  = Math.abs(Math.sin(rads));
     const rotW = img.naturalWidth * cos + img.naturalHeight * sin;
     const rotH = img.naturalWidth * sin + img.naturalHeight * cos;
     setZoom(Math.min(SIZE / rotW, SIZE / rotH) * 2.5);
-    setOffsetX(0);
-    setOffsetY(0);
+    setOffsetX(0); setOffsetY(0);
   };
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <p className="text-[11px] text-gray-500 text-center">Drag to reposition · Scroll/pinch to zoom</p>
+      <p className="text-[11px] text-gray-500 text-center">
+        Drag to reposition · Pinch or scroll to zoom
+      </p>
 
-      {/* Canvas crop area */}
+      {/* Canvas — CSS width/height fixed at SIZE so DPR upscaling doesn't affect layout */}
       <canvas
         ref={canvasRef}
-        width={SIZE}
-        height={SIZE}
-        style={{ cursor: 'grab', borderRadius: '50%', touchAction: 'none', userSelect: 'none' }}
+        style={{
+          width:       SIZE + 'px',
+          height:      SIZE + 'px',
+          cursor:      'grab',
+          borderRadius:'50%',
+          touchAction: 'none',   // prevents page scroll on touch
+          userSelect:  'none',
+          display:     'block',
+        }}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       />
@@ -316,16 +355,16 @@ const PhotoCropEditor: React.FC<{
       {/* Action buttons */}
       <div className="grid grid-cols-4 gap-1.5 w-full">
         {[
-          { label: '↺ Rotate',  action: handleRotate },
-          { label: '⊙ Center',  action: handleCenter },
-          { label: '⤢ Fit',     action: handleFit    },
-          { label: '⊡ Fill',    action: handleFill   },
+          { label: '↺ Rotate', action: handleRotate },
+          { label: '⊙ Center', action: handleCenter },
+          { label: '⤢ Fit',    action: handleFit    },
+          { label: '⊡ Fill',   action: handleFill   },
         ].map(({ label, action }) => (
           <button
             key={label}
             type="button"
             onClick={action}
-            className="py-2 rounded-lg text-[10px] font-bold transition-colors"
+            className="py-2.5 rounded-lg text-[10px] font-bold transition-colors active:scale-95"
             style={{ background: 'rgba(255,255,255,0.07)', color: '#9CA3AF', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             {label}
@@ -338,7 +377,7 @@ const PhotoCropEditor: React.FC<{
         <button
           type="button"
           onClick={onReplace}
-          className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
           style={{ background: 'rgba(255,255,255,0.05)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)' }}
         >
           Change Photo
@@ -346,7 +385,7 @@ const PhotoCropEditor: React.FC<{
         <button
           type="button"
           onClick={handleConfirm}
-          className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98]"
+          className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98]"
           style={{ background: 'linear-gradient(135deg,#E040FB,#7B61FF)', boxShadow: '0 6px 18px rgba(224,64,251,0.3)' }}
         >
           Use This Photo ✓

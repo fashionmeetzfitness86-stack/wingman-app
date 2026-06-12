@@ -2180,9 +2180,8 @@ export const App: React.FC = () => {
                     }} 
                     onApproveUser={handleApproveUser}
                     onRejectUser={handleRejectUser}
-                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); setCartItems(prev => prev.filter(i => i.buyerId !== userId)); }}
+                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); }}
                     onClearAllUsers={() => {
-                        // Keep only admin and wingman accounts — wipe all regular users
                         setAppUsers(prev => prev.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.WINGMAN));
                     }}
                     bookedItems={bookedItems} 
