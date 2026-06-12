@@ -72,36 +72,14 @@ const IcoShield = () => (
 // ─── Wingman Logo ─────────────────────────────────────────────
 
 const WingmanWordmark: React.FC = () => (
-  <div className="flex flex-col items-center gap-3 select-none">
-    <svg width="44" height="52" viewBox="0 0 48 56" fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="wg2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="50%" stopColor="#738596" />
-          <stop offset="100%" stopColor="#1A252C" />
-        </linearGradient>
-      </defs>
-      <path d="M24 2C15.163 2 8 9.163 8 18c0 12.444 16 34 16 34s16-21.556 16-34C40 9.163 32.837 2 24 2z"
-        stroke="url(#wg2)" strokeWidth="3" fill="none" />
-      <circle cx="24" cy="18" r="5" fill="url(#wg2)" />
-      <path d="M14 10 C8 4, 2 6, 4 14 C6 18, 12 18, 14 14"
-        stroke="url(#wg2)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-    </svg>
-    <div className="text-center">
-      <span
-        className="text-3xl font-black tracking-widest"
-        style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.15em' }}
-      >
-        <span style={{
-          background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}>W</span>
-        <span className="text-white">INGMAN</span>
-      </span>
-      <p className="text-[10px] tracking-[0.4em] text-gray-500 uppercase mt-1">Miami · Private Access</p>
-    </div>
+  <div className="flex flex-col items-center gap-2 select-none">
+    <img
+      src={loginLogo}
+      alt="WINGMAN"
+      className="h-14 w-auto object-contain"
+      style={{ filter: 'brightness(1.05)' }}
+    />
+    <p className="text-[10px] tracking-[0.4em] text-gray-500 uppercase mt-1">Miami · Private Access</p>
   </div>
 );
 
