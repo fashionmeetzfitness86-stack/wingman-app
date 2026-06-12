@@ -2156,13 +2156,15 @@ export const App: React.FC = () => {
                     wingmen={appWingmen}
                 />;
             }
-            case 'bookings':
-                return <BookingsPage 
-                    onNavigate={handleNavigate} 
-                    bookedItems={bookedItems} 
+            case 'bookings': {
+                const allInstancesForBookings = generateEventFeed(bookedMap, cancelMap, 4);
+                return <BookingsPage
+                    onNavigate={handleNavigate}
+                    bookedItems={bookedItems}
                     venues={appVenues}
                     instanceBookings={instanceBookings.filter(b => b.userId === currentUser.id)}
-                />;
+                    allInstances={allInstancesForBookings}
+                />;}
             case 'settings': {
                 // Check if the current user is admin OR if we have a persistent admin session active
                 const isAdminSession = currentUser.role === UserRole.ADMIN || !!realAdminUser;
