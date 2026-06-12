@@ -40,7 +40,7 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Invalid request body' }, 400);
   }
 
-  const { id, name, email, phone, city, gender, profilePhoto, joinDate } = body as Record<string, string>;
+  const { id, name, email, phone, city, gender, profilePhoto, joinDate, approvalStatus } = body as Record<string, string>;
 
   if (!email || !name) {
     return jsonResponse(req, { error: 'email and name are required' }, 400);
@@ -65,7 +65,7 @@ export default async (req: Request) => {
         city: city || null,
         gender: gender || null,
         profile_photo: profilePhoto || null,
-        approval_status: 'pending',
+        approval_status: (approvalStatus === 'approved' || approvalStatus === 'rejected') ? approvalStatus : 'pending',
         created_at: joinDate ? new Date(joinDate).toISOString() : new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },

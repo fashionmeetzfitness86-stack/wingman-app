@@ -498,6 +498,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const [userForAnalytics, setUserForAnalytics] = useState<User | null>(null);
     const [wingmanForStats, setWingmanForStats] = useState<Wingman | null>(null);
 
+    // Save-all state
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+    const handleSaveAll = async () => {
+        setSaveStatus('saving');
+        try {
+            // Push every non-admin/non-wingman user to Supabase so approval status
+            // is visible cross-device.
+            const usersToSync = users.filter(
+                u => u.role !== UserRole.ADMIN && u.role !== UserRole.WINGMAN && u.email
+            );
+            await Promise.all(
+                usersToSync.map(u =>
+                    fetch('/.netlify/functions/register-profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id:             u.id,
+                            name:           u.name,
+                            email:          u.email,
+                            phone:          u.phoneNumber || '',
+                            city:           u.city || '',
+                            profilePhoto:   u.profilePhoto || '',
+                            approvalStatus: u.approvalStatus || 'pending',
+                            joinDate:       u.joinDate || new Date().toISOString().split('T')[0],
+                        }),
+                    }).catch(() => null)
+                )
+            );
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        } catch {
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        }
+    };
+
     // Computed badges
     const pendingApprovalsCount = useMemo(() =>
         users.filter(u => (u.approvalStatus === 'pending' || u.approvalStatus === undefined) && u.role !== UserRole.ADMIN && u.role !== UserRole.WINGMAN).length,
@@ -719,7 +756,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                                 </button>
                             </div>
                         )}
-                        <div className="flex justify-end mb-4">
+                        <div className="flex justify-end items-center gap-3 mb-4">
+                            <button
+                                onClick={handleSaveAll}
+                                disabled={saveStatus === 'saving'}
+                                className="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-md transition-all duration-200 disabled:opacity-60"
+                                style={{
+                                    background: saveStatus === 'saved'
+                                        ? 'rgba(34,197,94,0.15)'
+                                        : saveStatus === 'error'
+                                        ? 'rgba(239,68,68,0.15)'
+                                        : 'rgba(255,255,255,0.07)',
+                                    border: saveStatus === 'saved'
+                                        ? '1px solid rgba(34,197,94,0.4)'
+                                        : saveStatus === 'error'
+                                        ? '1px solid rgba(239,68,68,0.4)'
+                                        : '1px solid rgba(255,255,255,0.12)',
+                                    color: saveStatus === 'saved'
+                                        ? '#22c55e'
+                                        : saveStatus === 'error'
+                                        ? '#ef4444'
+                                        : '#fff',
+                                }}
+                            >
+                                {saveStatus === 'saving' && (
+                                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                    </svg>
+                                )}
+                                {saveStatus === 'saved'  && <span>✓</span>}
+                                {saveStatus === 'error'  && <span>✕</span>}
+                                {saveStatus === 'saving' ? 'Saving…'
+                                    : saveStatus === 'saved'  ? 'All changes saved'
+                                    : saveStatus === 'error'  ? 'Save failed — retry'
+                                    : 'Save all changes'}
+                            </button>
                             <button onClick={props.onAddUser} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Create User</button>
                         </div>
                         {filteredUsers.length > 0 ? filteredUsers.map(user => <AdminUserListItem key={user.id} user={user} onEdit={props.onEditUser} onViewProfile={props.onViewUser} onBlock={props.onBlockUser} onViewAnalytics={u => setUserForAnalytics(u)} onApprove={props.onApproveUser} onReject={props.onRejectUser} onDelete={props.onDeleteUser} />) : <p className="text-center text-gray-500 py-8">No users found.</p>}
