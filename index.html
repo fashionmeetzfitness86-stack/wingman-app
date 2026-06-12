@@ -157,13 +157,26 @@
       .light .text-amber-400 { color: #7B1FA2 !important; }
 
 
+      html {
+        height: 100%;
+        /* iOS Safari: -webkit-fill-available corrects the 100vh/address-bar bug */
+        height: -webkit-fill-available;
+      }
+
       body {
+        min-height: 100%;
+        min-height: -webkit-fill-available;
         font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
         background-color: var(--color-background);
         color: var(--color-text, #fff);
         transition: background-color 0.3s ease, color 0.3s ease;
         overscroll-behavior-y: none;
         overflow-x: hidden;
+        /* Critical iOS fix: explicit overflow-y prevents Safari treating
+           overflow-x:hidden as overflow:hidden which kills all scroll */
+        overflow-y: auto;
+        /* Momentum (inertia) scroll on iOS */
+        -webkit-overflow-scrolling: touch;
         width: 100%;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;

@@ -440,14 +440,16 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
           ))}
         </div>
 
-        {/* SPACER for sticky CTA */}
-        <div className="h-4" />
+        {/* SPACER — keeps content above fixed CTA + bottom nav zone */}
+        <div className="h-52" />
       </div>
 
       {/* ─── STICKY BOTTOM CTA ───────────────────────────────── */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-3"
+        className="fixed bottom-0 left-0 right-0 z-50 px-5 pt-3"
         style={{
+          /* Padding-bottom pushes button content above: bottom nav (68px) + home indicator safe area + 16px breathing room */
+          paddingBottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
           background: 'linear-gradient(to top, #0a0a0a 60%, rgba(10,10,10,0.95) 100%)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',

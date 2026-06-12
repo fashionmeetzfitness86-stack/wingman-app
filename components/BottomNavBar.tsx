@@ -73,8 +73,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
   if (isPrivileged) {
     return (
       <nav
-        className="fixed bottom-0 left-0 right-0 h-[68px] z-40"
+        className="fixed bottom-0 left-0 right-0 z-40"
         style={{
+          height: 'calc(68px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'rgba(0,0,0,0.9)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -127,8 +129,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentUser, current
   // General Access view
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 h-[68px] z-40"
+      className="fixed bottom-0 left-0 right-0 z-40"
       style={{
+        height: 'calc(68px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         background: 'rgba(0,0,0,0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',

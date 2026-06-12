@@ -2791,7 +2791,7 @@ export const App: React.FC = () => {
                         />
                     )}
                     
-                    <main className="pb-20">
+                    <main style={{ paddingBottom: 'max(80px, calc(68px + env(safe-area-inset-bottom, 0px)))' }}>
                         {renderPage()}
                     </main>
 

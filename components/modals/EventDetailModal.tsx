@@ -221,7 +221,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
       aria-labelledby={`event-title-${event.id}`}
     >
       <div
-        className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg m-4 flex flex-col max-h-[90vh]"
+        className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg m-4 flex flex-col max-h-[90dvh]"
         onClick={e => e.stopPropagation()}
       >
         <div className="relative">
