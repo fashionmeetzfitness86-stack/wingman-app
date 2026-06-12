@@ -7,6 +7,7 @@ import { QrIcon } from './icons/QrIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { User, UserRole } from '../types';
 import { CartIcon } from './icons/CartIcon';
+import loginLogo from '../assets/login-logo-white.png';
 
 interface HeaderProps {
   title: string;
@@ -26,45 +27,6 @@ interface HeaderProps {
   onLogoClick?: () => void;
 }
 
-/**
- * Wingman wordmark — gradient W + "INGMAN" in white
- * Rendered as an inline SVG so it looks crisp at any DPI.
- */
-const WingmanLogo: React.FC = () => (
-  <div className="flex items-center gap-2 select-none">
-    {/* Icon: wing + pin (simplified) */}
-    <svg width="28" height="28" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="50%" stopColor="#738596" />
-          <stop offset="100%" stopColor="#1A252C" />
-        </linearGradient>
-      </defs>
-      {/* Pin shape */}
-      <path d="M24 2C15.163 2 8 9.163 8 18c0 12.444 16 34 16 34s16-21.556 16-34C40 9.163 32.837 2 24 2z"
-        stroke="url(#wg)" strokeWidth="3" fill="none"/>
-      {/* Pin dot */}
-      <circle cx="24" cy="18" r="5" fill="url(#wg)" />
-      {/* Wing (top-left arc) */}
-      <path d="M14 10 C8 4, 2 6, 4 14 C6 18, 12 18, 14 14"
-        stroke="url(#wg)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    </svg>
-    {/* Wordmark */}
-    <span
-      className="text-xl font-black tracking-wide hidden sm:block"
-      style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.05em' }}
-    >
-      <span style={{
-        background: 'linear-gradient(90deg, #FFFFFF, #738596, #1A252C)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-      }}>W</span>
-      <span className="text-white">INGMAN</span>
-    </span>
-  </div>
-);
 
 export const Header: React.FC<HeaderProps> = ({
   title,
@@ -133,10 +95,10 @@ export const Header: React.FC<HeaderProps> = ({
         {isHome ? (
           onLogoClick ? (
             <button onClick={onLogoClick} aria-label="Home" className="cursor-pointer">
-              <WingmanLogo />
+              <img src={loginLogo} alt="Wingman" className="h-7 w-auto object-contain" />
             </button>
           ) : (
-            <WingmanLogo />
+            <img src={loginLogo} alt="Wingman" className="h-7 w-auto object-contain" />
           )
         ) : subtitle ? (
           <button
