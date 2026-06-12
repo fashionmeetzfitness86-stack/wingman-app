@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Page, User, UserRole, UserAccessLevel } from '../types';
-import { WingmanLogo } from './icons/WingmanLogo';
+import loginLogo from '../assets/login-logo-white.png';
 import { MenuIcon } from './icons/MenuIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
@@ -402,15 +402,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
     <div className="min-h-screen flex flex-col bg-transparent">
       {/* ── Header ───────────────────────────────────────────────── */}
       <header className="flex justify-between items-center px-5 pt-8 pb-4">
-        <div className="flex items-center gap-3">
-          <WingmanLogo className="w-9 h-9" />
-          <h1
-            className="font-black text-3xl tracking-tighter text-white"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '-0.04em' }}
-          >
-            WINGMAN
-          </h1>
-        </div>
+        <div className="flex items-center">
+            <img
+              src={loginLogo}
+              alt="Wingman"
+              className="h-8 w-auto object-contain"
+            />
+          </div>
         <div className="flex items-center gap-2">
           {(isAdmin || isWingman) && (
             <button
