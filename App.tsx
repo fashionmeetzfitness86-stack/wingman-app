@@ -420,6 +420,32 @@ export const App: React.FC = () => {
     // Derived early — must be before any useEffect that references it (avoids TDZ crash)
     const isPasscodeOnlyUser = passcodeAccessActive && !isLoggedInUser;
 
+    // On mount: if a passcode session exists (e.g. after page refresh), ensure the user
+    // is registered in appUsers so the admin dashboard can always see them.
+    useEffect(() => {
+        if (isLoggedInUser) return;
+        const session = getAccessSession();
+        if (!session?.email) return;
+        const normalizedEmail = session.email.trim().toLowerCase();
+        setAppUsers(prev => {
+            if (prev.some(u => u.email.toLowerCase() === normalizedEmail)) return prev;
+            const newId = Date.now();
+            return [...prev, {
+                id: newId,
+                name: session.fullName || session.email,
+                email: normalizedEmail,
+                profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
+                accessLevel: UserAccessLevel.GENERAL,
+                role: UserRole.USER,
+                status: 'active' as const,
+                approvalStatus: 'pending' as const,
+                subscriptionStatus: 'free_tier' as const,
+                joinDate: new Date().toISOString().split('T')[0],
+            }];
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // intentionally once on mount
+
     // Keep the URL in sync with the admin dashboard so /admin is shareable
     // and survives a refresh.
     useEffect(() => {
@@ -456,6 +482,31 @@ export const App: React.FC = () => {
                 email: session.email     ? session.email     : prev.email,
             }));
         }
+
+        // ── Register passcode user in appUsers so admin can see & approve them ─
+        // Creates a pending record only if this email doesn't already have an account.
+        if (session?.email) {
+            const normalizedEmail = session.email.trim().toLowerCase();
+            setAppUsers(prev => {
+                const alreadyExists = prev.some(u => u.email.toLowerCase() === normalizedEmail);
+                if (alreadyExists) return prev; // don't duplicate
+                const newId = Date.now();
+                const pendingUser: User = {
+                    id: newId,
+                    name: session.fullName || session.email,
+                    email: normalizedEmail,
+                    profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
+                    accessLevel: UserAccessLevel.GENERAL,
+                    role: UserRole.USER,
+                    status: 'active',
+                    approvalStatus: 'pending',
+                    subscriptionStatus: 'free_tier',
+                    joinDate: new Date().toISOString().split('T')[0],
+                };
+                return [...prev, pendingUser];
+            });
+        }
+
         // Show onboarding only if not already completed AND not dismissed this session
         if (!isOnboardingComplete() && sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) !== 'true') {
             setShowOnboarding(true);
