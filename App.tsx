@@ -1992,6 +1992,7 @@ export const App: React.FC = () => {
                     onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
                     onApproveUser={handleApproveUser}
                     onRejectUser={handleRejectUser}
+                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); showToast('User deleted', 'success'); }}
                     membershipRequests={membershipRequests}
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
