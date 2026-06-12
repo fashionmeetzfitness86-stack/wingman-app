@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, formatTimeRemaining } from './utils/accessControl';
+import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, getPasscodeLeads, formatTimeRemaining } from './utils/accessControl';
 import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
@@ -445,6 +445,92 @@ export const App: React.FC = () => {
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally once on mount
+
+    // ── Seed from ALL historical passcode leads (same-device) ───────────────
+    // wm_passcode_leads stores every gate entrant permanently (even after
+    // the 24h session expires). Merge them all into appUsers so the admin
+    // always sees everyone who came through the gate on this device.
+    useEffect(() => {
+        const leads = getPasscodeLeads();
+        if (!leads.length) return;
+        setAppUsers(prev => {
+            let updated = [...prev];
+            let changed = false;
+            for (const lead of leads) {
+                const email = lead.email.toLowerCase();
+                if (!updated.some(u => u.email.toLowerCase() === email)) {
+                    const newId = Date.now() + Math.floor(Math.random() * 99999);
+                    updated.push({
+                        id: newId,
+                        name: lead.fullName || lead.email,
+                        email,
+                        profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
+                        accessLevel: UserAccessLevel.GENERAL,
+                        role: UserRole.USER,
+                        status: 'active' as const,
+                        approvalStatus: 'pending' as const,
+                        subscriptionStatus: 'free_tier' as const,
+                        joinDate: lead.capturedAt
+                            ? new Date(lead.capturedAt).toISOString().split('T')[0]
+                            : new Date().toISOString().split('T')[0],
+                    });
+                    changed = true;
+                }
+            }
+            return changed ? [...updated] : prev;
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // once on mount
+
+    // ── Fetch server-side passcode leads for admin (cross-device) ──────────
+    // Calls the admin-data Netlify function which reads from Supabase.
+    // Gracefully does nothing if Supabase is not configured or admin
+    // isn't authenticated via Supabase.
+    useEffect(() => {
+        const fetchServerLeads = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.access_token) return;
+                const res = await fetch('/.netlify/functions/admin-data', {
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                });
+                if (!res.ok) return;
+                const json = await res.json();
+                const serverLeads: Array<{ email: string; full_name?: string; captured_at?: string }> = json.leads || [];
+                if (!serverLeads.length) return;
+                setAppUsers(prev => {
+                    let updated = [...prev];
+                    let changed = false;
+                    for (const lead of serverLeads) {
+                        const email = (lead.email || '').toLowerCase();
+                        if (!email) continue;
+                        if (!updated.some(u => u.email.toLowerCase() === email)) {
+                            const newId = Date.now() + Math.floor(Math.random() * 99999);
+                            updated.push({
+                                id: newId,
+                                name: lead.full_name || lead.email,
+                                email,
+                                profilePhoto: `https://i.pravatar.cc/150?u=${newId}`,
+                                accessLevel: UserAccessLevel.GENERAL,
+                                role: UserRole.USER,
+                                status: 'active' as const,
+                                approvalStatus: 'pending' as const,
+                                subscriptionStatus: 'free_tier' as const,
+                                joinDate: lead.captured_at
+                                    ? new Date(lead.captured_at).toISOString().split('T')[0]
+                                    : new Date().toISOString().split('T')[0],
+                            });
+                            changed = true;
+                        }
+                    }
+                    return changed ? [...updated] : prev;
+                });
+            } catch { /* silent fail — Supabase may not be configured */ }
+        };
+        void fetchServerLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // once on mount
+
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
     // and survives a refresh.
