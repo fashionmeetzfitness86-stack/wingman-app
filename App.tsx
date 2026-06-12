@@ -2180,7 +2180,18 @@ export const App: React.FC = () => {
                     }} 
                     onApproveUser={handleApproveUser}
                     onRejectUser={handleRejectUser}
-                    onDeleteUser={(userId) => { setAppUsers(prev => prev.filter(u => u.id !== userId)); }}
+                    onDeleteUser={(userId) => {
+                        const user = appUsers.find(u => u.id === userId);
+                        setAppUsers(prev => prev.filter(u => u.id !== userId));
+                        // Also remove from Supabase so they don't reappear on next dashboard load
+                        if (user?.email) {
+                            void fetch('/.netlify/functions/delete-profile', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: user.email }),
+                            }).catch(() => null);
+                        }
+                    }}
                     onClearAllUsers={() => {
                         setAppUsers(prev => prev.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.WINGMAN));
                     }}
