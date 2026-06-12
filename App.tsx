@@ -1635,12 +1635,12 @@ export const App: React.FC = () => {
         }, ...prev]);
     };
 
-    // --- Pass 2: Booking access guard ---
-    // canBook = true only when the current user is approved AND has an active subscription.
-    // Used to gate booking actions — browsing remains unrestricted.
+    // canBook = true when admin/wingman, OR when user's profile is admin-approved.
+    // subscriptionStatus is deliberately NOT a booking gate here — admin approval is the only requirement.
     const canBook =
-        currentUser?.approvalStatus === 'approved' &&
-        currentUser?.subscriptionStatus === 'active';
+        currentUser?.role === UserRole.ADMIN ||
+        currentUser?.role === UserRole.WINGMAN ||
+        currentUser?.approvalStatus === 'approved';
 
     // --- Pass 2: User approval handlers ---
     // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.
@@ -2427,7 +2427,7 @@ export const App: React.FC = () => {
                     currentUserCanBook={
                         currentUser.role === UserRole.ADMIN ||
                         currentUser.role === UserRole.WINGMAN ||
-                        (currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active')
+                        currentUser.approvalStatus === 'approved'
                     }
                 />;
             }

@@ -187,9 +187,11 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
   const maxParty = Math.min(instance.bookingRules.maxPerBooking ?? spotsLeft, spotsLeft);
 
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
-  const isApproved = currentUser.approvalStatus === 'approved';
-  const hasActiveSub = currentUser.subscriptionStatus === 'active';
-  const canBook = isAdmin || (isApproved && hasActiveSub);
+  // isPending: registered but not yet approved by admin
+  const isPending = currentUser.approvalStatus === 'pending' || currentUser.approvalStatus === undefined;
+  // canBook: admin/wingman always yes; regular users need admin approval
+  // subscriptionStatus is NOT a booking gate — admin approval is the only requirement.
+  const canBook = isAdmin || currentUser.approvalStatus === 'approved';
 
   const existingBooking = useMemo(
     () => instanceBookings.find(b => b.instanceId === instance.instanceId && b.userId === currentUser.id),
@@ -557,8 +559,10 @@ export const EventDetailPage: React.FC<EventDetailPageProps> = ({
                 <IcoLock />
                 Members Only
               </button>
-              <p className="text-center text-xs text-gray-600">
-                {!isApproved ? 'Apply for access to join Wingman experiences' : 'An active subscription is required to book'}
+              <p className="text-center text-xs text-gray-500 mt-1 px-2">
+                {isPending
+                  ? '⏳ Your profile is pending admin approval. Booking unlocks once approved.'
+                  : '🔒 Access restricted. Contact your host for assistance.'}
               </p>
             </div>
           )}
