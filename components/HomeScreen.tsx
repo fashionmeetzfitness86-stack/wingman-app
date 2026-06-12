@@ -383,9 +383,12 @@ const PendingHome: React.FC<{ user: User; onNavigate: (p: Page) => void; onReque
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess, isPasscodeUser }) => {
   const isAdmin   = currentUser.role === UserRole.ADMIN;
   const isWingman = currentUser.role === UserRole.WINGMAN;
-  // Passcode users have proven access — show the full member experience
+  // All authenticated users (passcode OR any registered account) can browse events.
+  // Only explicitly REJECTED users are shown the locked PendingHome.
+  // Booking is separately gated in EventDetailPage — pending users can browse but not book.
   const isApproved = isPasscodeUser ||
-    (currentUser.approvalStatus === 'approved' && currentUser.subscriptionStatus === 'active');
+    currentUser.approvalStatus === 'approved' ||
+    currentUser.approvalStatus === 'pending';
 
   const handleDashboardShortcut = () => {
     if (isAdmin)   return onNavigate('adminDashboard');
