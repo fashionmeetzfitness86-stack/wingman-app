@@ -238,8 +238,22 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    // If email changed, migrate the locally-stored password key so login still works
+    const normalizedNew = email.trim().toLowerCase();
+    const normalizedOld = currentUser.email.trim().toLowerCase();
+    if (normalizedNew && normalizedNew !== normalizedOld) {
+      try {
+        const PW_KEY = 'wm_passwords';
+        const store: Record<string, string> = JSON.parse(localStorage.getItem(PW_KEY) ?? '{}');
+        if (store[normalizedOld]) {
+          store[normalizedNew] = store[normalizedOld];
+          delete store[normalizedOld];
+          localStorage.setItem(PW_KEY, JSON.stringify(store));
+        }
+      } catch {}
+    }
     onSave({
-      ...currentUser, name, email, bio, city,
+      ...currentUser, name, email: normalizedNew || currentUser.email, bio, city,
       profilePhoto: profilePhotoPreview || currentUser.profilePhoto,
       instagramHandle: instagram, tiktokHandle: tiktok, phoneNumber, dob, ethnicity,
       appearance: { height, eyeColor, hairColor, build },
