@@ -51,7 +51,7 @@ export default async (req: Request) => {
     .from('platform_settings')
     .upsert({
       key: 'access_passcode',
-      value: JSON.stringify(newPasscode) as any, // jsonb type
+      value: newPasscode, // supabase-js handles jsonb serialization
       updated_at: new Date().toISOString(),
     });
 
