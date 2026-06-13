@@ -575,7 +575,7 @@ export interface CartItem {
   // Event/Experience details can be added later
   eventDetails?: {
       event: Event;
-      guestDetails?: { name: string; email: string; };
+      guestDetails?: { name: string; email: string; phone?: string; };
   };
   experienceDetails?: {
       experience: Experience;
