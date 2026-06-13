@@ -6,21 +6,29 @@
  * of which device they signed up on.
  *
  * Auth: caller sends their email in `x-admin-email` header.
- *       Server validates against ADMIN_EMAILS env var.
- *       Intentionally simpler than full Supabase auth so the
- *       local-mock admin account can call this without a session.
+ *       Server validates against ADMIN_EMAILS env var OR the
+ *       hardcoded FALLBACK_ADMINS list so the admin always has
+ *       access even when the env var is not set in Netlify UI.
  *
- * Env: ADMIN_EMAILS, SUPABASE_URL, SUPABASE_SERVICE_KEY
+ * Env: ADMIN_EMAILS (optional), SUPABASE_URL, SUPABASE_SERVICE_KEY
  */
 
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+// Hardcoded fallback list — covers the case where ADMIN_EMAILS env var
+// is not yet set in Netlify UI (e.g. it was only added to netlify.toml
+// build.environment which is build-time only, not function runtime).
+// Add additional admin emails here if needed.
+const FALLBACK_ADMINS = ['themainkeys@gmail.com'];
+
 function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS || '')
+  const fromEnv = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
+  // Use env var list if set; otherwise fall back to the hardcoded list.
+  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {
@@ -30,11 +38,8 @@ export default async (req: Request) => {
   // Validate caller is an admin
   const callerEmail = (req.headers.get('x-admin-email') || '').trim().toLowerCase();
   const allowed = adminEmails();
-  
-  // FIX: always require a valid caller email AND a non-empty allow-list.
-  // If ADMIN_EMAILS env var is missing or empty, deny ALL access (fail-safe).
-  // This prevents open data exposure in misconfigured deployments.
-  if (!callerEmail || allowed.length === 0 || !allowed.includes(callerEmail)) {
+
+  if (!callerEmail || !allowed.includes(callerEmail)) {
     return jsonResponse(req, { error: 'Forbidden — admin email required' }, 403);
   }
 
