@@ -605,11 +605,21 @@ export const App: React.FC = () => {
                         });
                         changed = true;
                     } else {
-                        // Sync approval status from Supabase (admin may have approved on another device)
+                        // FIX: sync ALL user-owned fields from Supabase, not just approvalStatus.
+                        // Since register-profile is now called on every profile save,
+                        // Supabase always has the freshest name/phone/city/photo.
                         const existing = updated[existingIdx];
                         const serverStatus = (profile.approval_status as 'pending' | 'approved' | 'rejected') || 'pending';
-                        if (existing.approvalStatus !== serverStatus) {
-                            updated[existingIdx] = { ...existing, approvalStatus: serverStatus };
+                        const patch: Partial<typeof existing> = {};
+
+                        if (profile.name && profile.name !== existing.name)                       patch.name          = profile.name;
+                        if (profile.phone && profile.phone !== existing.phoneNumber)               patch.phoneNumber   = profile.phone;
+                        if (profile.city && profile.city !== existing.city)                        patch.city          = profile.city;
+                        if (profile.profile_photo && profile.profile_photo !== existing.profilePhoto) patch.profilePhoto = profile.profile_photo;
+                        if (existing.approvalStatus !== serverStatus)                              patch.approvalStatus = serverStatus;
+
+                        if (Object.keys(patch).length > 0) {
+                            updated[existingIdx] = { ...existing, ...patch };
                             changed = true;
                         }
                     }
@@ -1554,6 +1564,23 @@ export const App: React.FC = () => {
         if (currentUser.id === userToSave.id) {
             setCurrentUser(userToSave);
         }
+
+        // FIX: Push profile edits to Supabase so admin dashboard sees latest data
+        // from ANY device — fire-and-forget, never blocks the user.
+        void fetch('/.netlify/functions/register-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id:            userToSave.id.toString(),
+                name:          userToSave.name,
+                email:         userToSave.email,
+                phone:         userToSave.phoneNumber || '',
+                city:          userToSave.city || '',
+                profilePhoto:  userToSave.profilePhoto || '',
+                joinDate:      userToSave.joinDate || new Date().toISOString().split('T')[0],
+                approvalStatus: userToSave.approvalStatus || 'pending',
+            }),
+        }).catch(() => { /* non-fatal — localStorage is still source of truth */ });
     };
 
     const handleEnableNotifications = () => {
