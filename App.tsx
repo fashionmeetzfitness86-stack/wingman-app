@@ -1856,12 +1856,13 @@ export const App: React.FC = () => {
     };
 
     // canBook = true for admins/wingmen always.
-    // Regular users need admin approval AND profile ≥ 80% complete.
-    const profileCompletion = getProfileCompletion(currentUser);
+    // Regular users only need admin approval — phone + photo are already
+    // mandatory during onboarding, so we don't re-gate on profile completion
+    // (that was re-asking approved users for fields they'd already provided).
     const canBook =
         currentUser?.role === UserRole.ADMIN ||
         currentUser?.role === UserRole.WINGMAN ||
-        (currentUser?.approvalStatus === 'approved' && profileCompletion >= 80);
+        currentUser?.approvalStatus === 'approved';
 
     // --- Pass 2: User approval handlers ---
     // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.
