@@ -18,7 +18,7 @@ import { CheckIcon } from './icons/CheckIcon';
 import { CloseIcon } from './icons/CloseIcon';
 import { UserAnalyticsModal } from './modals/UserAnalyticsModal';
 import { WingmanStatsModal } from './modals/WingmanStatsModal';
-import { PasscodeLead } from '../../utils/accessControl';
+import { PasscodeLead } from '../utils/accessControl';
 import { AccessControlTab } from './admin/AccessControlTab';
 import { AdminLiveData } from './admin/AdminLiveData';
 
