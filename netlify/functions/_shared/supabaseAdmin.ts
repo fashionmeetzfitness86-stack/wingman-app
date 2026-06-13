@@ -14,6 +14,17 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+// supabase-js constructs a RealtimeClient at init, which requires a global
+// WebSocket constructor to EXIST (even though these server functions never use
+// realtime). Node < 22 has no native WebSocket, so construction throws a 502.
+// Provide a harmless stub when none exists — it is never actually instantiated
+// because we never open a channel. (On Node 22+ the native one is used.)
+if (typeof (globalThis as any).WebSocket === 'undefined') {
+  (globalThis as any).WebSocket = class {
+    constructor() { throw new Error('realtime not supported in this runtime'); }
+  };
+}
+
 let cached: SupabaseClient | null = null;
 
 export function getSupabaseAdmin(): SupabaseClient | null {
