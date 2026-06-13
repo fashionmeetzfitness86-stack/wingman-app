@@ -641,6 +641,19 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Keep the logged-in user's own approval status in sync with the synced
+    // user list. Without this, an admin approval lands in appUsers but the
+    // booking gate (which reads currentUser.approvalStatus) stays locked until
+    // a full re-login. Match by email since ids can differ across devices.
+    useEffect(() => {
+        const email = currentUser.email?.toLowerCase();
+        if (!email) return;
+        const fresh = appUsers.find(u => u.email?.toLowerCase() === email);
+        if (fresh && fresh.approvalStatus && fresh.approvalStatus !== currentUser.approvalStatus) {
+            setCurrentUser(prev => ({ ...prev, approvalStatus: fresh.approvalStatus }));
+        }
+    }, [appUsers, currentUser.email, currentUser.approvalStatus]);
+
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
     // and survives a refresh.

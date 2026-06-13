@@ -193,7 +193,7 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
           padding: '0',
           pointerEvents: 'none',      /* let clicks fall through to backdrop */
         } as React.CSSProperties}
-        className="sm:items-center sm:p-4"
+        className="sm:items-start sm:p-4 sm:pt-6"
       >
         <div
           onClick={e => e.stopPropagation()}

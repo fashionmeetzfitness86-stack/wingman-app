@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Page, User, UserRole, UserAccessLevel } from '../types';
-import wingmanIcon from '../assets/wingman-icon.png';
+import wingmanLogoFull from '../assets/wingman-logo-full.png';
 import { MenuIcon } from './icons/MenuIcon';
 import { SparkleIcon } from './icons/SparkleIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
@@ -404,9 +404,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser,
       <header className="flex justify-between items-center px-5 pt-8 pb-4">
         <div className="flex items-center">
             <img
-              src={wingmanIcon}
+              src={wingmanLogoFull}
               alt="Wingman"
-              className="h-20 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
           </div>
         <div className="flex items-center gap-2">
