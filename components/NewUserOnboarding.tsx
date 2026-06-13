@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useScrollLock } from '../utils/useScrollLock';
 import { supabase } from '../lib/supabase';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -91,8 +90,8 @@ const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?:
 
 // ─── Photo Crop Editor ────────────────────────────────────────────────────────
 
-const SIZE   = 264; // canvas CSS display size (px) — fits all phones
-const OUTPUT = 512; // exported circular image size (px)
+const SIZE   = typeof window !== 'undefined' && window.innerWidth < 400 ? 220 : 264;
+const OUTPUT = 512;
 
 const PhotoCropEditor: React.FC<{
   src: string;
@@ -758,7 +757,20 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   const currentStep = STEPS[step - 1];
 
   // Lock background scroll while the modal is mounted
-  useScrollLock(true);
+  // Use overflow:hidden on html/body instead of position:fixed to avoid
+  // iOS keyboard chaos (position:fixed fights with the soft keyboard).
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
+    };
+  }, []);
 
   // ── Welcome Screen (shown after successful account creation) ────────────
   if (showWelcome) {
@@ -854,18 +866,23 @@ export const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({
   }
 
   return (
-    // Backdrop
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+    // Backdrop — bottom sheet on mobile, centered on sm+
+    <div
+      className="fixed inset-0 z-[300] flex items-end sm:items-center sm:p-4"
       data-modal-backdrop
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
+      style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)' }}
+      // Tap outside = dismiss
+      onPointerDown={e => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <div
-        className="w-full max-w-md rounded-3xl flex flex-col"
+        className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col"
         style={{
           background: '#111',
           border: '1px solid rgba(255,255,255,0.1)',
           boxShadow: '0 -16px 64px rgba(0,0,0,0.9)',
-          maxHeight: 'min(90dvh, 90vh)',  // dvh shrinks when iOS keyboard is open
+          // dvh shrinks when iOS keyboard opens — sheet naturally slides up
+          maxHeight: 'min(92dvh, 92vh)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
         {/* Header */}

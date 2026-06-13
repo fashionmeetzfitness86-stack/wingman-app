@@ -267,7 +267,14 @@ const BookingsTab: React.FC<{
 }> = ({ bookedItems, guestlistRequests, users, venues, wingmen, instanceBookings = [] }) => {
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'table' | 'event' | 'experience' | 'guestlist' | 'storeItem'>('all');
-    const [guestlistFilter, setGuestlistFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+    const [expandedCartId, setExpandedCartId] = useState<string | null>(null);
+    const [expandedInstId, setExpandedInstId] = useState<string | null>(null);
+
+    const findUser = (email?: string, name?: string): User | undefined =>
+        users.find(u =>
+            (email && u.email.toLowerCase() === (email || '').toLowerCase()) ||
+            (name  && u.name.toLowerCase()  === (name  || '').toLowerCase())
+        );
 
     const filteredBookings = useMemo(() => {
         return bookedItems
@@ -275,22 +282,42 @@ const BookingsTab: React.FC<{
             .filter(item => {
                 if (!search) return true;
                 const q = search.toLowerCase();
-                const guest = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || '';
-                return item.name.toLowerCase().includes(q) || guest.toLowerCase().includes(q);
-            });
-    }, [bookedItems, typeFilter, search]);
+                const gd = item.tableDetails?.guestDetails || item.eventDetails?.guestDetails;
+                const u = findUser(gd?.email, gd?.name);
+                return (
+                    item.name.toLowerCase().includes(q) ||
+                    (gd?.name  || '').toLowerCase().includes(q) ||
+                    (gd?.email || '').toLowerCase().includes(q) ||
+                    (gd?.phone || '').toLowerCase().includes(q) ||
+                    (u?.email  || '').toLowerCase().includes(q) ||
+                    (item.tableDetails?.wingman?.name || '').toLowerCase().includes(q)
+                );
+            })
+            .sort((a, b) => (b.bookedTimestamp || 0) - (a.bookedTimestamp || 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bookedItems, typeFilter, search, users]);
+
+    const filteredInstances = useMemo(() => {
+        if (!search) return instanceBookings;
+        const q = search.toLowerCase();
+        return instanceBookings.filter(b =>
+            (b.guestName  || '').toLowerCase().includes(q) ||
+            (b.guestEmail || '').toLowerCase().includes(q) ||
+            b.instanceId.toLowerCase().includes(q) ||
+            (findUser(b.guestEmail)?.phoneNumber || '').includes(q)
+        );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [instanceBookings, search, users]);
 
     const filteredGuestlist = useMemo(() => {
-        return guestlistRequests
-            .filter(r => guestlistFilter === 'all' || r.status === guestlistFilter)
-            .filter(r => {
-                if (!search) return true;
-                const q = search.toLowerCase();
-                const user = users.find(u => u.id === r.userId);
-                const venue = venues.find(v => v.id === r.venueId);
-                return (user?.name.toLowerCase().includes(q) || venue?.name.toLowerCase().includes(q));
-            });
-    }, [guestlistRequests, guestlistFilter, search, users, venues]);
+        return guestlistRequests.filter(r => {
+            if (!search) return true;
+            const q = search.toLowerCase();
+            const u = users.find(u => u.id === r.userId);
+            const v = venues.find(v => v.id === r.venueId);
+            return (u?.name || '').toLowerCase().includes(q) || (v?.name || '').toLowerCase().includes(q);
+        });
+    }, [guestlistRequests, search, users, venues]);
 
     const totalRevenue = useMemo(() =>
         filteredBookings.reduce((acc, item) => acc + ((item.paymentOption === 'full' ? item.fullPrice : item.depositPrice) || 0), 0),
@@ -300,22 +327,34 @@ const BookingsTab: React.FC<{
         instanceBookings.reduce((acc, b) => acc + (b.totalPaid || 0), 0),
         [instanceBookings]);
 
-    const filteredInstances = useMemo(() => {
-        if (!search) return instanceBookings;
-        const q = search.toLowerCase();
-        return instanceBookings.filter(b =>
-            (b.guestName || '').toLowerCase().includes(q) ||
-            b.instanceId.toLowerCase().includes(q)
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    const parseInstance = (b: InstanceBooking) => {
+        const dateMatch = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/);
+        const eventDate = dateMatch?.[1] || '—';
+        const eventName = b.instanceId
+            .replace(/-\d{4}-\d{2}-\d{2}$/, '')
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+        return { eventDate, eventName };
+    };
+
+    const DetailField = ({ label, value }: { label: string; value?: string | null }) => {
+        if (!value) return null;
+        return (
+            <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[#5D616B] mb-0.5">{label}</p>
+                <p className="text-xs font-semibold text-white break-all">{value}</p>
+            </div>
         );
-    }, [instanceBookings, search]);
+    };
 
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* Summary bar */}
+            {/* KPI bar */}
             <div className="grid grid-cols-3 gap-4">
-                <KpiCard label="Cart Bookings" value={bookedItems.length} />
-                <KpiCard label="Event Bookings" value={instanceBookings.length} sub={`${instanceBookings.length} confirmed spots`} accent="#4DB87C" />
-                <KpiCard label="Total Revenue" value={`$${(totalRevenue + instanceRevenue).toLocaleString()}`} />
+                <KpiCard label="Cart Bookings"   value={bookedItems.length} />
+                <KpiCard label="Event Bookings"  value={instanceBookings.length} sub={`${instanceBookings.length} confirmed spots`} accent="#4DB87C" />
+                <KpiCard label="Total Revenue"   value={`$${(totalRevenue + instanceRevenue).toLocaleString()}`} />
             </div>
 
             {/* Search + filter */}
@@ -325,7 +364,7 @@ const BookingsTab: React.FC<{
                         type="search"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search bookings or guests…"
+                        placeholder="Search by name, email, phone, event…"
                         className="w-full bg-[#0F1014] border border-[#1C1D22] text-sm text-white rounded-xl p-3 pl-10 focus:ring-white focus:border-white transition-colors"
                     />
                     <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5D616B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
@@ -333,7 +372,7 @@ const BookingsTab: React.FC<{
                 <select
                     value={typeFilter}
                     onChange={e => setTypeFilter(e.target.value as any)}
-                    className="bg-[#0F1014] border border-[#1C1D22] text-sm text-white rounded-xl p-3 appearance-none focus:ring-white focus:border-white transition-colors"
+                    className="bg-[#0F1014] border border-[#1C1D22] text-sm text-white rounded-xl p-3 appearance-none"
                 >
                     <option value="all">All Types</option>
                     <option value="table">Table</option>
@@ -344,119 +383,156 @@ const BookingsTab: React.FC<{
                 </select>
             </div>
 
-            {/* Bookings table */}
+            {/* ── CONFIRMED BOOKINGS (CartItem) ────────────────────────────────── */}
             <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest text-[#5D616B] mb-3">Confirmed Bookings ({filteredBookings.length})</p>
                 {filteredBookings.length === 0
                     ? <div className="py-12 text-center text-gray-600 text-sm rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>No bookings found.</div>
-                    : <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="text-[10px] font-bold uppercase tracking-wider text-[#5D616B]" style={{ background: '#0c0c0e' }}>
-                                    <th className="px-4 py-3 text-left">Item</th>
-                                    <th className="px-4 py-3 text-left">Guest</th>
-                                    <th className="px-4 py-3 text-left">Date</th>
-                                    <th className="px-4 py-3 text-left">Type</th>
-                                    <th className="px-4 py-3 text-left">Payment</th>
-                                    <th className="px-4 py-3 text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredBookings.map((item, i) => {
-                                    const guest = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || '—';
-                                    const price = (item.paymentOption === 'full' ? item.fullPrice : item.depositPrice) || 0;
-                                    return (
-                                        <tr key={item.id} className={i % 2 === 0 ? 'bg-[#141414]' : 'bg-[#111113]'}>
-                                            <td className="px-4 py-3 text-white font-medium max-w-[160px] truncate">{item.name}</td>
-                                            <td className="px-4 py-3 text-gray-400">{guest}</td>
-                                            <td className="px-4 py-3 text-gray-400">{item.sortableDate || item.date || '—'}</td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-[#0F1014] text-[#5D616B] border border-[#1C1D22]">{item.type}</span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${item.paymentMethod === 'tokens' ? 'bg-[#1A1810] text-[#B89B4D] border border-[#333020]' : 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]'}`}>
-                                                    {item.paymentMethod || 'USD'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right font-bold text-white">${price.toFixed(0)}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                    : <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                        {filteredBookings.map((item, i) => {
+                            const gd = item.tableDetails?.guestDetails || item.eventDetails?.guestDetails;
+                            const linkedUser = findUser(gd?.email, gd?.name);
+                            const guestName  = gd?.name  || linkedUser?.name  || '—';
+                            const guestEmail = gd?.email || linkedUser?.email || '—';
+                            const guestPhone = gd?.phone || linkedUser?.phoneNumber || '—';
+                            const wingman    = item.tableDetails?.wingman?.name || '—';
+                            const price      = (item.paymentOption === 'full' ? item.fullPrice : item.depositPrice) || 0;
+                            const isOpen     = expandedCartId === item.id;
+                            const bookedDate = item.bookedTimestamp ? new Date(item.bookedTimestamp).toLocaleString() : '—';
+                            const quantity   = (item as any).quantity || 1;
+
+                            return (
+                                <React.Fragment key={item.id}>
+                                    {/* Row */}
+                                    <button
+                                        onClick={() => setExpandedCartId(isOpen ? null : item.id)}
+                                        className="w-full text-left flex items-center gap-3 px-4 py-3 transition-colors"
+                                        style={{ background: isOpen ? 'rgba(255,255,255,0.05)' : (i % 2 === 0 ? '#141414' : '#111113') }}
+                                    >
+                                        {/* Chevron */}
+                                        <svg className={`w-4 h-4 text-[#5D616B] flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        <div className="flex-1 grid grid-cols-5 gap-2 items-center text-sm min-w-0">
+                                            <span className="text-white font-semibold truncate col-span-2">{item.name}</span>
+                                            <span className="text-gray-400 truncate">{guestName}</span>
+                                            <span className="text-gray-500 text-xs">{item.sortableDate || item.date || '—'}</span>
+                                            <span className="text-right font-bold text-white">${price.toFixed(0)}</span>
+                                        </div>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-[#0F1014] text-[#5D616B] border border-[#1C1D22] flex-shrink-0">{item.type}</span>
+                                    </button>
+
+                                    {/* Expanded detail panel */}
+                                    {isOpen && (
+                                        <div className="px-4 pb-4 pt-2" style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                                                <DetailField label="Full Name"     value={guestName} />
+                                                <DetailField label="Email"         value={guestEmail} />
+                                                <DetailField label="Phone"         value={guestPhone} />
+                                                <DetailField label="Event / Item"  value={item.name} />
+                                                <DetailField label="Date"          value={item.sortableDate || item.date} />
+                                                <DetailField label="Booked On"     value={bookedDate} />
+                                                <DetailField label="Wingman"       value={wingman} />
+                                                <DetailField label="Party Size"    value={String(quantity)} />
+                                                <DetailField label="Payment"       value={item.paymentMethod?.toUpperCase() || 'USD'} />
+                                                <DetailField label="Amount Paid"   value={price > 0 ? `$${price.toFixed(2)}` : 'FREE'} />
+                                                <DetailField label="Payment Type"  value={item.paymentOption === 'full' ? 'Full Payment' : 'Deposit'} />
+                                                <DetailField label="Booking ID"    value={item.id} />
+                                            </div>
+                                            {linkedUser && (
+                                                <div className="flex items-center gap-3 mt-1 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                                    <img src={linkedUser.profilePhoto} alt={linkedUser.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs font-bold text-white">{linkedUser.name}</p>
+                                                        <p className="text-[10px] text-gray-500">{linkedUser.city || '—'} · {linkedUser.approvalStatus}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 }
             </div>
 
-            {/* Event-Feed Bookings (InstanceBooking) */}
+            {/* ── EVENT FEED BOOKINGS (InstanceBooking) ───────────────────────── */}
             <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest text-[#5D616B] mb-3">Event Feed Bookings ({filteredInstances.length})</p>
                 {filteredInstances.length === 0
                     ? <div className="py-8 text-center text-gray-600 text-sm rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>No event-feed bookings yet.</div>
-                    : <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="text-[10px] font-bold uppercase tracking-wider text-[#5D616B]" style={{ background: '#0c0c0e' }}>
-                                    <th className="px-4 py-3 text-left">Event</th>
-                                    <th className="px-4 py-3 text-left">Guest</th>
-                                    <th className="px-4 py-3 text-left">Date</th>
-                                    <th className="px-4 py-3 text-left">Spots</th>
-                                    <th className="px-4 py-3 text-right">Paid</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredInstances.map((b, i) => {
-                                    const eventDate = b.instanceId.match(/(\d{4}-\d{2}-\d{2})$/)?.[1] || '—';
-                                    const eventName = b.instanceId
-                                        .replace(/-\d{4}-\d{2}-\d{2}$/, '')
-                                        .replace(/-/g, ' ')
-                                        .replace(/\b\w/g, c => c.toUpperCase());
-                                    return (
-                                        <tr key={b.id} className={i % 2 === 0 ? 'bg-[#141414]' : 'bg-[#111113]'}>
-                                            <td className="px-4 py-3 text-white font-medium max-w-[160px] truncate">{eventName}</td>
-                                            <td className="px-4 py-3 text-gray-400">{b.guestName || '—'}</td>
-                                            <td className="px-4 py-3 text-gray-400">{eventDate}</td>
-                                            <td className="px-4 py-3 text-gray-400">{b.partySize}</td>
-                                            <td className="px-4 py-3 text-right font-bold">
-                                                {b.totalPaid > 0 ? `$${b.totalPaid.toLocaleString()}` : <span className="text-green-400">FREE</span>}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                    : <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                        {filteredInstances.map((b, i) => {
+                            const { eventDate, eventName } = parseInstance(b);
+                            const linkedUser = findUser(b.guestEmail, b.guestName);
+                            const phone      = linkedUser?.phoneNumber || '—';
+                            const isOpen     = expandedInstId === b.id;
+                            const bookedDate = b.bookedAt ? new Date(b.bookedAt).toLocaleString() : '—';
+
+                            return (
+                                <React.Fragment key={b.id}>
+                                    <button
+                                        onClick={() => setExpandedInstId(isOpen ? null : b.id)}
+                                        className="w-full text-left flex items-center gap-3 px-4 py-3 transition-colors"
+                                        style={{ background: isOpen ? 'rgba(255,255,255,0.05)' : (i % 2 === 0 ? '#141414' : '#111113') }}
+                                    >
+                                        <svg className={`w-4 h-4 text-[#5D616B] flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        <div className="flex-1 grid grid-cols-5 gap-2 items-center text-sm min-w-0">
+                                            <span className="text-white font-semibold truncate col-span-2">{eventName}</span>
+                                            <span className="text-gray-400 truncate">{b.guestName || '—'}</span>
+                                            <span className="text-gray-500 text-xs">{eventDate}</span>
+                                            <span className="text-right font-bold">{b.totalPaid > 0 ? <span className="text-white">${b.totalPaid.toLocaleString()}</span> : <span className="text-green-400">FREE</span>}</span>
+                                        </div>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#051A10] text-[#4DB87C] border border-[#0A3A20] flex-shrink-0">{b.partySize} spot{b.partySize !== 1 ? 's' : ''}</span>
+                                    </button>
+
+                                    {isOpen && (
+                                        <div className="px-4 pb-4 pt-2" style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                                                <DetailField label="Full Name"    value={b.guestName} />
+                                                <DetailField label="Email"        value={b.guestEmail} />
+                                                <DetailField label="Phone"        value={phone} />
+                                                <DetailField label="Event"        value={eventName} />
+                                                <DetailField label="Event Date"   value={eventDate} />
+                                                <DetailField label="Booked On"    value={bookedDate} />
+                                                <DetailField label="Party Size"   value={`${b.partySize} spot${b.partySize !== 1 ? 's' : ''}`} />
+                                                <DetailField label="Amount Paid"  value={b.totalPaid > 0 ? `$${b.totalPaid.toFixed(2)}` : 'FREE'} />
+                                                <DetailField label="Booking ID"   value={b.id} />
+                                            </div>
+                                            {linkedUser && (
+                                                <div className="flex items-center gap-3 mt-1 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                                    <img src={linkedUser.profilePhoto} alt={linkedUser.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs font-bold text-white">{linkedUser.name}</p>
+                                                        <p className="text-[10px] text-gray-500">{linkedUser.city || '—'} · {linkedUser.approvalStatus} · {linkedUser.email}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 }
             </div>
 
-            {/* Guestlist section */}
+            {/* ── GUESTLIST REQUESTS ───────────────────────────────────────────── */}
             <div>
-                <div className="flex items-center justify-between mb-3">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#5D616B]">Guestlist Requests ({filteredGuestlist.length})</p>
-                    <select
-                        value={guestlistFilter}
-                        onChange={e => setGuestlistFilter(e.target.value as any)}
-                        className="bg-[#0F1014] border border-[#1C1D22] text-xs text-white rounded-lg p-2 appearance-none"
-                    >
-                        <option value="all">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[#5D616B] mb-3">Guestlist Requests ({filteredGuestlist.length})</p>
                 {filteredGuestlist.length === 0
                     ? <div className="py-8 text-center text-gray-600 text-sm rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>No guestlist requests.</div>
                     : <div className="space-y-2">
                         {filteredGuestlist.map(req => {
-                            const user = users.find(u => u.id === req.userId);
-                            const venue = venues.find(v => v.id === req.venueId);
+                            const user    = users.find(u => u.id === req.userId);
+                            const venue   = venues.find(v => v.id === req.venueId);
                             const wingman = wingmen.find(p => p.id === req.wingmanId);
                             return (
                                 <div key={req.id} className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}>
                                     {user && <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />}
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-white truncate">{user?.name || 'Unknown'}</p>
-                                        <p className="text-[11px] text-gray-500">{venue?.name || '—'} · via {wingman?.name || '—'} · {req.date}</p>
+                                        <p className="text-[11px] text-gray-500">{user?.email || '—'} · {user?.phoneNumber || '—'}</p>
+                                        <p className="text-[11px] text-gray-600">{venue?.name || '—'} · via {wingman?.name || '—'} · {req.date}</p>
                                     </div>
                                     <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${req.status === 'approved' ? 'bg-[#051A10] text-[#4DB87C] border border-[#0A3A20]' : req.status === 'pending' ? 'bg-[#1A1810] text-[#B89B4D] border border-[#333020]' : 'bg-[#1A0505] text-[#D45050] border border-[#3A1010]'}`}>
                                         {req.status}
