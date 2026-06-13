@@ -1,5 +1,6 @@
 
 import React from 'react';
+import wingmanIcon from '../assets/wingman-icon.png';
 
 interface ChallengesPageProps {
   challenges?: unknown[];
@@ -31,18 +32,8 @@ export const ChallengesPage: React.FC<ChallengesPageProps> = () => {
             transform: 'scale(2.2)',
           }}
         />
-        <div
-          className="w-24 h-24 rounded-full flex items-center justify-center relative"
-          style={{
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
-            boxShadow: '0 0 40px rgba(255,255,255,0.35)',
-          }}
-        >
-          {/* Map pin SVG */}
-          <svg className="w-11 h-11 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-          </svg>
+        <div className="w-24 h-24 flex items-center justify-center relative">
+          <img src={wingmanIcon} alt="WINGMAN" className="w-20 h-auto" />
         </div>
       </div>
 
