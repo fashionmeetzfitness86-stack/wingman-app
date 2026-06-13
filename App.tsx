@@ -1827,13 +1827,33 @@ export const App: React.FC = () => {
 
     // --- Pass 2: User approval handlers ---
     // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.
+    // Persist an approve/reject decision to Supabase user_profiles so the
+    // background sync doesn't pull the old 'pending' status back and revert it.
+    const persistApproval = async (userId: number, status: 'approved' | 'rejected' | 'pending') => {
+        const user = appUsers.find(u => u.id === userId);
+        const email = user?.email?.trim().toLowerCase();
+        if (!email) return;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) return; // not signed in as a Supabase admin — local-only fallback
+            await fetch('/.netlify/functions/set-approval', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email, status }),
+            });
+        } catch { /* fire-and-forget: local state already updated */ }
+    };
+
     const handleApproveUser = (userId: number) => {
         setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'approved' as const } : u));
+        void persistApproval(userId, 'approved');
         showToast('User approved successfully', 'success');
     };
 
     const handleRejectUser = (userId: number) => {
         setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'rejected' as const } : u));
+        void persistApproval(userId, 'rejected');
         showToast('User rejected', 'success');
     };
 
