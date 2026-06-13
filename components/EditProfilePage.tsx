@@ -150,6 +150,7 @@ const SectionCard: React.FC<{ title: string; accent?: string; right?: React.Reac
 // ── Main ───────────────────────────────────────────────────────
 export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, onSave, onNavigate, showToast }) => {
   const [name,       setName]       = useState(currentUser.name);
+  const [email,      setEmail]      = useState(currentUser.email);
   const [bio,        setBio]        = useState(currentUser.bio || '');
   const [instagram,  setInstagram]  = useState(currentUser.instagramHandle || '');
   const [tiktok,     setTikTok]     = useState(currentUser.tiktokHandle || '');
@@ -238,7 +239,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
       return;
     }
     onSave({
-      ...currentUser, name, bio, city,
+      ...currentUser, name, email, bio, city,
       profilePhoto: profilePhotoPreview || currentUser.profilePhoto,
       instagramHandle: instagram, tiktokHandle: tiktok, phoneNumber, dob, ethnicity,
       appearance: { height, eyeColor, hairColor, build },
@@ -388,6 +389,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
           <SectionCard title="Personal Information" accent="#6366f1">
             <div className="space-y-4">
               <Field label="Full Name" value={name} onChange={e => setName(e.target.value)} error={errors.name} required />
+              <Field label="Email" value={email} onChange={e => setEmail(e.target.value)} inputType="email" placeholder="you@example.com" />
               <Field
                 type="textarea"
                 label="About Me"
