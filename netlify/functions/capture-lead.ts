@@ -18,10 +18,11 @@ export default async (req: Request) => {
 
   let email = '';
   let fullName = '';
+  let body: Record<string, unknown> = {};
   try {
-    const body = await req.json();
-    email = (body.email || '').trim().toLowerCase();
-    fullName = (body.fullName || '').trim();
+    body = await req.json();
+    email = (String(body.email || '')).trim().toLowerCase();
+    fullName = (String(body.fullName || '')).trim();
   } catch {
     return jsonResponse(req, { error: 'Invalid request body' }, 400);
   }
@@ -39,9 +40,18 @@ export default async (req: Request) => {
   const { error } = await supabase
     .from('passcode_leads')
     .upsert(
-      { email, full_name: fullName, captured_at: new Date().toISOString() },
+      {
+        email,
+        full_name: fullName || undefined,
+        captured_at: new Date().toISOString(),
+        // Only write richer fields when explicitly provided
+        ...(body.profileCreated !== undefined && { profile_created: body.profileCreated }),
+        ...(body.userId          !== undefined && { user_id: String(body.userId) }),
+        ...(body.status          !== undefined && { status: body.status }),
+      },
       { onConflict: 'email' }
     );
+
 
   if (error) {
     console.error('[Wingman] capture-lead insert failed:', error.message);

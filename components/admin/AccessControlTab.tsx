@@ -14,6 +14,8 @@ import {
   getAdminPasscode,
   setAdminPasscode,
   getPasscodeLastUpdated,
+  getPasscodeLeads,
+  PasscodeLead,
 } from '../../utils/accessControl';
 
 // ─── Icons ───────────────────────────────────────────────────
@@ -84,7 +86,19 @@ function getNextRotationTime(lastUpdated: number | null): string {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────
 
-export const AccessControlTab: React.FC = () => {
+export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ passcodLeads: propLeads }) => {
+  // Leads — use prop if available (real-time), else read from localStorage
+  const [leads, setLeads] = useState<PasscodeLead[]>(() => propLeads ?? getPasscodeLeads());
+
+  // Keep leads fresh: when propLeads update or every 30s
+  useEffect(() => {
+    if (propLeads) { setLeads(propLeads); return; }
+    const refresh = () => setLeads(getPasscodeLeads());
+    refresh();
+    const interval = setInterval(refresh, 30_000);
+    return () => clearInterval(interval);
+  }, [propLeads]);
+
   const [currentCode, setCurrentCode] = useState('');
   const [newCode, setNewCode] = useState('');
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -303,6 +317,63 @@ export const AccessControlTab: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+      {/* ── PASSCODE LEADS ─────────────────────────────────────── */}
+      <div
+        className="rounded-2xl p-5"
+        style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-bold text-white">Passcode Leads</p>
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(224,64,251,0.1)', color: '#E040FB' }}>
+            {leads.length} total
+          </span>
+        </div>
+
+        {leads.length === 0 ? (
+          <p className="text-xs text-gray-600 text-center py-4">No leads yet — share the passcode to get started.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {[...leads].sort((a, b) => (b.capturedAt ?? 0) - (a.capturedAt ?? 0)).map(lead => {
+              const isExpired = lead.expiresAt && Date.now() > lead.expiresAt && !lead.profileCreated;
+              const status = lead.profileCreated ? 'converted' : isExpired ? 'expired' : 'browsing';
+              const statusCfg = {
+                converted: { label: '✓ Converted', dot: '#22C55E', bg: 'rgba(34,197,94,0.1)', color: '#22C55E' },
+                browsing:  { label: '● Browsing',  dot: '#E040FB', bg: 'rgba(224,64,251,0.08)', color: '#E040FB' },
+                expired:   { label: '✕ Expired',   dot: '#6B7280', bg: 'rgba(107,114,128,0.1)', color: '#6B7280' },
+              }[status];
+              return (
+                <div
+                  key={lead.email}
+                  className="rounded-xl px-4 py-3 flex flex-col gap-1.5"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{lead.fullName || '—'}</p>
+                      <p className="text-[10px] text-gray-500 truncate">{lead.email}</p>
+                    </div>
+                    <span
+                      className="text-[10px] font-bold rounded-full px-2 py-0.5 flex-shrink-0"
+                      style={{ background: statusCfg.bg, color: statusCfg.color }}
+                    >
+                      {statusCfg.label}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-gray-600">
+                    <span>First access: {lead.capturedAt ? formatRelativeTime(lead.capturedAt) : '—'}</span>
+                    {!lead.profileCreated && lead.expiresAt && (
+                      <span style={{ color: isExpired ? '#EF4444' : '#6B7280' }}>
+                        {isExpired ? 'Expired' : `Expires in ${Math.max(0, Math.round((lead.expiresAt - Date.now()) / 3600000))}h`}
+                      </span>
+                    )}
+                    {lead.profileCreated && <span style={{ color: '#22C55E' }}>Profile created ✓</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, getPasscodeLeads, formatTimeRemaining } from './utils/accessControl';
+import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, getPasscodeLeads, formatTimeRemaining, markLeadAsConverted, PasscodeLead } from './utils/accessControl';
 import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed } from './utils/eventSchedule';
@@ -135,6 +135,8 @@ export const App: React.FC = () => {
             return users;
         }
     });
+    // Passcode leads — tracked separately from appUsers for Access Control tab
+    const [passcodLeads, setPasscodLeads] = useState<PasscodeLead[]>(() => getPasscodeLeads());
     const [appWingmen, setAppWingmen] = useState<Wingman[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_wingmen');
@@ -446,6 +448,47 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally once on mount
 
+    // ── One-time purge of test accounts (runs once per device) ──────────────
+    useEffect(() => {
+        if (localStorage.getItem('wm_purge_v1') === 'done') return;
+        const purgeEmails = [
+            'djeemo4@gmail.com',
+            'fashionmeetzfitness86@gmail.com',
+            'andersonjeemo@gmail.com',
+        ];
+        // 1. Remove from wingman_users
+        try {
+            const raw = localStorage.getItem('wingman_users');
+            if (raw) {
+                const arr = JSON.parse(raw) as { email?: string }[];
+                const filtered = arr.filter(u => !purgeEmails.includes((u.email || '').toLowerCase()));
+                localStorage.setItem('wingman_users', JSON.stringify(filtered));
+            }
+        } catch {}
+        // 2. Remove from wm_passcode_leads
+        try {
+            const raw = localStorage.getItem('wm_passcode_leads');
+            if (raw) {
+                const arr = JSON.parse(raw) as { email?: string }[];
+                const filtered = arr.filter(l => !purgeEmails.includes((l.email || '').toLowerCase()));
+                localStorage.setItem('wm_passcode_leads', JSON.stringify(filtered));
+            }
+        } catch {}
+        // 3. Remove from React state
+        setAppUsers(prev => prev.filter(u => !purgeEmails.includes((u.email || '').toLowerCase())));
+        // 4. Fire-and-forget: delete from Supabase
+        for (const email of purgeEmails) {
+            void fetch('/.netlify/functions/delete-profile', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            }).catch(() => null);
+        }
+        // Mark done so this never runs again
+        localStorage.setItem('wm_purge_v1', 'done');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // ── Seed from ALL historical passcode leads (same-device) ───────────────
     // wm_passcode_leads stores every gate entrant permanently (even after
     // the 24h session expires). Merge them all into appUsers so the admin
@@ -637,6 +680,8 @@ export const App: React.FC = () => {
                 };
                 return [...prev, pendingUser];
             });
+            // Refresh the passcodLeads state so AdminDashboard sees the new lead immediately
+            setPasscodLeads(getPasscodeLeads());
         }
 
         // Show onboarding only if not already completed AND not dismissed this session
@@ -1613,6 +1658,10 @@ export const App: React.FC = () => {
         setShowOnboarding(false);
         setOnboardingDismissed(false);
 
+        // ── Mark the passcode lead as converted ──────────────────────────────
+        markLeadAsConverted(newUser.email, newUser.id);
+        setPasscodLeads(getPasscodeLeads()); // refresh so Admin sees it immediately
+
         // ── Fire-and-forget: save profile to Supabase so admin sees it cross-device ──
         void fetch('/.netlify/functions/register-profile', {
             method: 'POST',
@@ -2227,6 +2276,7 @@ export const App: React.FC = () => {
                     onApproveMembershipRequest={handleApproveMembershipRequest}
                     onRejectMembershipRequest={handleRejectMembershipRequest}
                      instanceBookings={instanceBookings}
+                     passcodLeads={passcodLeads}
                 />;
             case 'wingmanDashboard': {
                 const myWingman = appWingmen.find(p => p.id === currentUser.id);

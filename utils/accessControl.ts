@@ -127,19 +127,38 @@ export const LEADS_STORE_KEY = 'wm_passcode_leads';
 export interface PasscodeLead {
   email: string;
   fullName: string;
-  capturedAt: number; // ms timestamp
+  capturedAt: number;           // ms timestamp of FIRST access
+  expiresAt: number;            // capturedAt + 24h (refreshed on re-entry)
+  profileCreated: boolean;      // true once onboarding completes
+  userId?: number;              // linked after onboarding
+  status: 'temporary_access' | 'profile_created' | 'expired';
+  accessSource: 'passcode';     // always passcode for now
+  lastSeenAt?: number;          // updated on each session grant
 }
 
 export function recordPasscodeLead(email: string, fullName: string = ''): void {
   const normalized = email.trim().toLowerCase();
+  const now = Date.now();
   // Keep a local copy as an offline fallback…
   try {
     const existing: PasscodeLead[] = JSON.parse(
       localStorage.getItem(LEADS_STORE_KEY) ?? '[]'
     );
-    // Deduplicate — update capturedAt if email already exists
+    const prev = existing.find(l => l.email === normalized);
     const filtered = existing.filter(l => l.email !== normalized);
-    filtered.push({ email: normalized, fullName: fullName.trim(), capturedAt: Date.now() });
+    // Build the updated lead — never downgrade profileCreated from true to false
+    const updated: PasscodeLead = {
+      email: normalized,
+      fullName: fullName.trim() || prev?.fullName || '',
+      capturedAt: prev?.capturedAt ?? now,   // preserve original first-access time
+      expiresAt: now + ACCESS_DURATION_MS,   // refresh 24h window on each entry
+      profileCreated: prev?.profileCreated ?? false,
+      userId: prev?.userId,
+      status: prev?.profileCreated ? 'profile_created' : 'temporary_access',
+      accessSource: 'passcode',
+      lastSeenAt: now,
+    };
+    filtered.push(updated);
     localStorage.setItem(LEADS_STORE_KEY, JSON.stringify(filtered));
   } catch {}
 
@@ -150,6 +169,36 @@ export function recordPasscodeLead(email: string, fullName: string = ''): void {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: normalized, fullName: fullName.trim() }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
+}
+
+/** Called when a lead completes onboarding and becomes a full user. */
+export function markLeadAsConverted(email: string, userId: number): void {
+  const normalized = email.trim().toLowerCase();
+  try {
+    const existing: PasscodeLead[] = JSON.parse(
+      localStorage.getItem(LEADS_STORE_KEY) ?? '[]'
+    );
+    const updated = existing.map(l =>
+      l.email === normalized
+        ? { ...l, profileCreated: true, userId, status: 'profile_created' as const }
+        : l
+    );
+    localStorage.setItem(LEADS_STORE_KEY, JSON.stringify(updated));
+  } catch {}
+  // Also notify the server so cross-device admin sees the conversion
+  try {
+    void fetch('/.netlify/functions/capture-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: normalized,
+        profileCreated: true,
+        userId: String(userId),
+        status: 'profile_created',
+      }),
       keepalive: true,
     }).catch(() => {});
   } catch {}

@@ -18,6 +18,7 @@ import { CheckIcon } from './icons/CheckIcon';
 import { CloseIcon } from './icons/CloseIcon';
 import { UserAnalyticsModal } from './modals/UserAnalyticsModal';
 import { WingmanStatsModal } from './modals/WingmanStatsModal';
+import { PasscodeLead } from '../../utils/accessControl';
 import { AccessControlTab } from './admin/AccessControlTab';
 import { AdminLiveData } from './admin/AdminLiveData';
 
@@ -82,6 +83,7 @@ interface AdminDashboardProps {
     onApproveMembershipRequest: (requestId: number) => void;
     onRejectMembershipRequest: (requestId: number) => void;
     instanceBookings?: InstanceBooking[];
+    passcodLeads?: PasscodeLead[];
 }
 
 // ── Shared FilterDropdown (unchanged) ─────────────────────────────────────────
@@ -800,7 +802,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                     </div>
                 );
             case 'accessControl':
-                return <AccessControlTab />;
+                return <AccessControlTab passcodLeads={props.passcodLeads} />;
             case 'approvals':
                 return (
                     <ManagementTab
