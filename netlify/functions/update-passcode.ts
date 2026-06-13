@@ -1,13 +1,3 @@
-/**
- * clear-users.ts
- * ─────────────────────────────────────────────────────────────
- * Wipes all rows from user_profiles and passcode_leads so the
- * admin can start fresh. Protected by x-admin-email header
- * validated against ADMIN_EMAILS env var.
- *
- * Env: ADMIN_EMAILS, SUPABASE_URL, SUPABASE_SERVICE_KEY
- */
-
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
@@ -20,7 +10,7 @@ function adminEmails(): string[] {
 
 export default async (req: Request) => {
   if (req.method === 'OPTIONS') return preflight(req);
-  if (req.method !== 'DELETE') return jsonResponse(req, { error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse(req, { error: 'Method not allowed' }, 405);
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -44,16 +34,30 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Forbidden' }, 403);
   }
 
-  // Delete ALL rows from both tables
-  const [profilesRes, leadsRes] = await Promise.all([
-    supabase.from('user_profiles').delete().neq('id', '__never__'),
-    supabase.from('passcode_leads').delete().neq('email', '__never__'),
-  ]);
+  let body: Record<string, string>;
+  try {
+    body = await req.json();
+  } catch {
+    return jsonResponse(req, { error: 'Invalid request body' }, 400);
+  }
 
-  if (profilesRes.error || leadsRes.error) {
-    console.error('[Wingman] clear-users error:',
-      profilesRes.error?.message, leadsRes.error?.message);
-    return jsonResponse(req, { ok: false, reason: 'db_error' }, 200);
+  const newPasscode = (body.passcode || '').trim().toUpperCase();
+  if (!newPasscode || newPasscode.length < 6 || newPasscode.length > 20 || !/^[A-Z0-9]+$/.test(newPasscode)) {
+    return jsonResponse(req, { error: 'Invalid passcode format (6-20 alphanumeric chars)' }, 400);
+  }
+
+  // Upsert the passcode setting
+  const { error } = await supabase
+    .from('platform_settings')
+    .upsert({
+      key: 'access_passcode',
+      value: JSON.stringify(newPasscode) as any, // jsonb type
+      updated_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error('[Wingman] update-passcode db upsert failed:', error.message);
+    return jsonResponse(req, { error: 'Update failed' }, 500);
   }
 
   return jsonResponse(req, { ok: true });

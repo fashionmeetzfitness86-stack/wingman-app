@@ -539,8 +539,12 @@ export const App: React.FC = () => {
     const fetchServerLeads = useCallback(async (adminEmail: string) => {
         if (!adminEmail) return;
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) return;
+
             const res = await fetch('/.netlify/functions/get-leads', {
-                headers: { 'x-admin-email': adminEmail.trim().toLowerCase() },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!res.ok) return;
             const json = await res.json();
@@ -1567,20 +1571,26 @@ export const App: React.FC = () => {
 
         // FIX: Push profile edits to Supabase so admin dashboard sees latest data
         // from ANY device — fire-and-forget, never blocks the user.
-        void fetch('/.netlify/functions/register-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id:            userToSave.id.toString(),
-                name:          userToSave.name,
-                email:         userToSave.email,
-                phone:         userToSave.phoneNumber || '',
-                city:          userToSave.city || '',
-                profilePhoto:  userToSave.profilePhoto || '',
-                joinDate:      userToSave.joinDate || new Date().toISOString().split('T')[0],
-                approvalStatus: userToSave.approvalStatus || 'pending',
-            }),
-        }).catch(() => { /* non-fatal — localStorage is still source of truth */ });
+        void (async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            await fetch('/.netlify/functions/register-profile', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    id:            userToSave.id.toString(),
+                    name:          userToSave.name,
+                    email:         userToSave.email,
+                    phone:         userToSave.phoneNumber || '',
+                    city:          userToSave.city || '',
+                    profilePhoto:  userToSave.profilePhoto || '',
+                    joinDate:      userToSave.joinDate || new Date().toISOString().split('T')[0],
+                    approvalStatus: userToSave.approvalStatus || 'pending',
+                }),
+            });
+        })().catch(() => { /* non-fatal — localStorage is still source of truth */ });
     };
 
     const handleEnableNotifications = () => {
@@ -1705,19 +1715,25 @@ export const App: React.FC = () => {
         setPasscodLeads(getPasscodeLeads()); // refresh so Admin sees it immediately
 
         // ── Fire-and-forget: save profile to Supabase so admin sees it cross-device ──
-        void fetch('/.netlify/functions/register-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id:           newId,
-                name:         newUser.name,
-                email:        newUser.email,
-                phone:        newUser.phoneNumber || '',
-                city:         newUser.city || '',
-                profilePhoto: newUser.profilePhoto || '',
-                joinDate:     newUser.joinDate,
-            }),
-        }).catch(() => { /* non-fatal — localStorage is still the source of truth */ });
+        void (async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            await fetch('/.netlify/functions/register-profile', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    id:           newId,
+                    name:         newUser.name,
+                    email:        newUser.email,
+                    phone:        newUser.phoneNumber || '',
+                    city:         newUser.city || '',
+                    profilePhoto: newUser.profilePhoto || '',
+                    joinDate:     newUser.joinDate,
+                }),
+            });
+        })().catch(() => { /* non-fatal — localStorage is still the source of truth */ });
 
         // ── Replay pending booking intent ─────────────────────────────────
         // If the user tapped Reserve before their profile existed, we saved
@@ -2297,11 +2313,17 @@ export const App: React.FC = () => {
                         setAppUsers(prev => prev.filter(u => u.id !== userId));
                         // Also remove from Supabase so they don't reappear on next dashboard load
                         if (user?.email) {
-                            void fetch('/.netlify/functions/delete-profile', {
-                                method: 'DELETE',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ email: user.email }),
-                            }).catch(() => null);
+                            void (async () => {
+                                const { data: { session } } = await supabase.auth.getSession();
+                                const token = session?.access_token;
+                                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                                if (token) headers['Authorization'] = `Bearer ${token}`;
+                                await fetch('/.netlify/functions/delete-profile', {
+                                    method: 'DELETE',
+                                    headers,
+                                    body: JSON.stringify({ email: user.email }),
+                                });
+                            })().catch(() => null);
                         }
                     }}
                     onClearAllUsers={() => {

@@ -35,18 +35,26 @@ export default async (req: Request) => {
   if (req.method === 'OPTIONS') return preflight(req);
   if (req.method !== 'GET') return jsonResponse(req, { error: 'Method not allowed' }, 405);
 
-  // Validate caller is an admin
-  const callerEmail = (req.headers.get('x-admin-email') || '').trim().toLowerCase();
-  const allowed = adminEmails();
-
-  if (!callerEmail || !allowed.includes(callerEmail)) {
-    return jsonResponse(req, { error: 'Forbidden — admin email required' }, 403);
-  }
-
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    // Supabase not configured — return empty so app degrades gracefully
-    return jsonResponse(req, { leads: [], profiles: [], skipped: true });
+    return jsonResponse(req, { error: 'Server not configured' }, 503);
+  }
+
+  // ── Authenticate the caller ───────────────────────────────────
+  const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return jsonResponse(req, { error: 'Unauthorized' }, 401);
+
+  const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+  const email = userData?.user?.email?.toLowerCase();
+  if (userErr || !email) return jsonResponse(req, { error: 'Unauthorized' }, 401);
+
+  // ── Validate caller is an admin ───────────────────────────────
+  const allowed = adminEmails();
+  if (allowed.length === 0) {
+    return jsonResponse(req, { error: 'ADMIN_EMAILS not configured on the server' }, 503);
+  }
+  if (!allowed.includes(email)) {
+    return jsonResponse(req, { error: 'Forbidden' }, 403);
   }
 
   // Fetch passcode leads

@@ -11,12 +11,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  getAdminPasscode,
-  setAdminPasscode,
-  getPasscodeLastUpdated,
   getPasscodeLeads,
   PasscodeLead,
 } from '../../utils/accessControl';
+import { supabase } from '../../lib/supabase';
 
 // ─── Icons ───────────────────────────────────────────────────
 
@@ -108,9 +106,22 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
   const [showCurrentCode, setShowCurrentCode] = useState(false);
   const [nextRotationLabel, setNextRotationLabel] = useState('');
 
-  const refresh = useCallback(() => {
-    setCurrentCode(getAdminPasscode());
-    setLastUpdated(getPasscodeLastUpdated());
+  const refresh = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      const res = await fetch('/.netlify/functions/get-passcode', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setCurrentCode(data.passcode || '');
+      setLastUpdated(data.updatedAt || null);
+    } catch (e) {
+      console.error('Failed to fetch passcode:', e);
+    }
   }, []);
 
   useEffect(() => {
@@ -132,7 +143,7 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
     } catch {}
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError('');
     const trimmed = newCode.trim().toUpperCase();
     if (!trimmed) {
@@ -151,11 +162,37 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
       setError('Only letters and numbers are allowed.');
       return;
     }
-    setAdminPasscode(trimmed);
-    refresh();
-    setNewCode('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setError('Unauthorized');
+        return;
+      }
+
+      const res = await fetch('/.netlify/functions/update-passcode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ passcode: trimmed }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to update passcode.');
+        return;
+      }
+
+      await refresh();
+      setNewCode('');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      setError('Network error updating passcode.');
+    }
   };
 
   const handleGenerateRandom = () => {

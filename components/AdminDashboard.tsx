@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest, InstanceBooking } from '../types';
+import { supabase } from '../lib/supabase';
 
 // ── Sub-components (all preserved, just moved to legacy drawer) ──────────────
 import { ManagementTab } from './admin/ManagementTab';
@@ -588,11 +589,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             const usersToSync = users.filter(
                 u => u.role !== UserRole.ADMIN && u.role !== UserRole.WINGMAN && u.email
             );
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             await Promise.all(
                 usersToSync.map(u =>
                     fetch('/.netlify/functions/register-profile', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         body: JSON.stringify({
                             id:             u.id,
                             name:           u.name,

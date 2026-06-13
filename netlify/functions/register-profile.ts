@@ -29,9 +29,21 @@
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+function adminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export default async (req: Request) => {
   if (req.method === 'OPTIONS') return preflight(req);
   if (req.method !== 'POST') return jsonResponse(req, { error: 'Method not allowed' }, 405);
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return jsonResponse(req, { error: 'Server not configured' }, 503);
+  }
 
   let body: Record<string, unknown>;
   try {
@@ -48,10 +60,53 @@ export default async (req: Request) => {
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    // Supabase not configured — degrade gracefully, localStorage is still the source
-    return jsonResponse(req, { ok: true, skipped: true });
+  // ── 1. Parse token (if any) ─────────────────────────────────
+  const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  let callerEmail: string | null = null;
+  let isAdmin = false;
+
+  if (token) {
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    callerEmail = userData?.user?.email?.toLowerCase() || null;
+    if (userErr || !callerEmail) {
+      return jsonResponse(req, { error: 'Unauthorized token' }, 401);
+    }
+    isAdmin = adminEmails().includes(callerEmail);
+  }
+
+  // ── 2. Fetch existing profile from DB (if any) ───────────────
+  const { data: existingProfile } = await supabase
+    .from('user_profiles')
+    .select('approval_status, email')
+    .eq('email', normalizedEmail)
+    .maybeSingle();
+
+  // ── 3. Enforce permissions & determine approval status ───────
+  let finalStatus = 'pending';
+  if (existingProfile) {
+    // Updating an existing profile
+    if (!isAdmin) {
+      if (!callerEmail || callerEmail !== normalizedEmail) {
+        return jsonResponse(req, { error: 'Forbidden: Cannot modify another user\'s profile' }, 403);
+      }
+      // Force keeping the existing approval status (non-admins cannot approve themselves)
+      finalStatus = existingProfile.approval_status || 'pending';
+    } else {
+      // Admins can change status
+      finalStatus = (approvalStatus === 'approved' || approvalStatus === 'rejected') ? approvalStatus : (existingProfile.approval_status || 'pending');
+    }
+  } else {
+    // Registering a new profile
+    if (!isAdmin) {
+      if (token && callerEmail !== normalizedEmail) {
+        return jsonResponse(req, { error: 'Forbidden: Email mismatch with authenticated user' }, 403);
+      }
+      // Guests or new signups always default to 'pending'
+      finalStatus = 'pending';
+    } else {
+      // Admins can set status during manual creation
+      finalStatus = (approvalStatus === 'approved' || approvalStatus === 'rejected') ? approvalStatus : 'pending';
+    }
   }
 
   const { error } = await supabase
@@ -65,7 +120,7 @@ export default async (req: Request) => {
         city: city || null,
         gender: gender || null,
         profile_photo: profilePhoto || null,
-        approval_status: (approvalStatus === 'approved' || approvalStatus === 'rejected') ? approvalStatus : 'pending',
+        approval_status: finalStatus,
         created_at: joinDate ? new Date(joinDate).toISOString() : new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
