@@ -192,14 +192,11 @@ export default async (req: Request) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      // automatic_payment_methods lets Stripe show every method the merchant
-      // has enabled in their Dashboard: card, Apple Pay, Google Pay, Cash App Pay, etc.
-      // Apple Pay appears automatically on Safari/iOS when user has a card on file.
-      // Cash App Pay appears for US customers (enable in Stripe Dashboard → Settings → Payment Methods).
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: 'always',
-      },
+      // 'card' automatically enables Apple Pay + Google Pay on compatible devices
+      // in Stripe Hosted Checkout — no extra configuration needed on the frontend.
+      // 'cashapp' enables Cash App Pay for US customers.
+      // Enable each method in Stripe Dashboard → Settings → Payment Methods.
+      payment_method_types: ['card', 'cashapp'] as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
       customer_email: userEmail || undefined,
       metadata: {
         userId: userId || '',
