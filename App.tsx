@@ -195,9 +195,12 @@ export const App: React.FC = () => {
 
     const [currentUser, setCurrentUser] = useState<User>(() => {
         try {
-            const savedId = localStorage.getItem('wingman_currentUserId');
+            // FIX LB-2: check both localStorage (stayLoggedIn=true) and
+            // sessionStorage (stayLoggedIn=false) so tab-session logins survive refresh
+            const savedId =
+                localStorage.getItem('wingman_currentUserId') ||
+                sessionStorage.getItem('wingman_currentUserId_session');
             if (savedId) {
-                // Prefer the persisted full user blob for speed; fall back to in-memory list
                 const storedUsers = localStorage.getItem('wingman_users');
                 const allUsers: User[] = storedUsers ? JSON.parse(storedUsers) : users;
                 const found = allUsers.find(u => u.id === parseInt(savedId, 10));
@@ -411,7 +414,11 @@ export const App: React.FC = () => {
     // Logged-in admin/user accounts bypass the gate entirely.
     // A user is considered "logged in" if they have a saved ID in localStorage
     // (meaning they previously authenticated via login or were pre-seeded).
-    const isLoggedInUser = !!localStorage.getItem('wingman_currentUserId');
+    // FIX LB-2: a user is "logged in" if their ID is in either storage
+    // localStorage = stayLoggedIn=true, sessionStorage = stayLoggedIn=false (tab session)
+    const isLoggedInUser =
+        !!localStorage.getItem('wingman_currentUserId') ||
+        !!sessionStorage.getItem('wingman_currentUserId_session');
 
     const [passcodeAccessActive, setPasscodeAccessActive] = useState<boolean>(() => {
         // Any user with a saved session (login or passcode) bypasses gate
@@ -1595,6 +1602,8 @@ export const App: React.FC = () => {
         localStorage.removeItem('wingman_currentUserId');
         localStorage.removeItem('wingman_realAdminUserId');
         localStorage.removeItem('wm_access');
+        // FIX B-2: clear onboarding flag so next user on same device gets fresh onboarding
+        localStorage.removeItem('wm_onboarding_complete');
         sessionStorage.removeItem('wingman_currentUserId_session');
         sessionStorage.removeItem(ONBOARDING_DISMISSED_KEY);
         setRealAdminUser(null);
@@ -1644,8 +1653,14 @@ export const App: React.FC = () => {
             joinDate: new Date().toISOString().split('T')[0],
             isNewUser: true,
         };
-        // Add to users list so they appear in admin & user lookups
-        setAppUsers(prev => [...prev, newUser]);
+        // FIX B-1: replace any existing placeholder with same email (created when
+        // the passcode was entered) so admin never sees duplicates for the same person.
+        setAppUsers(prev => {
+            const withoutPlaceholder = prev.filter(
+                u => u.email.toLowerCase() !== newUser.email.toLowerCase()
+            );
+            return [...withoutPlaceholder, newUser];
+        });
         // Set as current user
         setCurrentUser(newUser);
         // Auto-login: persist the new user ID — isLoggedInUser becomes true immediately
@@ -2187,6 +2202,12 @@ export const App: React.FC = () => {
                     onLogout={handleLogout}
                 />;
             case 'adminDashboard':
+                // FIX LB-1: hard route guard — only ADMIN role may render this page
+                if (currentUser.role !== UserRole.ADMIN && !realAdminUser) {
+                    // Silently redirect any non-admin who somehow reached this case
+                    setTimeout(() => setCurrentPage('home'), 0);
+                    return null;
+                }
                 // Refresh cross-device leads every time admin opens the dashboard
                 void fetchServerLeads(currentUser.email);
                 return <AdminDashboard 

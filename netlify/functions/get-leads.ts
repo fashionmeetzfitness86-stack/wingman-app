@@ -30,8 +30,12 @@ export default async (req: Request) => {
   // Validate caller is an admin
   const callerEmail = (req.headers.get('x-admin-email') || '').trim().toLowerCase();
   const allowed = adminEmails();
-  if (allowed.length > 0 && (!callerEmail || !allowed.includes(callerEmail))) {
-    return jsonResponse(req, { error: 'Forbidden' }, 403);
+  
+  // FIX: always require a valid caller email AND a non-empty allow-list.
+  // If ADMIN_EMAILS env var is missing or empty, deny ALL access (fail-safe).
+  // This prevents open data exposure in misconfigured deployments.
+  if (!callerEmail || allowed.length === 0 || !allowed.includes(callerEmail)) {
+    return jsonResponse(req, { error: 'Forbidden — admin email required' }, 403);
   }
 
   const supabase = getSupabaseAdmin();
