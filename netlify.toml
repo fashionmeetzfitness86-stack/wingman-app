@@ -5,6 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  ADMIN_EMAILS = "themainkeys@gmail.com"
 
 [[redirects]]
   from = "/*"
