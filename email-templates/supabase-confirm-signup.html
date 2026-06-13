@@ -1,0 +1,66 @@
+<!--
+  WINGMAN — Supabase "Confirm signup" email template
+  Paste into: Supabase Dashboard → Authentication → Emails → Templates → "Confirm signup"
+  Keep the {{ .ConfirmationURL }} variable intact.
+-->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#080808;padding:40px 0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <tr>
+    <td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr>
+          <td align="center" style="padding-bottom:32px;">
+            <p style="margin:0;font-size:11px;letter-spacing:0.4em;color:#4B5563;text-transform:uppercase;font-weight:700;">
+              WINGMAN · MIAMI
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#111111;border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:48px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding-bottom:24px;">
+                  <div style="width:64px;height:64px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:50%;display:inline-block;line-height:64px;font-size:26px;">✦</div>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding-bottom:12px;">
+                  <h1 style="margin:0;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">Confirm your email</h1>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding-bottom:32px;">
+                  <p style="margin:0;font-size:15px;color:#9CA3AF;line-height:1.6;max-width:380px;">
+                    Welcome to WINGMAN. Confirm your email to unlock reservations at Miami's most exclusive venues, events and yacht experiences.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding-bottom:28px;">
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block;background:linear-gradient(135deg,#ffffff,#9CA3AF,#374151);color:#000000;font-weight:900;font-size:14px;text-decoration:none;padding:16px 44px;border-radius:14px;letter-spacing:0.02em;">
+                    Confirm My Email →
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <p style="margin:0;font-size:11px;color:#374151;line-height:1.6;">
+                    If the button doesn't work, copy and paste this link:<br/>
+                    <span style="color:#6B7280;word-break:break-all;">{{ .ConfirmationURL }}</span>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-top:28px;">
+            <p style="margin:0;font-size:10px;color:#1F2937;letter-spacing:0.15em;text-transform:uppercase;">
+              WINGMAN · MIAMI · PRIVATE ACCESS
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
