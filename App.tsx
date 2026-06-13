@@ -641,6 +641,31 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Fetch THIS client's own approval status from the server. The admin-only
+    // get-leads sync never reaches a regular client, so without this a client
+    // can't see that an admin approved them — and the booking gate stays locked.
+    useEffect(() => {
+        const email = currentUser.email?.trim().toLowerCase();
+        if (!email) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch(`/.netlify/functions/get-approval-status?email=${encodeURIComponent(email)}`);
+                if (!res.ok) return;
+                const { status } = await res.json();
+                if (cancelled || !status) return;
+                if (status !== currentUser.approvalStatus) {
+                    setCurrentUser(prev => ({ ...prev, approvalStatus: status }));
+                    setAppUsers(prev => prev.map(u =>
+                        u.email?.toLowerCase() === email ? { ...u, approvalStatus: status } : u
+                    ));
+                }
+            } catch { /* ignore — keep local status */ }
+        })();
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser.email]);
+
     // Keep the logged-in user's own approval status in sync with the synced
     // user list. Without this, an admin approval lands in appUsers but the
     // booking gate (which reads currentUser.approvalStatus) stays locked until

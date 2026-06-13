@@ -188,12 +188,13 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
           position: 'fixed', inset: 0,
           zIndex: 1010,
           display: 'flex',
-          alignItems: 'flex-end',     /* mobile default: bottom-sheet */
           justifyContent: 'center',
           padding: '0',
           pointerEvents: 'none',      /* let clicks fall through to backdrop */
         } as React.CSSProperties}
-        className="sm:items-start sm:p-4 sm:pt-6"
+        /* alignment via classes only — inline styles would override them.
+           mobile: bottom-sheet (items-end); desktop: anchored near top */
+        className="items-end sm:items-start sm:p-4 sm:pt-6"
       >
         <div
           onClick={e => e.stopPropagation()}
