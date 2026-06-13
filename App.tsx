@@ -3200,6 +3200,22 @@ export const App: React.FC = () => {
                         isOpen={!!previewUser}
                         onClose={() => setPreviewUser(null)}
                         user={previewUser}
+                        onApprove={previewUser ? (uid) => {
+                            handleApproveUser(uid);
+                            setPreviewUser(prev => prev ? { ...prev, approvalStatus: 'approved' } : null);
+                        } : undefined}
+                        onReject={previewUser ? (uid) => {
+                            handleRejectUser(uid);
+                            setPreviewUser(null);
+                        } : undefined}
+                        onEdit={previewUser ? (u) => {
+                            setUserToEdit(u);
+                            setPreviewUser(null);
+                        } : undefined}
+                        onBlock={previewUser ? (u) => {
+                            handleAdminEditUser({ ...u, status: u.status === 'blocked' ? 'active' : 'blocked' });
+                            setPreviewUser(null);
+                        } : undefined}
                     />
                 </>
         </div>
