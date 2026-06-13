@@ -11,7 +11,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  validatePasscode,
   grantPasscodeAccess,
   formatTimeRemaining,
   ACCESS_DURATION_MS,
@@ -451,21 +450,32 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onAccessGranted, onLog
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      if (validatePasscode(passcode)) {
-        grantPasscodeAccess(email.trim().toLowerCase(), fullName.trim());
-        // Fire welcome email — fire-and-forget, never blocks the user flow
-        fetch('/.netlify/functions/send-welcome-email', {
+    void (async () => {
+      try {
+        const res = await fetch('/.netlify/functions/validate-passcode', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim().toLowerCase(), name: fullName.trim() }),
-        }).catch(() => {}); // Silent fail — email failure must never break access
-        setMode('success');
-      } else {
-        setError('Invalid passcode. Please check and try again.');
+          body: JSON.stringify({ passcode: passcode.trim() }),
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          grantPasscodeAccess(email.trim().toLowerCase(), fullName.trim());
+          // Fire welcome email — fire-and-forget, never blocks the user flow
+          fetch('/.netlify/functions/send-welcome-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.trim().toLowerCase(), name: fullName.trim() }),
+          }).catch(() => {});
+          setMode('success');
+        } else {
+          setError('Invalid passcode. Please check and try again.');
+        }
+      } catch {
+        setError('Connection error. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
-      setIsSubmitting(false);
-    }, 800);
+    })();
   };
 
   // ── Login Mode ───────────────────────────────────────────────

@@ -44,6 +44,65 @@ const PRICE_MAP = new Map<string, ScheduleEntry>(
   PRICE_SCHEDULE.map(e => [e.id, e])
 );
 
+// Resolve prices for generic items (store, experience, tables) server-side to prevent price spoofing.
+function resolveGenericItemPrice(cartItemId: string, clientUnitPrice: number): number {
+  const id = cartItemId.toLowerCase();
+  
+  if (id.startsWith('store-')) {
+    const parts = cartItemId.split('-');
+    const itemKey = parts[1]; // e.g. s1, s2
+    const storePrices: Record<string, number> = {
+      s1: 25,
+      s2: 100,
+      s3: 65,
+      s4: 250,
+      s5: 80,
+      s6: 175,
+    };
+    const price = storePrices[itemKey];
+    if (price !== undefined) {
+      return price;
+    }
+    throw new Error(`Invalid store item ID in cart: ${cartItemId}`);
+  }
+
+  if (id.startsWith('experience-')) {
+    const parts = id.split('-');
+    const expId = parts[1];
+    const validExps = ['1', '2', '3', '4'];
+    if (validExps.includes(expId)) {
+      return 600; // All mock experiences are $600 USD
+    }
+    throw new Error(`Invalid experience ID in cart: ${cartItemId}`);
+  }
+
+  if (id.startsWith('table-')) {
+    // If clientUnitPrice is exactly 50, it is a deposit booking
+    if (Math.round(clientUnitPrice) === 50) {
+      return 50;
+    }
+    // Resolve full price server-side based on the table ID in the cartItemId
+    let minSpend = 0;
+    if (id.includes('-mj-t1-')) {
+      minSpend = 3000;
+    } else if (id.includes('-mj-t2-')) {
+      minSpend = 5000;
+    } else if (id.includes('-t1-')) {
+      minSpend = 5000;
+    } else if (id.includes('-t2-')) {
+      minSpend = 3000;
+    } else if (id.includes('-t3-')) {
+      minSpend = 8000;
+    } else {
+      throw new Error(`Invalid table option in cart: ${cartItemId}`);
+    }
+    const TAX_SERVICE_RATE = 0.36;
+    return minSpend * (1 + TAX_SERVICE_RATE);
+  }
+
+  throw new Error(`Unknown item type in cart: ${cartItemId}`);
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface BookingPayload {
@@ -150,16 +209,32 @@ export default async (req: Request) => {
 
     // ── Generic (legacy) items ────────────────────────────────────────────────
     // Tables, experiences, store items sent from old cart path.
-    // These use client-supplied price since they have no PRICE_SCHEDULE entry.
+    // These now use server-resolved prices to prevent price spoofing.
+    const resolvedGenericItems: { cartItemId: string; name: string; unitPrice: number; quantity: number }[] = [];
     for (const gi of genericItems) {
       if (!gi.cartItemId || !gi.name || gi.quantity < 1) continue;
-      const unitAmountCents = Math.round((gi.unitPrice || 0) * 100);
+      
+      let resolvedUnitPrice: number;
+      try {
+        resolvedUnitPrice = resolveGenericItemPrice(gi.cartItemId, gi.unitPrice);
+      } catch (err: any) {
+        return jsonResponse(req, { error: err.message || 'Invalid item price' }, 400);
+      }
+      
+      const unitAmountCents = Math.round(resolvedUnitPrice * 100);
       lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: { name: gi.name, description: 'Wingman Experience' },
           unit_amount: unitAmountCents,
         },
+        quantity: gi.quantity,
+      });
+
+      resolvedGenericItems.push({
+        cartItemId: gi.cartItemId,
+        name: gi.name,
+        unitPrice: resolvedUnitPrice,
         quantity: gi.quantity,
       });
     }
@@ -175,7 +250,7 @@ export default async (req: Request) => {
     // total means a misconfigured price, so we reject rather than confirm.
     const subtotalCents =
       resolvedBookings.reduce((sum, b) => sum + b.unitPrice * b.quantity * 100, 0) +
-      genericItems.reduce((sum, gi) => sum + Math.round((gi.unitPrice || 0) * 100) * gi.quantity, 0);
+      resolvedGenericItems.reduce((sum, gi) => sum + Math.round(gi.unitPrice * 100) * gi.quantity, 0);
     if (subtotalCents <= 0) {
       return jsonResponse(req, { error: 'Order total must be greater than zero.' }, 400);
     }
@@ -186,9 +261,10 @@ export default async (req: Request) => {
     }
 
     // Store resolved booking metadata so verify-session can reconcile
-    const cartContext = JSON.stringify(
-      resolvedBookings.map(b => ({ id: b.cartItemId, inst: b.instanceId, q: b.quantity }))
-    );
+    const cartContext = JSON.stringify([
+      ...resolvedBookings.map(b => ({ id: b.cartItemId, inst: b.instanceId, q: b.quantity })),
+      ...resolvedGenericItems.map(gi => ({ id: gi.cartItemId, inst: gi.name, q: gi.quantity })),
+    ]);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
