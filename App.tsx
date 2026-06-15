@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, getPasscodeLeads, formatTimeRemaining, markLeadAsConverted, PasscodeLead } from './utils/accessControl';
-import { User, Page, Wingman, Venue, Event, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
+import { User, Page, Wingman, Venue, Event, EventInstance, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
-import { generateEventFeed } from './utils/eventSchedule';
+import { generateEventFeed, DEFAULT_EVENTS } from './utils/eventSchedule';
 
 // Component Imports
 import { HomeScreen } from './components/HomeScreen';
@@ -148,9 +148,9 @@ export const App: React.FC = () => {
     const [appEvents, setAppEvents] = useState<Event[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_events');
-            return saved ? JSON.parse(saved) : events;
+            return saved ? JSON.parse(saved) : DEFAULT_EVENTS;
         } catch (e) {
-            return events;
+            return DEFAULT_EVENTS;
         }
     });
     const [appVenues, setAppVenues] = useState<Venue[]>(() => {
@@ -248,7 +248,10 @@ export const App: React.FC = () => {
     const [showNotificationsPrompt, setShowNotificationsPrompt] = useState(false);
     // Onboarding state — must be declared early (used by handleAccessGranted)
     const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-        // Don't show if: session complete, onboarding already done, or dismissed this session
+        // Don't show if: user is logged in, session complete, onboarding already done, or dismissed this session
+        const hasUserId = !!localStorage.getItem('wingman_currentUserId') ||
+                          !!sessionStorage.getItem('wingman_currentUserId_session');
+        if (hasUserId) return false;
         if (!hasActivePasscodeSession()) return false;
         if (isOnboardingComplete()) return false;
         if (sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') return false;
@@ -374,6 +377,14 @@ export const App: React.FC = () => {
     // forceSoldOutMap: { [instanceId]: true } — admin force sold-out instances
     const [forceSoldOutMap, setForceSoldOutMap] = useState<Record<string, boolean>>(() => {
         try { return JSON.parse(localStorage.getItem('wingman_force_soldout') || '{}'); } catch { return {}; }
+    });
+    // customArrivalMap: { [instanceId]: string } — admin custom meetup arrival times
+    const [customArrivalMap, setCustomArrivalMap] = useState<Record<string, string>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_custom_arrival_map') || '{}'); } catch { return {}; }
+    });
+    // customInstanceMap: { [instanceId]: Partial<EventInstance> } — admin custom event instance overrides
+    const [customInstanceMap, setCustomInstanceMap] = useState<Record<string, Partial<EventInstance>>>(() => {
+        try { return JSON.parse(localStorage.getItem('wingman_custom_instances') || '{}'); } catch { return {}; }
     });
 
     // Chat State
@@ -725,6 +736,8 @@ export const App: React.FC = () => {
     useEffect(() => { try { localStorage.setItem('wingman_instance_bookings', JSON.stringify(instanceBookings)); } catch {} }, [instanceBookings]);
     useEffect(() => { try { localStorage.setItem('wingman_cancel_map', JSON.stringify(cancelMap)); } catch {} }, [cancelMap]);
     useEffect(() => { try { localStorage.setItem('wingman_force_soldout', JSON.stringify(forceSoldOutMap)); } catch {} }, [forceSoldOutMap]);
+    useEffect(() => { try { localStorage.setItem('wingman_custom_arrival_map', JSON.stringify(customArrivalMap)); } catch {} }, [customArrivalMap]);
+    useEffect(() => { try { localStorage.setItem('wingman_custom_instances', JSON.stringify(customInstanceMap)); } catch {} }, [customInstanceMap]);
     // Fix: persist cart checkout metadata so refresh mid-checkout doesn't break booking
     useEffect(() => { try { localStorage.setItem('wingman_cart_instance_meta', JSON.stringify(cartInstanceMeta)); } catch {} }, [cartInstanceMeta]);
     useEffect(() => { try { localStorage.setItem('wingman_pending_reservations', JSON.stringify(pendingCartReservations)); } catch {} }, [pendingCartReservations]);
@@ -1747,7 +1760,7 @@ export const App: React.FC = () => {
                 [intent.instanceId]: (prev[intent.instanceId] ?? 0) + intent.partySize,
             }));
             const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-            const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
+            const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
             const inst = allInst.find(i => i.instanceId === intent.instanceId);
             const newCartItem: CartItem = {
                 id: cartId,
@@ -2010,7 +2023,7 @@ export const App: React.FC = () => {
         // ─────────────────────────────────────────────────────────────────────
         setPendingCartReservations(prev => ({ ...prev, [booking.instanceId]: (prev[booking.instanceId] ?? 0) + booking.partySize }));
         const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap);
+        const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
         const inst = allInst.find(i => i.instanceId === booking.instanceId);
         const newCartItem: CartItem = {
             id: cartId,
@@ -2099,7 +2112,7 @@ export const App: React.FC = () => {
                         }));
                         // 2. Build CartItem for payment step
                         const cartId = `cart-inst-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                        const allInst = generateEventFeed(bookedMap, cancelMap, 4);
+                        const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
                         const inst = allInst.find(i => i.instanceId === booking.instanceId);
                         const newCartItem: CartItem = {
                             id: cartId,
@@ -2138,6 +2151,10 @@ export const App: React.FC = () => {
                     onAdminCancel={(id) => { setCancelMap(prev => ({ ...prev, [id]: true })); showToast('Event instance cancelled.', 'success'); }}
                     onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
                     onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
+                    onAdminEditArrival={(id, newTime) => {
+                        setCustomArrivalMap(prev => ({ ...prev, [id]: newTime }));
+                        showToast(`Meetup time updated to ${newTime}`, 'success');
+                    }}
                 />;
             case 'exclusiveExperiences':
                 return <WingmanEventFeed
@@ -2153,9 +2170,13 @@ export const App: React.FC = () => {
                     onAdminCancel={(id) => { setCancelMap(prev => ({ ...prev, [id]: true })); showToast('Event instance cancelled.', 'success'); }}
                     onAdminRestore={(id) => { setCancelMap(prev => { const n = { ...prev }; delete n[id]; return n; }); showToast('Event instance restored.', 'success'); }}
                     onAdminForceSoldOut={(id) => { setForceSoldOutMap(prev => ({ ...prev, [id]: true })); showToast('Event marked sold out.', 'success'); }}
+                    onAdminEditArrival={(id, newTime) => {
+                        setCustomArrivalMap(prev => ({ ...prev, [id]: newTime }));
+                        showToast(`Meetup time updated to ${newTime}`, 'success');
+                    }}
                 />;
             case 'eventDetail': {
-                const inst = pageParams.instance || (pageParams.instanceId ? generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap).find(i => i.instanceId === pageParams.instanceId) : null);
+                const inst = pageParams.instance || (pageParams.instanceId ? generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents).find(i => i.instanceId === pageParams.instanceId) : null);
                 if (!inst) return <div className="text-white p-8">Event not found</div>;
                 return <EventDetailPage
                     instance={inst}
@@ -2244,7 +2265,7 @@ export const App: React.FC = () => {
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
                     onLogout={handleLogout}
                 />;
-            case 'adminDashboard':
+            case 'adminDashboard': {
                 // FIX LB-1: hard route guard — only ADMIN role may render this page
                 if (currentUser.role !== UserRole.ADMIN && !realAdminUser) {
                     // Silently redirect any non-admin who somehow reached this case
@@ -2253,101 +2274,142 @@ export const App: React.FC = () => {
                 }
                 // Refresh cross-device leads every time admin opens the dashboard
                 void fetchServerLeads(currentUser.email);
-                return <AdminDashboard 
-                    users={appUsers} 
-                    wingmen={appWingmen} 
-                    venues={appVenues} 
-                    events={appEvents} 
-                    storeItems={appStoreItems} 
-                    pendingGroups={appAccessGroups.filter(g => g.status === 'pending')} 
-                    invitationRequests={invitationRequests} 
-                    pendingTableReservations={cartItems.filter(i => i.type === 'table')} 
-                    onEditUser={(u) => setUserToEdit(u)} 
-                    onAddUser={() => setIsAdminAddUserOpen(true)} 
-                    onBlockUser={(u) => handleAdminEditUser({ ...u, status: u.status === 'blocked' ? 'active' : 'blocked' })} 
-                    onViewUser={(u) => setPreviewUser(u)} 
-                    onEditWingman={(p, u) => setWingmanToEdit({wingman: p, user: u})} 
-                    onDeleteWingman={(p) => {
-                        setAppWingmen(prev => prev.filter(prom => prom.id !== p.id));
-                        setAppUsers(prev => prev.map(u => u.id === p.id ? { ...u, role: UserRole.USER } : u));
-                        showToast('Wingman removed', 'success');
-                    }} 
-                    onSuspendWingman={(u) => handleAdminEditUser({ ...u, status: u.status === 'suspended' ? 'active' : 'suspended' })} 
-                    onPreviewWingman={(p) => handleNavigate('wingmanProfile', { wingmanId: p.id })} 
-                    onApproveGroup={(id) => {
-                         setAppAccessGroups(prev => prev.map(g => g.id === id ? { ...g, status: 'approved' } : g));
-                         showToast('Group approved', 'success');
-                    }} 
-                    onApproveRequest={(id) => {
-                        setInvitationRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-                        showToast('Request approved', 'success');
-                    }} 
-                    onRejectRequest={(id) => {
-                        setInvitationRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
-                         showToast('Request rejected', 'success');
-                    }} 
-                    onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
-                    onNavigate={handleNavigate} 
-                    onAddEvent={() => { setEventToEdit(null); setIsAdminEditEventOpen(true); }} 
-                    onEditEvent={(e) => { setEventToEdit(e); setIsAdminEditEventOpen(true); }} 
-                    onDeleteEvent={(e) => { setAppEvents(prev => prev.filter(ev => ev.id !== e.id)); showToast('Event deleted', 'success'); }} 
-                    onPreviewEvent={(e) => handleNavigate('eventTimeline')} 
-                    onAddVenue={() => { setVenueToEdit(null); setIsAdminEditVenueOpen(true); }} 
-                    onEditVenue={(v) => { setVenueToEdit(v); setIsAdminEditVenueOpen(true); }} 
-                    onDeleteVenue={(v) => { setAppVenues(prev => prev.filter(ven => ven.id !== v.id)); showToast('Venue deleted', 'success'); }} 
-                    onPreviewVenue={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
-                    onAddStoreItem={() => { setStoreItemToEdit(null); setIsAdminEditStoreItemOpen(true); }} 
-                    onEditStoreItem={(i) => { setStoreItemToEdit(i); setIsAdminEditStoreItemOpen(true); }} 
-                    onDeleteStoreItem={(i) => { setAppStoreItems(prev => prev.filter(it => it.id !== i.id)); showToast('Item deleted', 'success'); }} 
-                    onPreviewStoreItem={(i) => setPreviewStoreItem(i)} 
-                    wingmanApplications={wingmanApplications} 
-                    onApproveWingmanApplication={handleApproveWingmanApplication} 
-                    onRejectWingmanApplication={(id) => {
-                        setWingmanApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
-                        showToast('Application rejected', 'success');
-                    }} 
-                    onApproveUser={handleApproveUser}
-                    onRejectUser={handleRejectUser}
-                    onDeleteUser={(userId) => {
-                        const user = appUsers.find(u => u.id === userId);
-                        setAppUsers(prev => prev.filter(u => u.id !== userId));
-                        // Also remove from Supabase so they don't reappear on next dashboard load
-                        if (user?.email) {
-                            void (async () => {
-                                const { data: { session } } = await supabase.auth.getSession();
-                                const token = session?.access_token;
-                                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-                                if (token) headers['Authorization'] = `Bearer ${token}`;
-                                await fetch('/.netlify/functions/delete-profile', {
-                                    method: 'DELETE',
-                                    headers,
-                                    body: JSON.stringify({ email: user.email }),
-                                });
-                            })().catch(() => null);
-                        }
-                    }}
-                    onClearAllUsers={() => {
-                        setAppUsers(prev => prev.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.WINGMAN));
-                    }}
-                    bookedItems={bookedItems} 
-                    guestlistRequests={guestlistJoinRequests} 
-                    allRsvps={[]} 
-                    onPreviewUser={(u) => setPreviewUser(u)} 
-                    eventInvitations={mockEventInvitations} 
-                    onSendPushNotification={(n) => showToast('Push notification sent', 'success')}
-                    pushCampaigns={pushCampaigns}
-                    onCreatePushCampaign={handleCreatePushCampaign}
-                    onToggleCampaignStatus={handleToggleCampaignStatus}
-                    onDeleteCampaign={handleDeleteCampaign}
-                    onBulkDeleteEvents={(ids) => { setAppEvents(prev => prev.filter(e => !ids.includes(e.id))); showToast(`${ids.length} events deleted`, 'success'); }}
-                    onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
+                
+                const viewedUserId = pageParams.viewedUserId;
+                const viewedUser = viewedUserId ? appUsers.find(u => u.id === viewedUserId) : null;
+                
+                return (
+                    <div className="relative min-h-screen">
+                        <AdminDashboard 
+                            users={appUsers} 
+                            wingmen={appWingmen} 
+                            venues={appVenues} 
+                            events={appEvents} 
+                            storeItems={appStoreItems} 
+                            pendingGroups={appAccessGroups.filter(g => g.status === 'pending')} 
+                            invitationRequests={invitationRequests} 
+                            pendingTableReservations={cartItems.filter(i => i.type === 'table')} 
+                            onEditUser={(u) => setUserToEdit(u)} 
+                            onAddUser={() => setIsAdminAddUserOpen(true)} 
+                            onBlockUser={(u) => handleAdminEditUser({ ...u, status: u.status === 'blocked' ? 'active' : 'blocked' })} 
+                            onViewUser={(u) => setPreviewUser(u)} 
+                            onEditWingman={(p, u) => setWingmanToEdit({wingman: p, user: u})} 
+                            onDeleteWingman={(p) => {
+                                setAppWingmen(prev => prev.filter(prom => prom.id !== p.id));
+                                setAppUsers(prev => prev.map(u => u.id === p.id ? { ...u, role: UserRole.USER } : u));
+                                showToast('Wingman removed', 'success');
+                            }} 
+                            onSuspendWingman={(u) => handleAdminEditUser({ ...u, status: u.status === 'suspended' ? 'active' : 'suspended' })} 
+                            onPreviewWingman={(p) => handleNavigate('wingmanProfile', { wingmanId: p.id })} 
+                            onApproveGroup={(id) => {
+                                 setAppAccessGroups(prev => prev.map(g => g.id === id ? { ...g, status: 'approved' } : g));
+                                 showToast('Group approved', 'success');
+                            }} 
+                            onApproveRequest={(id) => {
+                                setInvitationRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+                                showToast('Request approved', 'success');
+                            }} 
+                            onRejectRequest={(id) => {
+                                setInvitationRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
+                                 showToast('Request rejected', 'success');
+                            }} 
+                            onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
+                            onNavigate={handleNavigate} 
+                            onAddEvent={() => { setEventToEdit(null); setIsAdminEditEventOpen(true); }} 
+                            onEditEvent={(e) => { setEventToEdit(e); setIsAdminEditEventOpen(true); }} 
+                            onDeleteEvent={(e) => { setAppEvents(prev => prev.filter(ev => ev.id !== e.id)); showToast('Event deleted', 'success'); }} 
+                            onPreviewEvent={(e) => handleNavigate('eventTimeline')} 
+                            onAddVenue={() => { setVenueToEdit(null); setIsAdminEditVenueOpen(true); }} 
+                            onEditVenue={(v) => { setVenueToEdit(v); setIsAdminEditVenueOpen(true); }} 
+                            onDeleteVenue={(v) => { setAppVenues(prev => prev.filter(ven => ven.id !== v.id)); showToast('Venue deleted', 'success'); }} 
+                            onPreviewVenue={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
+                            onAddStoreItem={() => { setStoreItemToEdit(null); setIsAdminEditStoreItemOpen(true); }} 
+                            onEditStoreItem={(i) => { setStoreItemToEdit(i); setIsAdminEditStoreItemOpen(true); }} 
+                            onDeleteStoreItem={(i) => { setAppStoreItems(prev => prev.filter(it => it.id !== i.id)); showToast('Item deleted', 'success'); }} 
+                            onPreviewStoreItem={(i) => setPreviewStoreItem(i)} 
+                            wingmanApplications={wingmanApplications} 
+                            onApproveWingmanApplication={handleApproveWingmanApplication} 
+                            onRejectWingmanApplication={(id) => {
+                                setWingmanApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
+                                showToast('Application rejected', 'success');
+                            }} 
+                            onApproveUser={handleApproveUser}
+                            onRejectUser={handleRejectUser}
+                            onDeleteUser={(userId) => {
+                                const user = appUsers.find(u => u.id === userId);
+                                setAppUsers(prev => prev.filter(u => u.id !== userId));
+                                // Also remove from Supabase so they don't reappear on next dashboard load
+                                if (user?.email) {
+                                    void (async () => {
+                                        const { data: { session } } = await supabase.auth.getSession();
+                                        const token = session?.access_token;
+                                        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                                        await fetch('/.netlify/functions/delete-profile', {
+                                            method: 'DELETE',
+                                            headers,
+                                            body: JSON.stringify({ email: user.email }),
+                                        });
+                                    })().catch(() => null);
+                                }
+                            }}
+                            onClearAllUsers={() => {
+                                setAppUsers(prev => prev.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.WINGMAN));
+                            }}
+                            bookedItems={bookedItems} 
+                            guestlistRequests={guestlistJoinRequests} 
+                            allRsvps={[]} 
+                            onPreviewUser={(u) => setPreviewUser(u)} 
+                            eventInvitations={mockEventInvitations} 
+                            onSendPushNotification={(n) => showToast('Push notification sent', 'success')}
+                            pushCampaigns={pushCampaigns}
+                            onCreatePushCampaign={handleCreatePushCampaign}
+                            onToggleCampaignStatus={handleToggleCampaignStatus}
+                            onDeleteCampaign={handleDeleteCampaign}
+                            onBulkDeleteEvents={(ids) => { setAppEvents(prev => prev.filter(e => !ids.includes(e.id))); showToast(`${ids.length} events deleted`, 'success'); }}
+                            onBulkUpdateEvents={(ids, updates) => { setAppEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...updates } : e)); showToast('Events updated', 'success'); }}
 
-                    membershipRequests={membershipRequests}
-                    onApproveMembershipRequest={handleApproveMembershipRequest}
-                    onRejectMembershipRequest={handleRejectMembershipRequest}
-                     instanceBookings={instanceBookings}
-                     passcodLeads={passcodLeads}
-                />;
+                            membershipRequests={membershipRequests}
+                            onApproveMembershipRequest={handleApproveMembershipRequest}
+                            onRejectMembershipRequest={handleRejectMembershipRequest}
+                            instanceBookings={instanceBookings}
+                            passcodLeads={passcodLeads}
+                        />
+                        {viewedUser && (
+                            <div className="fixed inset-0 z-[150] bg-[#080808] overflow-y-auto">
+                                <ProfilePage
+                                    onNavigate={(page, params) => {
+                                        if (page === 'back') {
+                                            handleNavigate('adminDashboard', {}); // close overlay
+                                        } else {
+                                            handleNavigate(page, params);
+                                        }
+                                    }}
+                                    currentUser={viewedUser}
+                                    tokenBalance={viewedUser.tokenBalance ?? 0}
+                                    bookingHistory={instanceBookings
+                                        .filter(b => b.userId === viewedUser.id)
+                                        .map(b => ({
+                                            id: typeof b.id === 'string' ? parseInt(b.id.replace(/\D/g, '').slice(-8), 10) || 0 : 0,
+                                            userId: b.userId,
+                                            venueName: b.instanceId.replace(/-\d{4}-\d{2}-\d{2}$/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+                                            wingmanName: 'WINGMAN',
+                                            date: b.bookedAt ? new Date(b.bookedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+                                            tableTier: `${b.partySize} spot${b.partySize > 1 ? 's' : ''}`,
+                                            status: 'Confirmed' as const,
+                                        }))
+                                    }
+                                    favoriteVenueIds={viewedUser.favoriteVenueIds || []}
+                                    venues={appVenues}
+                                    onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })}
+                                    onLogout={undefined}
+                                    viewedByAdmin={true}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            }
             case 'wingmanDashboard': {
                 const myWingman = appWingmen.find(p => p.id === currentUser.id);
                 if (!myWingman) return <div>Wingman dashboard unavailable.</div>;
@@ -2370,7 +2432,7 @@ export const App: React.FC = () => {
                 />;
             }
             case 'bookings': {
-                const allInstancesForBookings = generateEventFeed(bookedMap, cancelMap, 4);
+                const allInstancesForBookings = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
                 return <BookingsPage
                     onNavigate={handleNavigate}
                     bookedItems={bookedItems}
@@ -2538,7 +2600,7 @@ export const App: React.FC = () => {
                 />;
             case 'checkout': {
                 // Build watchlist from bookmarked EventInstances + existing CartItem watchlist
-                const allInstances = generateEventFeed(bookedMap, cancelMap, 4);
+                const allInstances = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
                 const instanceWatchlist: CartItem[] = bookmarkedInstanceIds
                     .map(id => allInstances.find(i => i.instanceId === id))
                     .filter(Boolean)
@@ -2852,12 +2914,25 @@ export const App: React.FC = () => {
             case 'cookieSettings': return <CookieSettingsPage onNavigate={handleNavigate} onSave={() => showToast('Cookie preferences saved.', 'success')} />;
             case 'dataExport': return <DataExportPage requests={mockDataExportRequests} onNewRequest={() => showToast('Data export request submitted. You will receive an email within 48 hours.', 'success')} onNavigate={handleNavigate} />;
             case 'tokenWallet': return <TokenWalletPage onNavigate={handleNavigate} transactions={tokenTransactions} />;
-            case 'editProfile': return <EditProfilePage 
-                currentUser={currentUser} 
-                onSave={handleUpdateUserWithRewardCheck} 
-                onNavigate={handleNavigate} 
-                showToast={showToast} 
-            />;
+            case 'editProfile': {
+                const targetUserId = pageParams.viewedUserId;
+                const viewedUser = targetUserId ? appUsers.find(u => u.id === targetUserId) : null;
+                const userToUse = viewedUser || currentUser;
+                const isAdminEditing = !!viewedUser && currentUser.role === UserRole.ADMIN;
+                return <EditProfilePage 
+                    currentUser={userToUse} 
+                    onSave={(updatedUser) => {
+                        if (isAdminEditing) {
+                            handleAdminEditUser(updatedUser);
+                        } else {
+                            handleUpdateUserWithRewardCheck(updatedUser);
+                        }
+                    }} 
+                    onNavigate={handleNavigate} 
+                    showToast={showToast} 
+                    isAdminEditing={isAdminEditing}
+                />;
+            }
             case 'referFriend': return <ReferFriendPage />;
             case 'hireWingman': return <HireWingmanPage
                 currentUser={currentUser}
@@ -3264,6 +3339,10 @@ export const App: React.FC = () => {
                         onBlock={previewUser ? (u) => {
                             handleAdminEditUser({ ...u, status: u.status === 'blocked' ? 'active' : 'blocked' });
                             setPreviewUser(null);
+                        } : undefined}
+                        onViewProfile={previewUser ? (u) => {
+                            setPreviewUser(null);
+                            handleNavigate('adminDashboard', { viewedUserId: u.id });
                         } : undefined}
                     />
                 </>

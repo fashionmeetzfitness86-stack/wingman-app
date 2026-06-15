@@ -1,7 +1,6 @@
-
 import { Venue, Wingman, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, WingmanApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
 
-// Mock Users — only the admin and Wingman host seed entries
+// Mock Users — seed entries
 export const users: User[] = [
   {
     id: 1, // Wingman host
@@ -30,6 +29,83 @@ export const users: User[] = [
     status: 'active',
     approvalStatus: 'approved',
     subscriptionStatus: 'active'
+  },
+  {
+    id: 10,
+    name: 'Sophia Ross',
+    email: 'sophia@example.com',
+    profilePhoto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+    accessLevel: UserAccessLevel.APPROVED_GIRL,
+    role: UserRole.USER,
+    city: 'Miami',
+    joinDate: '2026-01-15',
+    instagramHandle: 'sophia_ross',
+    tiktokHandle: 'sophia_travels',
+    phoneNumber: '+13055550143',
+    status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active',
+    bio: 'Miami local lover of electronic music, beaches, and art. Always exploring the best rooftop views.',
+    dob: '1998-07-22',
+    ethnicity: 'White',
+    appearance: {
+      height: "5'7\"",
+      eyeColor: 'Blue',
+      hairColor: 'Blonde',
+      build: 'Slender'
+    },
+    preferences: {
+      music: ['EDM', 'House'],
+      activities: ['Dancing', 'Rooftop Views'],
+      personality: 'The Social Connector',
+      timeOfDay: 'Nighttime'
+    },
+    emergencyContact: 'John Ross (Father) - +13055550100',
+    uploadedDocuments: [
+      'https://example.com/docs/sophia_id_front.jpg',
+      'https://example.com/docs/sophia_id_back.jpg'
+    ],
+    verificationStatus: 'verified',
+    tokenBalance: 250,
+    favoriteVenueIds: [208, 301]
+  },
+  {
+    id: 11,
+    name: 'Marcus Vance',
+    email: 'marcus@example.com',
+    profilePhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+    accessLevel: UserAccessLevel.GENERAL,
+    role: UserRole.USER,
+    city: 'Miami',
+    joinDate: '2026-06-10',
+    instagramHandle: 'marcus_vance',
+    tiktokHandle: '',
+    phoneNumber: '+13055550198',
+    status: 'active',
+    approvalStatus: 'pending',
+    subscriptionStatus: 'free_tier',
+    bio: 'Tech entrepreneur visiting Miami for the summer. Looking for good vibes and great connections.',
+    dob: '1992-11-03',
+    ethnicity: 'Black or African American',
+    appearance: {
+      height: "6'1\"",
+      eyeColor: 'Brown',
+      hairColor: 'Black',
+      build: 'Athletic'
+    },
+    preferences: {
+      music: ['Hip-Hop', 'Open Format'],
+      activities: ['Dining & Party', 'Live Music'],
+      personality: 'The Adventurous Explorer',
+      timeOfDay: 'Both'
+    },
+    emergencyContact: 'Sarah Vance (Sister) - +12125550199',
+    uploadedDocuments: [
+      'https://example.com/docs/marcus_id_front.jpg'
+    ],
+    verificationStatus: 'unverified',
+    tokenBalance: 0,
+    favoriteVenueIds: [204]
   }
 ];
 
@@ -43,8 +119,8 @@ export const wingmen: Wingman[] = [
     bio: 'Top wingman for LIV and Story. I can get you the best tables.',
     profilePhoto: 'https://i.pravatar.cc/150?u=1',
     city: 'Miami',
-    weeklySchedule: [{ day: 'Friday', venueId: 1 }, { day: 'Saturday', venueId: 2 }],
-    assignedVenueIds: [1, 2],
+    weeklySchedule: [{ day: 'Friday', venueId: 208 }, { day: 'Saturday', venueId: 203 }],
+    assignedVenueIds: [208, 203],
     earnings: 12500,
     isOnline: true,
     favoritedByCount: 150,
@@ -58,8 +134,8 @@ export const wingmen: Wingman[] = [
     bio: 'Exclusive access to E11EVEN and Komodo. DM for guestlist.',
     profilePhoto: 'https://i.pravatar.cc/150?u=2',
     city: 'Miami',
-    weeklySchedule: [{ day: 'Thursday', venueId: 3 }, { day: 'Sunday', venueId: 1 }],
-    assignedVenueIds: [3, 1],
+    weeklySchedule: [{ day: 'Thursday', venueId: 211 }, { day: 'Sunday', venueId: 106 }],
+    assignedVenueIds: [211, 106],
     earnings: 9800,
     isOnline: false,
     favoritedByCount: 120,
@@ -70,331 +146,669 @@ export const wingmen: Wingman[] = [
 // Mock Venues
 export const venues: Venue[] = [
   {
-    id: 1,
-    name: 'LIV',
-    category: 'Nightclub',
-    location: 'Miami Beach',
-    musicType: 'EDM / House',
-    vibe: 'High Energy',
-    coverImage: 'https://picsum.photos/seed/liv/800/600',
-    operatingDays: ['Thursday', 'Friday', 'Saturday', 'Sunday'],
-    capacity: 1500,
-    averageRating: 4.7,
-    totalReviews: 320,
-    isGuestlistAvailable: true,
-    dressCode: 'Upscale nightclub attire. Men: dress shirt or blazer, dress pants or dark jeans, dress shoes. No sneakers, no shorts, no hats, no graphic tees. Women: cocktail dress, heels or dressy sandals.',
-    entryNotes: 'Arrive with your Wingman confirmation. Give your name at the door — you will be walked to the table, not left at the line. Come groomed and dressed to impress. The door staff make quick decisions.',
-    arrivalTip: 'Arrive between 11:00 PM – 12:00 AM. After 1 AM the line is long and entry becomes stricter.',
-    tableOptions: [
-      { id: 't1', name: 'Dance Floor Table', area: 'Main Room', minSpend: 5000, description: 'Right in the action', capacityHint: 'Small Groups' },
-      { id: 't2', name: 'VIP Booth', area: 'Mezzanine', minSpend: 3000, description: 'Private view of the stage', capacityHint: 'Large Groups' }
-    ]
+    id: 101,
+    name: 'Marion',
+    category: 'Restaurant',
+    location: '1111 SW 1st Ave, Miami, FL 33130',
+    musicType: 'Open Format / Lounge House',
+    vibe: 'Upscale social dining, nightlife crossover',
+    coverImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
+    operatingDays: ['Friday'],
+    capacity: 250,
+    dressCode: 'Chic & elegant cocktail attire. Strictly enforced.',
+    entryNotes: 'Dinner reservations transition to high-energy party after 11 PM.',
+    arrivalTip: 'Recommended arrival by 9:45 PM for host seating.',
+    isGuestlistAvailable: false,
+    averageRating: 4.8,
+    totalReviews: 195,
+    description: "Marion is Brickell's premier dining destination, where chic upscale dining meets high-energy nightlife.",
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'brickell', 'upscale', 'party-brunch'],
+    isFeatured: true,
+    adminNotes: 'Hosted table requires minimum 2 bottles for VIP experience.'
   },
   {
-    id: 2,
-    name: 'Story',
-    category: 'Nightclub',
-    location: 'South Beach',
-    musicType: 'Hip Hop',
-    vibe: 'Trendy',
-    coverImage: 'https://picsum.photos/seed/story/800/600',
+    id: 102,
+    name: 'Queen',
+    category: 'Restaurant',
+    location: '550 Washington Ave, Miami Beach, FL 33139',
+    musicType: 'Deep House / Lounge',
+    vibe: 'Luxury dining experience, elegant ambiance',
+    coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    operatingDays: ['Saturday'],
+    capacity: 300,
+    dressCode: 'Strict upscale dress code. Blazers/heels strongly recommended.',
+    entryNotes: 'Arrive at the host stand with your booking confirmation.',
+    arrivalTip: 'Arrival by 9:45 PM is essential for coordinated seating.',
+    isGuestlistAvailable: false,
+    averageRating: 4.9,
+    totalReviews: 120,
+    description: 'Located in the historic Paris Theater, Queen is a luxury Japanese dining destination of unparalleled elegance.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'south-beach', 'luxury', 'japanese'],
+    isFeatured: true,
+    adminNotes: 'VIP table reservation at the mezzanine overlooks the main theater floor.'
+  },
+  {
+    id: 103,
+    name: 'Baoli',
+    category: 'Luxury Restaurant',
+    location: '1906 Collins Ave, Miami Beach, FL 33139',
+    musicType: 'Open Format',
+    vibe: 'Fine dining transitioning into nightlife',
+    coverImage: 'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800&q=80',
     operatingDays: ['Thursday', 'Friday', 'Saturday'],
-    capacity: 1200,
-    averageRating: 4.5,
-    totalReviews: 210,
+    capacity: 200,
+    dressCode: 'Fashion-forward cocktail attire.',
+    entryNotes: 'Ideal for networking and late-night social scenes.',
+    arrivalTip: 'Recommended table booking by 10:00 PM.',
     isGuestlistAvailable: true,
-    dressCode: 'Fashion-forward nightclub look. Men: slim-fit dress shirt, dark trousers or fitted jeans, leather or suede shoes. No athletic wear, no sneakers, no flip-flops. Women: chic dress or stylish separates.',
-    entryNotes: 'Story is image-conscious — the door team pays attention to how you present. Arrive as a group with your Wingman booking reference. Look confident, be friendly with door staff. Do not bring large groups or show up underdressed.',
-    arrivalTip: 'Best window is 11:30 PM – 12:30 AM. Earlier and the energy is low, later and the door becomes selective.',
-    tableOptions: [
-       { id: 't3', name: 'Owners Table', area: 'Main Room', minSpend: 8000, description: 'Best table in the house', capacityHint: 'Large Groups' }
-    ]
+    averageRating: 4.6,
+    totalReviews: 240,
+    description: 'Baoli imports the chic sophistication of the French Riviera to Miamiʼs South Beach.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'south-beach', 'international', 'nightlife'],
+    isFeatured: false,
+    adminNotes: 'High-volume bookings on weekends.'
   },
   {
-    id: 3,
+    id: 104,
+    name: 'Sexy Fish',
+    category: 'Luxury Restaurant',
+    location: '1001 S Miami Ave, Miami, FL 33130',
+    musicType: 'Lounge House',
+    vibe: 'High-end dining, premium cocktails, glamorous aesthetic',
+    coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    operatingDays: ['Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    capacity: 300,
+    dressCode: 'Strictly glamorous. No caps, sportswear, or shorts.',
+    entryNotes: 'Prepare for a visual and culinary feast.',
+    arrivalTip: 'Late dinner seating starts around 10:00 PM.',
+    isGuestlistAvailable: false,
+    averageRating: 4.7,
+    totalReviews: 310,
+    description: 'Glamorous Asian restaurant and bar in Brickell serving high-end sushi, cocktails, and late-night vibes.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'brickell', 'sushi', 'glamour'],
+    isFeatured: true,
+    adminNotes: 'Must-try destination for upscale clients.'
+  },
+  {
+    id: 105,
+    name: 'Negroni Midtown',
+    category: 'Restaurant',
+    location: '3201 Buena Vista Blvd, Miami, FL 33127',
+    musicType: 'Deep House / Lounge',
+    vibe: 'Modern social dining',
+    coverImage: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday', 'Sunday'],
+    capacity: 180,
+    dressCode: 'Smart casual to upscale.',
+    entryNotes: 'Lively bar area with signature cocktails.',
+    arrivalTip: 'Happy hour and dinner seatings are popular.',
+    isGuestlistAvailable: false,
+    averageRating: 4.5,
+    totalReviews: 160,
+    description: 'Midtown\'s premier destination for fusion dining, hand-crafted cocktails, and a lively social scene.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'midtown', 'cocktails', 'fusion'],
+    isFeatured: false
+  },
+  {
+    id: 106,
     name: 'Komodo',
     category: 'Restaurant',
-    location: 'Brickell',
-    musicType: 'Lounge',
-    vibe: 'Sophisticated',
-    coverImage: 'https://picsum.photos/seed/komodo/800/600',
+    location: '801 Brickell Ave, Miami, FL 33131',
+    musicType: 'Open Format',
+    vibe: 'Contemporary upscale Asian-inspired dining',
+    coverImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
     operatingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    capacity: 400,
+    capacity: 450,
+    dressCode: 'Upscale fashionable attire.',
+    entryNotes: 'Three-story indoor/outdoor dining temple.',
+    arrivalTip: 'Dine early, then head to the lounge upstairs.',
+    isGuestlistAvailable: true,
     averageRating: 4.8,
-    totalReviews: 450,
-    dressCode: 'Smart casual to upscale. Men: collared shirt, chinos or dress pants, loafers or clean dress shoes. Women: a dress, blouse with trousers, or an elegant casual look. Avoid beachwear, athletic wear, or flip-flops.',
-    entryNotes: 'Komodo is a dining-first experience. Your Wingman reservation is tied to the table — confirm with the host stand upon arrival. Be on time: tables are held for 10 minutes max. Present yourself calmly and professionally.',
-    arrivalTip: 'Dinner is best between 8:00 PM and 9:30 PM. After 10 PM it transitions to a lounge atmosphere — still great but different energy.',
-    tableOptions: []
+    totalReviews: 540,
+    description: 'Komodo connects Southeast Asian cuisine with a vibrant Brickell neighborhood energy.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'brickell', 'asian', 'lounge'],
+    isFeatured: false
   },
   {
-    id: 4,
+    id: 107,
+    name: 'Zuma',
+    category: 'Restaurant',
+    location: '270 Biscayne Blvd Way, Miami, FL 33131',
+    musicType: 'Minimal Lounge',
+    vibe: 'Premium Japanese dining experience',
+    coverImage: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday'],
+    capacity: 250,
+    dressCode: 'Elegant smart casual.',
+    entryNotes: 'Located in the Kimpton Epic Hotel by the river.',
+    arrivalTip: 'Arrive on time; tables are held for 15 minutes.',
+    isGuestlistAvailable: false,
+    averageRating: 4.8,
+    totalReviews: 290,
+    description: 'World-class contemporary Japanese Izakaya dining in the heart of Downtown Miami.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'downtown', 'japanese', 'sushi'],
+    isFeatured: false
+  },
+  {
+    id: 108,
+    name: 'Amazonico',
+    category: 'Restaurant',
+    location: '801 Brickell Ave, Miami, FL 33131',
+    musicType: 'Electro-Pical / Latin House',
+    vibe: 'Luxury destination dining',
+    coverImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday'],
+    capacity: 350,
+    dressCode: 'Smart chic dress code. Highly fashionable.',
+    entryNotes: 'Lush rainforest decor with high-energy lounge.',
+    arrivalTip: 'Enjoy live jazz at the bar beforehand.',
+    isGuestlistAvailable: false,
+    averageRating: 4.7,
+    totalReviews: 170,
+    description: 'A sensory journey through the Amazon rainforest with upscale fusion cuisine and vibrant beats.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'brickell', 'latin', 'jungle'],
+    isFeatured: false
+  },
+  {
+    id: 109,
+    name: 'Kiki on the River',
+    category: 'Waterfront Restaurant',
+    location: '460 NW North River Dr, Miami, FL 33128',
+    musicType: 'Greek / Open Format',
+    vibe: 'Mediterranean-inspired Greek social scene',
+    coverImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday', 'Sunday'],
+    capacity: 220,
+    dressCode: 'Stylish waterfront dress code.',
+    entryNotes: 'Lively Sunday afternoon scene with Greek music.',
+    arrivalTip: 'Dine waterfront for the best river views.',
+    isGuestlistAvailable: true,
+    averageRating: 4.6,
+    totalReviews: 380,
+    description: 'Kiki on the River brings Greek island charm and celebration to the historic Miami River.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'river', 'waterfront', 'greek'],
+    isFeatured: false
+  },
+  {
+    id: 110,
+    name: 'Seaspice',
+    category: 'Waterfront Restaurant',
+    location: '422 NW North River Dr, Miami, FL 33128',
+    musicType: 'Lounge House / Melodic',
+    vibe: 'Luxury waterfront dining and lounge',
+    coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday', 'Sunday'],
+    capacity: 300,
+    dressCode: 'Upscale waterfront chic.',
+    entryNotes: 'Elegant riverside dock hosting yachts and dining.',
+    arrivalTip: 'Popular on Saturday and Sunday afternoons.',
+    isGuestlistAvailable: false,
+    averageRating: 4.7,
+    totalReviews: 290,
+    description: 'A stylishly designed riverfront brasserie offering seafood, wood-fired cooking, and yacht dockage.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'river', 'waterfront', 'seafood'],
+    isFeatured: false
+  },
+  {
+    id: 111,
+    name: 'Habibi',
+    category: 'Restaurant',
+    location: 'Miami Design District, FL',
+    musicType: 'Middle Eastern / House',
+    vibe: 'Premium Middle Eastern social dining',
+    coverImage: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday'],
+    capacity: 150,
+    dressCode: 'Glamorous and upscale.',
+    entryNotes: 'Exotic Middle Eastern hospitality and music.',
+    arrivalTip: 'Late evening dining transitions to nightlife.',
+    isGuestlistAvailable: false,
+    averageRating: 4.6,
+    totalReviews: 80,
+    description: 'A premium Middle Eastern dining concept that transforms dinners into sensory nightlife celebrations.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'design-district', 'arabic', 'hookah'],
+    isFeatured: false
+  },
+  {
+    id: 112,
+    name: 'Casa Neos',
+    category: 'Restaurant',
+    location: 'Miami River, FL',
+    musicType: 'Organic House',
+    vibe: 'Elevated beach club and restaurant crossover',
+    coverImage: 'https://images.unsplash.com/photo-1560624052-449f5ddf0c31?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday', 'Sunday'],
+    capacity: 250,
+    dressCode: 'Riviera chic dress code.',
+    entryNotes: 'Aegean hospitality on the riverbank.',
+    arrivalTip: 'Arrive early for sunset cocktails.',
+    isGuestlistAvailable: false,
+    averageRating: 4.7,
+    totalReviews: 95,
+    description: 'Casa Neos is a luxury riverfront beach club and restaurant offering Aegean-inspired hospitality.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'river', 'waterfront', 'beachclub'],
+    isFeatured: false
+  },
+  {
+    id: 113,
+    name: 'Pluma',
+    category: 'Restaurant',
+    location: 'Coconut Grove, FL',
+    musicType: 'Soft Lounge',
+    vibe: 'Boutique luxury dining',
+    coverImage: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday'],
+    capacity: 120,
+    dressCode: 'Smart elegant.',
+    entryNotes: 'Intimate setting, valet parking available.',
+    arrivalTip: 'Table reservations recommended.',
+    isGuestlistAvailable: false,
+    averageRating: 4.8,
+    totalReviews: 60,
+    description: 'Refined modern dining in the heart of Coconut Grove.',
+    experienceType: 'Dinner',
+    arrivalTime: '9:45 PM',
+    searchTags: ['dinner', 'coconut-grove', 'intimate', 'boutique'],
+    isFeatured: false
+  },
+  {
+    id: 201,
+    name: 'Vendôme',
+    category: 'Nightclub',
+    location: 'Miami Beach, FL',
+    musicType: 'Hip Hop / Open Format',
+    vibe: 'VIP Hosted Nightlife',
+    coverImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
+    operatingDays: ['Monday', 'Friday', 'Saturday'],
+    capacity: 400,
+    dressCode: 'Strictly upscale nightlife attire.',
+    entryNotes: 'Bespoke boutique club experience for VIPs.',
+    arrivalTip: 'Meet the Wingman at the VIP rope at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.7,
+    totalReviews: 120,
+    description: 'An intimate boutique nightclub bringing luxury design and upscale crowds to South Beach.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'south-beach', 'hiphop', 'vip'],
+    isFeatured: false
+  },
+  {
+    id: 202,
+    name: 'Booby Trap',
+    category: 'Nightclub',
+    location: 'Miami, FL',
+    musicType: 'Hip Hop / Latin',
+    vibe: 'Hosted Lounge & Nightlife',
+    coverImage: 'https://images.unsplash.com/photo-1489641499538-be02ed38ac99?w=800&q=80',
+    operatingDays: ['Monday', 'Thursday', 'Sunday'],
+    capacity: 300,
+    dressCode: 'Chic / fashionable streetwear.',
+    entryNotes: 'Laid-back yet highly energetic local lounge.',
+    arrivalTip: 'Wingman hosted meetup starts at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.4,
+    totalReviews: 95,
+    description: 'A legendary local late-night hosted lounge experience with top-tier vibes.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'local', 'lounge', 'hiphop'],
+    isFeatured: false
+  },
+  {
+    id: 203,
     name: 'Mr. Jones',
     category: 'Nightclub',
     location: '320 Lincoln Rd, Miami Beach, FL 33139',
     musicType: 'Hip Hop / Top 40',
-    vibe: 'Trendy',
+    vibe: 'VIP Hosted Nightclub Experience',
     coverImage: 'https://images.unsplash.com/photo-1571265209853-8cf0b7a2c39b?w=800&q=80',
     operatingDays: ['Tuesday', 'Friday', 'Saturday'],
     capacity: 600,
+    dressCode: 'Clean, stylish nightclub look.',
+    entryNotes: 'Skip the lines with direct hosted check-in.',
+    arrivalTip: 'Hosted check-in begins at 1:00 AM.',
+    isGuestlistAvailable: true,
     averageRating: 4.6,
     totalReviews: 180,
+    description: 'Miami Beach\'s premier hip-hop nightclub hosting world-class artists and high-energy crowds.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'south-beach', 'hiphop', 'celebrities'],
+    isFeatured: true
+  },
+  {
+    id: 204,
+    name: 'Mona Club',
+    category: 'Nightclub',
+    location: 'Miami Beach, FL',
+    musicType: 'Techno / House',
+    vibe: 'High Energy Electronic Nightlife',
+    coverImage: 'https://images.unsplash.com/photo-1545128485-c400e7702796?w=800&q=80',
+    operatingDays: ['Tuesday', 'Thursday', 'Sunday'],
+    capacity: 1200,
+    dressCode: 'Dark chic / avant-garde.',
+    entryNotes: 'State-of-the-art visual production and massive sound.',
+    arrivalTip: 'Meet the host at the entrance by 1:00 AM.',
     isGuestlistAvailable: true,
-    dressCode: 'Stylish and clean. Men: fitted shirt (button-up or premium crew), dark jeans or trousers, clean sneakers or dress shoes accepted. No ripped jeans, no oversized sportswear, no sandals. Women: casual-chic — dress, skirt, or polished separates.',
-    entryNotes: 'Mr. Jones runs a tight door — your Wingman booking gets you past the line. Walk up confidently, give your name, and follow the host. Groups should arrive together: split groups may be asked to wait for all members.',
-    arrivalTip: 'Ideal arrival is 11:00 PM – 12:00 AM. The venue fills quickly on Fridays and Saturdays — earlier is smoother.',
-    tableOptions: [
-      { id: 'mj-t1', name: 'Main Floor Table', area: 'Main Room', minSpend: 3000, description: 'Center of the action on the main floor', capacityHint: 'Small Groups' },
-      { id: 'mj-t2', name: 'VIP Booth', area: 'VIP Section', minSpend: 5000, description: 'Elevated VIP section with bottle service', capacityHint: 'Large Groups' }
-    ]
+    averageRating: 4.5,
+    totalReviews: 310,
+    description: 'Replaces M2. Mona Club is the new epicenter of electronic music on Miami Beach.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'south-beach', 'techno', 'house'],
+    isFeatured: false
+  },
+  {
+    id: 205,
+    name: 'Coco',
+    category: 'Nightclub',
+    location: 'Miami, FL',
+    musicType: 'Open Format',
+    vibe: 'High Energy / Exclusive Boutique Clubbing',
+    coverImage: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=80',
+    operatingDays: ['Wednesday', 'Friday', 'Saturday'],
+    capacity: 500,
+    dressCode: 'Fashionable, upscale nightlife attire.',
+    entryNotes: 'Intimate room with premium bottle service.',
+    arrivalTip: 'Meet the Wingman at the VIP rope at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.7,
+    totalReviews: 110,
+    description: 'Coco combines sleek modern design with the energy of a premium global boutique club.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'boutique', 'exclusive', 'fashion'],
+    isFeatured: false
+  },
+  {
+    id: 206,
+    name: 'Bacara',
+    category: 'Nightclub',
+    location: 'Brickell, FL',
+    musicType: 'Latin House / Open Format',
+    vibe: 'Sophisticated Late Night Vibe',
+    coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
+    operatingDays: ['Wednesday'],
+    capacity: 350,
+    dressCode: 'Smart elegant nightlife.',
+    entryNotes: 'Brickell\'s premier mid-week nightlife option.',
+    arrivalTip: 'Meet the host at the side door by 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.5,
+    totalReviews: 70,
+    description: 'Brickell\'s premier mid-week nightlife experience combining global beats and chic crowds.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'brickell', 'latin', 'midweek'],
+    isFeatured: false
+  },
+  {
+    id: 207,
+    name: 'Mynt',
+    category: 'Nightclub',
+    location: '1921 Collins Ave, Miami Beach, FL 33139',
+    musicType: 'House / EDM',
+    vibe: 'Elite Nightlife / High Fashion',
+    coverImage: 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday'],
+    capacity: 400,
+    dressCode: 'Strict ultra-chic dress code. Collared shirts for men.',
+    entryNotes: 'Ultra-exclusive lounge with a strict door policy.',
+    arrivalTip: 'Hosted check-in is strictly at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.6,
+    totalReviews: 190,
+    description: 'A legendary South Beach lounge renowned for its strict door and premium EDM vibe.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'south-beach', 'house', 'models'],
+    isFeatured: false
+  },
+  {
+    id: 208,
+    name: 'LIV',
+    category: 'Nightclub',
+    location: '4441 Collins Ave, Miami Beach, FL 33140',
+    musicType: 'EDM / Open Format',
+    vibe: 'High Energy Festival Production',
+    coverImage: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
+    operatingDays: ['Thursday', 'Friday', 'Saturday', 'Sunday'],
+    capacity: 1500,
+    dressCode: 'Strict upscale dress code. No sneakers/shorts.',
+    entryNotes: 'World-famous megaclub located at the Fontainebleau.',
+    arrivalTip: 'Hosted entry is coordinated at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.8,
+    totalReviews: 680,
+    description: 'LIV stands as the global standard for mega-clubs, combining high-energy production and world-famous artists.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'megaclub', 'edm', 'fontainebleau'],
+    isFeatured: true
+  },
+  {
+    id: 209,
+    name: 'Club Space',
+    category: 'Nightclub',
+    location: '34 NE 11th St, Miami, FL 33132',
+    musicType: 'Techno / Tech House / Minimal',
+    vibe: 'Legendary Multi-Room Marathon',
+    coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday'],
+    capacity: 2000,
+    dressCode: 'Club/festival casual. Sunglasses encouraged.',
+    entryNotes: 'Terrace is open all night and morning.',
+    arrivalTip: 'Meet host at 1:00 AM at the VIP line.',
+    isGuestlistAvailable: true,
+    averageRating: 4.9,
+    totalReviews: 920,
+    description: 'The global capital of marathon clubbing, where electronic music runs from midnight to afternoon.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'terrace', 'techno', 'house'],
+    isFeatured: true
+  },
+  {
+    id: 210,
+    name: 'Electric Lady',
+    category: 'Nightclub',
+    location: 'Miami, FL',
+    musicType: 'Indie Dance / Nu-Disco',
+    vibe: 'Trendy, Retro Nightlife Vibe',
+    coverImage: 'https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday'],
+    capacity: 350,
+    dressCode: 'Trendy, fashionable street/clubwear.',
+    entryNotes: 'Bespoke sound and retro cocktail lounge.',
+    arrivalTip: 'Hosted check-in begins at 1:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.5,
+    totalReviews: 65,
+    description: 'An intimate dance club offering an alternative nu-disco soundscape and high-end cocktails.',
+    experienceType: 'Nightclub',
+    arrivalTime: '1:00 AM',
+    searchTags: ['club', 'indie', 'disco', 'cocktails'],
+    isFeatured: false
+  },
+  {
+    id: 211,
+    name: 'E11EVEN',
+    category: 'After Hours Nightclub',
+    location: '29 NE 11th St, Miami, FL 33132',
+    musicType: 'Open Format / EDM',
+    vibe: '24/7 Theatrical Show Club',
+    coverImage: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80',
+    operatingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    capacity: 1000,
+    dressCode: 'Stylish nightlife attire.',
+    entryNotes: '24-hour ultra club with circus-style acts.',
+    arrivalTip: 'Standard entry at 12:00 AM (Midnight). Hosted nights (Thu-Sun) have meetup at 3:00 AM.',
+    isGuestlistAvailable: true,
+    averageRating: 4.8,
+    totalReviews: 810,
+    description: 'E11EVEN is the premier 24/7 after-hours ultra club, featuring theatrical shows and top DJs in a festival atmosphere.',
+    experienceType: 'Nightclub',
+    arrivalTime: '12:00 AM',
+    searchTags: ['club', 'afterhours', '24-7', 'show'],
+    isFeatured: true
+  },
+  {
+    id: 301,
+    name: 'Wingman Yacht Party',
+    category: 'Yacht Experience',
+    location: 'Miami Beach Marina, FL',
+    musicType: 'Summer House / Afro House',
+    vibe: 'Premium hosted social yacht cruise',
+    coverImage: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&q=80',
+    operatingDays: ['Friday', 'Saturday', 'Sunday'],
+    capacity: 12,
+    dressCode: 'Boating chic / swimwear with cover-ups.',
+    entryNotes: 'Boarding begins at Marina dock. Drinks provided.',
+    arrivalTip: 'Boarding strictly at 4:00 PM.',
+    isGuestlistAvailable: false,
+    averageRating: 4.9,
+    totalReviews: 140,
+    description: 'A premium hosted Yacht Experience sailing around Miami\'s beautiful Biscayne Bay with champagne and house beats.',
+    experienceType: 'Yacht',
+    arrivalTime: '4:00 PM',
+    searchTags: ['yacht', 'bay', 'cruise', 'champagne'],
+    isFeatured: true
   }
 ];
 
 // Mock Bottles
 export const bottles: Bottle[] = [
-    { id: 'b1', name: 'Grey Goose', price: 350 },
-    { id: 'b2', name: 'Dom Perignon', price: 650 },
-    { id: 'b3', name: 'Don Julio 1942', price: 700 },
-    { id: 'b4', name: 'Tito\'s Vodka', price: 300 },
-    { id: 'b5', name: 'Casamigos Blanco', price: 400 },
-    { id: 'b6', name: 'Casamigos Reposado', price: 450 },
-    { id: 'b7', name: 'Hennessy V.S', price: 350 },
-    { id: 'b8', name: 'Moët & Chandon Imperial', price: 250 },
-    { id: 'b9', name: 'Clase Azul Reposado', price: 750 }, // New
-    { id: 'b10', name: 'Ace of Spades Gold', price: 800 }, // New
+  { id: 'b1', name: 'Grey Goose', price: 350 },
+  { id: 'b2', name: 'Dom Perignon', price: 650 },
+  { id: 'b3', name: 'Don Julio 1942', price: 700 },
+  { id: 'b4', name: "Tito's Vodka", price: 300 },
+  { id: 'b5', name: 'Casamigos Blanco', price: 400 },
+  { id: 'b6', name: 'Casamigos Reposado', price: 450 },
+  { id: 'b7', name: 'Hennessy V.S', price: 350 },
+  { id: 'b8', name: 'Moët & Chandon Imperial', price: 250 },
+  { id: 'b9', name: 'Clase Azul Reposado', price: 750 },
+  { id: 'b10', name: 'Ace of Spades Gold', price: 800 }
 ];
 
-// Booking history starts empty — populated by real user bookings
+// Booking history starts empty
 export const bookingHistory: Booking[] = [];
 
 // Mock Transactions
 export const mockTokenTransactions: Transaction[] = [
-    { type: 'add', amount: 1000, reason: 'Purchase', date: '2023-12-01', time: '10:00 AM' },
-    { type: 'spend', amount: 200, reason: 'Event Ticket', date: '2023-12-05', time: '09:30 PM', itemName: 'Neon Party' }
+  { type: 'add', amount: 1000, reason: 'Purchase', date: '2023-12-01', time: '10:00 AM' },
+  { type: 'spend', amount: 200, reason: 'Event Ticket', date: '2023-12-05', time: '09:30 PM', itemName: 'Neon Party' }
 ];
 
-// Access groups start empty
+// Empty starts for other records
 export const accessGroups: AccessGroup[] = [];
-
-// Group posts start empty
 export const groupPosts: GroupPost[] = [];
-
-// Itineraries start empty
 export const itineraries: Itinerary[] = [];
-
-// Mock Events
-export const events: Event[] = [
-    // Upcoming Spring Events 2025
-    { id: 300, title: 'Spring Break Kickoff', description: 'Start the season with a massive pool party at Strawberry Moon. Top DJs and endless vibes.', image: 'https://picsum.photos/seed/springbreak/800/400', date: '2025-03-10', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 50, venueId: 2 },
-    { id: 301, title: 'Miami Music Week Opening', description: 'The official opening party for MMW. Expect surprise guests and cutting-edge electronic music.', image: 'https://picsum.photos/seed/mmwopen/800/400', date: '2025-03-18', type: 'EXCLUSIVE', priceFemale: 40, priceMale: 80, venueId: 1 },
-    { id: 302, title: 'Techno Terrace', description: 'Deep melodic techno on the rooftop. An immersive audio-visual experience.', image: 'https://picsum.photos/seed/techno/800/400', date: '2025-03-19', type: 'EXCLUSIVE', priceFemale: 30, priceMale: 60, venueId: 3 },
-    { id: 303, title: 'Ultra VIP Experience', description: 'Exclusive access to the VIP decks at the main stage. Best view in the house.', image: 'https://picsum.photos/seed/ultra/800/400', date: '2025-03-21', type: 'INVITE ONLY', priceFemale: 0, priceMale: 500, venueId: 1 },
-    { id: 304, title: 'Sunrise Afterhours', description: 'Keep the party going until the sun comes up. The legendary afterparty.', image: 'https://picsum.photos/seed/sunrise/800/400', date: '2025-03-22', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 50, venueId: 2 },
-    { id: 305, title: 'Recovery Brunch', description: 'Detox to retox. Bottomless mimosas and gourmet bites by the water.', image: 'https://picsum.photos/seed/brunch/800/400', date: '2025-03-23', type: 'EXCLUSIVE', priceFemale: 50, priceMale: 50, venueId: 3 },
-    { id: 306, title: 'Calle Ocho VIP Lounge', description: 'Experience the festival from the comfort of a private VIP lounge with open bar.', image: 'https://picsum.photos/seed/calle/800/400', date: '2025-03-25', type: 'INVITE ONLY', priceFemale: 0, priceMale: 150, venueId: 2 },
-    { id: 307, title: 'Rooftop Sunset Sessions', description: 'Chill house beats, golden hour views, and craft cocktails.', image: 'https://picsum.photos/seed/rooftop2/800/400', date: '2025-03-28', type: 'EXCLUSIVE', priceFemale: 0, priceMale: 40, venueId: 3 },
-    { id: 308, title: 'Full Moon Beach Party', description: 'Dancing under the stars on the sand. Fire dancers and tribal beats.', image: 'https://picsum.photos/seed/fullmoon2/800/400', date: '2025-03-30', type: 'EXCLUSIVE', priceFemale: 25, priceMale: 60, venueId: 1 },
-    { id: 309, title: 'Spring Equinox Gala', description: 'A black-tie celebration of the new season. Elegant, refined, and exclusive.', image: 'https://picsum.photos/seed/equinox/800/400', date: '2025-03-31', type: 'INVITE ONLY', priceFemale: 0, priceMale: 250, venueId: 3 },
-
-    // Existing Events
-    { id: 202, title: 'Neon Night', description: 'Experience the ultimate glow-in-the-dark party at LIV. High energy beats and vibrant visuals all night long.', image: 'https://picsum.photos/seed/neon/800/400', date: '2025-06-15', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 50, venueId: 1 },
-    { id: 204, title: 'Secret Garden', description: 'An intimate, invite-only gathering at Komodo\'s lounge. Sophisticated vibes and curated cocktails.', image: 'https://picsum.photos/seed/garden/800/400', date: '2025-06-20', type: 'INVITE ONLY', priceFemale: 0, priceMale: 100, venueId: 3 },
-    { id: 211, title: 'Summer Splash', description: 'The biggest pool party of the season at Story. Cool off with great music and even better company.', image: 'https://picsum.photos/seed/splash/800/400', date: '2025-07-04', type: 'EXCLUSIVE', priceFemale: 30, priceMale: 60, venueId: 2 },
-    { id: 220, title: 'Full Moon Party', description: 'Celebrate under the moonlight with top DJs.', image: 'https://picsum.photos/seed/fullmoon/800/400', date: '2025-06-25', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 60, venueId: 1 },
-    { id: 221, title: 'Hip Hop Thursdays', description: 'The best hip hop tracks all night long.', image: 'https://picsum.photos/seed/hiphop/800/400', date: '2025-06-26', type: 'EXCLUSIVE', priceFemale: 10, priceMale: 40, venueId: 2 },
-    { id: 222, title: 'Sunday Sunset', description: 'Relaxing vibes and cocktails.', image: 'https://picsum.photos/seed/sunset/800/400', date: '2025-06-29', type: 'INVITE ONLY', priceFemale: 0, priceMale: 80, venueId: 3 },
-    // New Events for testing
-    { id: 230, title: 'Summer Solstice', description: 'Celebrate the longest day of the year with an epic party at LIV.', image: 'https://picsum.photos/seed/solstice/800/400', date: '2025-06-21', type: 'EXCLUSIVE', priceFemale: 30, priceMale: 80, venueId: 1 },
-    { id: 231, title: 'Tech House Sunday', description: 'Deep beats and good vibes at Story.', image: 'https://picsum.photos/seed/techhouse/800/400', date: '2025-06-22', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 50, venueId: 2 },
-    { id: 232, title: 'Ladies Night Special', description: 'Complimentary drinks for ladies until midnight at Komodo.', image: 'https://picsum.photos/seed/ladiesnight/800/400', date: '2025-06-26', type: 'INVITE ONLY', priceFemale: 0, priceMale: 100, venueId: 3 },
-    // Newly added events for diversity
-    { id: 240, title: 'Retro Rewind', description: 'Blast from the past with 80s and 90s hits all night long at Story.', image: 'https://picsum.photos/seed/retro/800/400', date: '2025-07-10', type: 'EXCLUSIVE', priceFemale: 10, priceMale: 30, venueId: 2 },
-    { id: 241, title: 'Elite Gala', description: 'A black-tie affair for the city\'s most distinguished guests at LIV.', image: 'https://picsum.photos/seed/gala/800/400', date: '2025-07-12', type: 'INVITE ONLY', priceFemale: 0, priceMale: 200, venueId: 1 },
-    { id: 242, title: 'Tropical Beats', description: 'Island vibes and cocktails on the terrace at Komodo.', image: 'https://picsum.photos/seed/tropical/800/400', date: '2025-07-15', type: 'EXCLUSIVE', priceFemale: 25, priceMale: 50, venueId: 3 },
-    { id: 243, title: 'Sapphire Lounge Opening', description: 'Grand opening of the new Sapphire VIP section at Story. Dress to impress.', image: 'https://picsum.photos/seed/sapphire/800/400', date: '2025-07-18', type: 'INVITE ONLY', priceFemale: 0, priceMale: 150, venueId: 2 },
-    { id: 244, title: 'Midnight Masquerade', description: 'Mystery and music combine for an unforgettable night at LIV.', image: 'https://picsum.photos/seed/masquerade/800/400', date: '2025-07-20', type: 'EXCLUSIVE', priceFemale: 40, priceMale: 100, venueId: 1 },
-    // NEW EVENTS
-    { id: 250, title: 'Electric Jungle', description: 'Wild beats and immersive decor at LIV. Step into the jungle.', image: 'https://picsum.photos/seed/jungle/800/400', date: '2025-07-25', type: 'EXCLUSIVE', priceFemale: 25, priceMale: 60, venueId: 1 },
-    { id: 251, title: 'Rooftop Rhythms', description: 'Chill house music with a view at Komodo.', image: 'https://picsum.photos/seed/rooftop/800/400', date: '2025-07-26', type: 'INVITE ONLY', priceFemale: 0, priceMale: 80, venueId: 3 },
-    { id: 252, title: 'Bass Drop Friday', description: 'Heavy hitting bass music at Story. Not for the faint of heart.', image: 'https://picsum.photos/seed/bass/800/400', date: '2025-08-01', type: 'EXCLUSIVE', priceFemale: 20, priceMale: 50, venueId: 2 },
-    { id: 253, title: 'White Party', description: 'Annual White Party. Dress code strictly enforced.', image: 'https://picsum.photos/seed/whiteparty/800/400', date: '2025-08-05', type: 'EXCLUSIVE', priceFemale: 50, priceMale: 100, venueId: 1 }
-];
-
-export const suggestedEvents = [events[0], events[13], events[15]];
-export const timelineEvents = [events[1], events[2], events[14], events[16]];
-
-// Mock Experiences — VIP scheduled experiences hosted by the Wingman
-export const experiences: Experience[] = [
-    {
-        id: 1,
-        title: 'Sunset Yacht Cruise',
-        category: 'Yacht',
-        description: 'Cruise around Biscayne Bay on a private yacht with an open bar, sunset views, and curated music. The ultimate VIP on-water experience.',
-        coverImage: 'https://picsum.photos/seed/yacht/800/600',
-        location: 'Miami Marina',
-        duration: '4 Hours',
-        pricing: { unit: 'person', general: 600 },
-        access: 'invite-only',
-        capacity: 12,
-        hostId: 1,
-        // VIP Platform fields
-        scheduledDate: '2025-04-19',
-        scheduledTime: '6:00 PM',
-        spotsRemaining: 5,
-        flatRate: 600,
-        isSoldOut: false,
-    },
-    {
-        id: 2,
-        title: 'Private Island Dinner',
-        category: 'Dining',
-        description: 'An exclusive candlelit dinner on a private island accessible only by boat. Chef-curated tasting menu, fine wine, and unforgettable ambiance.',
-        coverImage: 'https://picsum.photos/seed/island/800/600',
-        location: 'Private Island, Biscayne Bay',
-        duration: '3 Hours',
-        pricing: { unit: 'person', general: 600 },
-        access: 'invite-only',
-        capacity: 8,
-        hostId: 1,
-        // VIP Platform fields
-        scheduledDate: '2025-04-26',
-        scheduledTime: '8:00 PM',
-        spotsRemaining: 3,
-        flatRate: 600,
-        isSoldOut: false,
-    },
-    {
-        id: 3,
-        title: 'Rooftop Nightlife Experience',
-        category: 'Nightlife',
-        description: 'Skip the line and join an elite crew at the most exclusive rooftop venue in Miami. VIP table, bottle service, and a curated guest list.',
-        coverImage: 'https://picsum.photos/seed/rooftop/800/600',
-        location: 'Brickell, Miami',
-        duration: '5 Hours',
-        pricing: { unit: 'person', general: 600 },
-        access: 'invite-only',
-        capacity: 15,
-        hostId: 1,
-        // VIP Platform fields
-        scheduledDate: '2025-04-25',
-        scheduledTime: '10:00 PM',
-        spotsRemaining: 0,
-        flatRate: 600,
-        isSoldOut: true,
-    },
-    {
-        id: 4,
-        title: 'VIP Beach Day',
-        category: 'Adventure',
-        description: 'Private cabana access, premium beach setup, chef-prepared lunch, and Wingman-curated activities on South Beach. Exclusive access only.',
-        coverImage: 'https://picsum.photos/seed/beach/800/600',
-        location: 'South Beach, Miami',
-        duration: '6 Hours',
-        pricing: { unit: 'person', general: 600 },
-        access: 'invite-only',
-        capacity: 10,
-        hostId: 1,
-        // VIP Platform fields
-        scheduledDate: '2025-05-03',
-        scheduledTime: '11:00 AM',
-        spotsRemaining: 7,
-        flatRate: 600,
-        isSoldOut: false,
-    },
-];
+export const events: Event[] = [];
+export const suggestedEvents: any[] = [];
+export const timelineEvents: any[] = [];
+export const experiences: Experience[] = [];
 
 // Mock Notifications
 export const mockNotifications: AppNotification[] = [
-    { id: 1, text: 'Your booking at LIV is confirmed', time: '1h ago', read: false },
-    { id: 2, text: 'New event: Neon Night', time: '3h ago', read: true, link: { page: 'eventTimeline' } }
+  { id: 1, text: 'Your booking at LIV is confirmed', time: '1h ago', read: false },
+  { id: 2, text: 'New event available', time: '3h ago', read: true, link: { page: 'eventTimeline' } }
 ];
 
-// Guestlist chats start empty
+// Chat lists
 export const mockGuestlistChats: GuestlistChat[] = [];
-
 export const mockGuestlistChatMessages: GuestlistChatMessage[] = [];
-
-// Event chats start empty
 export const mockEventChats: EventChat[] = [];
-
 export const mockEventChatMessages: EventChatMessage[] = [];
-
-// Friend zone chats start empty
 export const mockFriendZoneChats: FriendZoneChat[] = [];
-
 export const mockFriendZoneChatMessages: FriendZoneChatMessage[] = [];
-
-// Group chat messages start empty
 export const mockGroupChatMessages: any[] = [];
-
-// Wingman chats start empty
 export const mockWingmanChats: WingmanChat[] = [];
-
 export const mockWingmanChatMessages: WingmanChatMessage[] = [];
 
-// Invitation requests start empty
+// Invitations
 export const mockInvitationRequests: EventInvitationRequest[] = [];
-
 export const mockEventInvitations: EventInvitation[] = [];
-
-// Guestlist join requests start empty
 export const mockGuestlistJoinRequests: GuestlistJoinRequest[] = [];
 
 export const mockWingmanApplications: WingmanApplication[] = [
-    {
-        id: 1, userId: 0, status: 'pending', fullName: 'Mike Ross', stageName: 'Mikey', email: 'mike@test.com', phone: '1234567890', instagram: 'mike_promo', city: 'Miami', dob: '1995-05-05', profilePhotoUrl: '', experienceYears: '3-5 years', categories: ['Nightclubs'], venuesList: 'Space, E11even', avgWeeklyGuests: '30-60', worksWithOtherGroups: 'No', targetClientele: 'Tourists', instagramFollowers: '5000', postsEvents: 'Yes', mediaLinks: [], daysAvailable: ['Friday', 'Saturday'], preferredVenuesText: '', wantsToPromoteAccess: 'Yes', agreesToTools: 'Yes', signature: 'Mike Ross', dateSigned: '2024-01-01', submissionDate: '2024-01-01'
-    }
+  {
+    id: 1, userId: 0, status: 'pending', fullName: 'Mike Ross', stageName: 'Mikey', email: 'mike@test.com', phone: '1234567890', instagram: 'mike_promo', city: 'Miami', dob: '1995-05-05', profilePhotoUrl: '', experienceYears: '3-5 years', categories: ['Nightclubs'], venuesList: 'Space, E11even', avgWeeklyGuests: '30-60', worksWithOtherGroups: 'No', targetClientele: 'Tourists', instagramFollowers: '5000', postsEvents: 'Yes', mediaLinks: [], daysAvailable: ['Friday', 'Saturday'], preferredVenuesText: '', wantsToPromoteAccess: 'Yes', agreesToTools: 'Yes', signature: 'Mike Ross', dateSigned: '2024-01-01', submissionDate: '2024-01-01'
+  }
 ];
 
 export const mockDataExportRequests: DataExportRequest[] = [];
 
 // Mock Challenges
 export const challenges: Challenge[] = [
-    {
-        id: 1, title: 'Weekend Warrior', description: 'Attend 2 events this weekend', tasks: [{ id: 1, description: 'Attend Friday event', isCompleted: false }, { id: 2, description: 'Attend Saturday event', isCompleted: false }],
-        reward: { amount: 500, currency: 'TMKC' }
-    }
+  {
+    id: 1, title: 'Weekend Warrior', description: 'Attend 2 events this weekend', tasks: [{ id: 1, description: 'Attend Friday event', isCompleted: false }, { id: 2, description: 'Attend Saturday event', isCompleted: false }],
+    reward: { amount: 500, currency: 'TMKC' }
+  }
 ];
 
 // Mock Store Items
 export const storeItems: StoreItem[] = [
-    {
-        id: 's1', category: 'Merchandise', title: 'Wingman Cap',
-        description: 'Premium embroidered cap. Members-only edition with gradient logo.',
-        image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80',
-        price: 1000, priceUSD: 25,
-    },
-    {
-        id: 's2', category: 'Perk', title: 'Skip the Line Pass',
-        description: 'Priority entry to any Wingman nightclub event. One-time use.',
-        image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&q=80',
-        price: 5000, priceUSD: 100,
-    },
-    {
-        id: 's3', category: 'Merchandise', title: 'Wingman Hoodie',
-        description: 'Oversized premium hoodie. Black on black. Gradient logo chest print.',
-        image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
-        price: 2500, priceUSD: 65,
-    },
-    {
-        id: 's4', category: 'NFT', title: 'Wingman Genesis Pass',
-        description: 'Founding member digital collectible. Unlocks exclusive drops & early access.',
-        image: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=600&q=80',
-        price: 10000, priceUSD: 250,
-    },
-    {
-        id: 's5', category: 'Perk', title: 'Table Upgrade Token',
-        description: 'Upgrade any dinner booking to the best table in the house. One-time use.',
-        image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-        price: 3500, priceUSD: 80,
-    },
-    {
-        id: 's6', category: 'NFT', title: 'Miami Nights #001',
-        description: 'Limited edition generative art. Wingman Miami Nights founding series.',
-        image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80',
-        price: 7500, priceUSD: 175,
-    },
+  {
+    id: 's1', category: 'Merchandise', title: 'Wingman Cap',
+    description: 'Premium embroidered cap. Members-only edition with gradient logo.',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&q=80',
+    price: 1000, priceUSD: 25,
+  },
+  {
+    id: 's2', category: 'Perk', title: 'Skip the Line Pass',
+    description: 'Priority entry to any Wingman nightclub event. One-time use.',
+    image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&q=80',
+    price: 5000, priceUSD: 100,
+  },
+  {
+    id: 's3', category: 'Merchandise', title: 'Wingman Hoodie',
+    description: 'Oversized premium hoodie. Black on black. Gradient logo chest print.',
+    image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80',
+    price: 2500, priceUSD: 65,
+  },
+  {
+    id: 's4', category: 'NFT', title: 'Wingman Genesis Pass',
+    description: 'Founding member digital collectible. Unlocks exclusive drops & early access.',
+    image: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=600&q=80',
+    price: 10000, priceUSD: 250,
+  },
+  {
+    id: 's5', category: 'Perk', title: 'Table Upgrade Token',
+    description: 'Upgrade any dinner booking to the best table in the house. One-time use.',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
+    price: 3500, priceUSD: 80,
+  },
+  {
+    id: 's6', category: 'NFT', title: 'Miami Nights #001',
+    description: 'Limited edition generative art. Wingman Miami Nights founding series.',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80',
+    price: 7500, priceUSD: 175,
+  },
 ];
 
-// Payment methods are managed by Stripe at checkout — no saved cards in-app yet.
 export const mockPaymentMethods: PaymentMethod[] = [];

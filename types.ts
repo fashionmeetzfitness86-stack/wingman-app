@@ -55,6 +55,10 @@ export interface User {
   wingmanRatings?: { wingmanId: number; rating: number }[];
   hasProfileReward?: boolean;
   notificationsEnabled?: boolean;
+  emergencyContact?: string;
+  uploadedDocuments?: string[];
+  verificationStatus?: 'verified' | 'unverified';
+  tokenBalance?: number;
 }
 
 export interface UserWithAnalytics extends User {
@@ -99,7 +103,7 @@ export interface TableOption {
 export interface Venue {
   id: number;
   name: string;
-  category: 'Nightclub' | 'Restaurant' | 'Lounge' | 'Beach Club' | 'Pool Party';
+  category: 'Nightclub' | 'Restaurant' | 'Lounge' | 'Beach Club' | 'Pool Party' | 'Luxury Restaurant' | 'Waterfront Restaurant' | 'Yacht Experience' | 'After Hours Nightclub';
   location: string;
   musicType: string;
   vibe: string;
@@ -117,6 +121,16 @@ export interface Venue {
   dressCode?: string;   // e.g. 'All black, no sneakers, no shorts'
   entryNotes?: string;  // How to present at the door / what to expect
   arrivalTip?: string;  // Best time to arrive
+  galleryImages?: string[];
+  description?: string;
+  experienceType?: 'Dinner' | 'Nightclub' | 'Yacht';
+  arrivalTime?: string;
+  address?: string;
+  mapCoordinates?: { lat: number; lng: number };
+  bookingStatus?: 'available' | 'booked';
+  isFeatured?: boolean;
+  searchTags?: string[];
+  adminNotes?: string;
 }
 
 export interface Wingman {
@@ -227,6 +241,7 @@ export interface Event {
     endDate: string; // YYYY-MM-DD
   };
   accessLevels?: UserAccessLevel[];
+  arrivalTime?: string; // Add optional meetup arrival time override
 }
 
 export interface EventInvitationRequest {

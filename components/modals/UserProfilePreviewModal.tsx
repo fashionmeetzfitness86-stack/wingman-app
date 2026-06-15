@@ -54,12 +54,13 @@ interface UserProfilePreviewModalProps {
   onReject?: (userId: number) => void;
   onEdit?: (user: User) => void;
   onBlock?: (user: User) => void;
+  onViewProfile?: (user: User) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const UserProfilePreviewModal: React.FC<UserProfilePreviewModalProps> = ({
-  isOpen, onClose, user, onApprove, onReject, onEdit, onBlock,
+  isOpen, onClose, user, onApprove, onReject, onEdit, onBlock, onViewProfile,
 }) => {
   if (!isOpen || !user) return null;
 
@@ -187,7 +188,7 @@ export const UserProfilePreviewModal: React.FC<UserProfilePreviewModalProps> = (
         </div>
 
         {/* ── Action buttons ── */}
-        {(onApprove || onReject || onEdit || onBlock) && (
+        {(onApprove || onReject || onEdit || onBlock || onViewProfile) && (
           <div
             className="flex-shrink-0 px-5 py-4 flex flex-wrap gap-2"
             style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: '#0E0E0E' }}
@@ -208,6 +209,15 @@ export const UserProfilePreviewModal: React.FC<UserProfilePreviewModalProps> = (
                 style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', minWidth: 90 }}
               >
                 ✗ Reject
+              </button>
+            )}
+            {onViewProfile && (
+              <button
+                onClick={() => { onViewProfile(user); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 text-white"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', minWidth: 90 }}
+              >
+                👤 View Profile
               </button>
             )}
             {onEdit && user.role !== UserRole.ADMIN && (

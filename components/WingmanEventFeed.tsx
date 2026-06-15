@@ -101,6 +101,7 @@ interface WingmanEventFeedProps {
   onAdminCancel?: (instanceId: string) => void;
   onAdminRestore?: (instanceId: string) => void;
   onAdminForceSoldOut?: (instanceId: string) => void;
+  onAdminEditArrival?: (instanceId: string, newTime: string) => void;
 }
 
 // ─── EVENT CARD ───────────────────────────────────────────────
@@ -259,6 +260,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
   onAdminCancel,
   onAdminRestore,
   onAdminForceSoldOut,
+  onAdminEditArrival,
 }) => {
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const isApproved = currentUser.approvalStatus === 'approved';
@@ -614,6 +616,18 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
           }}
         >
           <div style={{ display: 'flex', gap: 6, pointerEvents: 'auto' }}>
+            {selected.status !== 'cancelled' && onAdminEditArrival && (
+              <button
+                onClick={() => {
+                  const newTime = prompt("Enter new meetup/arrival time (e.g. 12:00 AM, 3:00 AM):", selected.arrivalTime || selected.time);
+                  if (newTime !== null) {
+                    onAdminEditArrival(selected.instanceId, newTime.trim());
+                    setSelected(null);
+                  }
+                }}
+                style={{ fontSize: 10, color: '#60A5FA', border: '1px solid rgba(96,165,250,0.4)', borderRadius: 6, padding: '4px 8px', background: 'rgba(0,0,0,0.8)', cursor: 'pointer' }}
+              >Edit Meetup Time</button>
+            )}
             {selected.status !== 'sold-out' && onAdminForceSoldOut && (
               <button
                 onClick={() => { onAdminForceSoldOut(selected.instanceId); setSelected(null); }}
