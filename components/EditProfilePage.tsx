@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useMemo } from 'react';
 import { Page, User } from '../types';
 import { PencilIcon } from './icons/PencilIcon';
@@ -17,6 +16,7 @@ interface EditProfilePageProps {
   onSave: (updatedUser: User) => void;
   onNavigate: (page: Page) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
+  isAdminEditing?: boolean;
 }
 
 const MUSIC_OPTIONS      = ['Hip-Hop', 'EDM', 'Open Format', 'House', 'Lounge'];
@@ -148,7 +148,7 @@ const SectionCard: React.FC<{ title: string; accent?: string; right?: React.Reac
 );
 
 // ── Main ───────────────────────────────────────────────────────
-export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, onSave, onNavigate, showToast }) => {
+export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, onSave, onNavigate, showToast, isAdminEditing }) => {
   const [name,       setName]       = useState(currentUser.name);
   const [email,      setEmail]      = useState(currentUser.email);
   const [bio,        setBio]        = useState(currentUser.bio || '');
@@ -167,6 +167,12 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
   const [selectedActivities,  setSelectedActivities]  = useState(currentUser.preferences?.activities || []);
   const [selectedPersonality, setSelectedPersonality] = useState(currentUser.preferences?.personality || '');
   const [timePreference,      setTimePreference]      = useState(currentUser.preferences?.timeOfDay || '');
+
+  // Admin-only fields
+  const [verificationStatus, setVerificationStatus] = useState<User['verificationStatus']>(currentUser.verificationStatus || 'unverified');
+  const [tokenBalance, setTokenBalance] = useState<number>(currentUser.tokenBalance || 0);
+  const [emergencyContact, setEmergencyContact] = useState<string>(currentUser.emergencyContact || '');
+  const [uploadedDocumentsText, setUploadedDocumentsText] = useState<string>((currentUser.uploadedDocuments || []).join('\n'));
 
   const [errors,            setErrors]           = useState<Record<string, string>>({});
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
@@ -259,6 +265,10 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
       appearance: { height, eyeColor, hairColor, build },
       preferences: { music: selectedMusic, activities: selectedActivities, personality: selectedPersonality, timeOfDay: timePreference as 'Daytime' | 'Nighttime' | 'Both' },
       galleryImages,
+      verificationStatus: isAdminEditing ? verificationStatus : currentUser.verificationStatus,
+      tokenBalance: isAdminEditing ? tokenBalance : currentUser.tokenBalance,
+      emergencyContact: isAdminEditing ? emergencyContact : currentUser.emergencyContact,
+      uploadedDocuments: isAdminEditing ? uploadedDocumentsText.split('\n').map(d => d.trim()).filter(Boolean) : currentUser.uploadedDocuments,
     });
     onNavigate('back' as Page);
     showToast('Profile updated successfully!', 'success');
@@ -547,35 +557,135 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ currentUser, o
             </div>
           </SectionCard>
 
+          {/* Admin Controls */}
+          {isAdminEditing && (
+            <SectionCard title="Admin Controls" accent="#E040FB">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                      Verification Status
+                    </label>
+                    <select
+                      value={verificationStatus}
+                      onChange={e => setVerificationStatus(e.target.value as any)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 12,
+                        padding: '10px 14px',
+                        color: '#fff',
+                        fontSize: 14,
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="verified">Verified</option>
+                      <option value="unverified">Unverified</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                      Token Balance
+                    </label>
+                    <input
+                      type="number"
+                      value={tokenBalance}
+                      onChange={e => setTokenBalance(parseInt(e.target.value, 10) || 0)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 12,
+                        padding: '10px 14px',
+                        color: '#fff',
+                        fontSize: 14,
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                    Emergency Contact
+                  </label>
+                  <input
+                    type="text"
+                    value={emergencyContact}
+                    onChange={e => setEmergencyContact(e.target.value)}
+                    placeholder="Contact name and phone"
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      color: '#fff',
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                    Uploaded Documents (one URL per line)
+                  </label>
+                  <textarea
+                    value={uploadedDocumentsText}
+                    onChange={e => setUploadedDocumentsText(e.target.value)}
+                    placeholder="https://example.com/docs/doc1.pdf"
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      color: '#fff',
+                      fontSize: 14,
+                      outline: 'none',
+                      resize: 'none'
+                    }}
+                  />
+                </div>
+              </div>
+            </SectionCard>
+          )}
+
           {/* Change Password */}
-          <SectionCard
-            title="Change Password"
-            accent="#9ca3af"
-            right={
-              <button
-                type="button"
-                onClick={() => setShowPw(s => !s)}
-                className="text-[11px] font-bold text-gray-500 hover:text-white transition-colors"
-              >
-                {showPw ? 'Hide' : 'Show'}
-              </button>
-            }
-          >
-            <div className="space-y-4">
-              <Field label="Current Password"  value={currentPw} onChange={e => { setCurrentPw(e.target.value); setPwErrors(p => ({ ...p, currentPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.currentPw} required />
-              <Field label="New Password"       value={newPw}     onChange={e => { setNewPw(e.target.value);     setPwErrors(p => ({ ...p, newPw: '' }));     }} inputType={showPw ? 'text' : 'password'} placeholder="At least 8 characters" error={pwErrors.newPw} required />
-              <Field label="Confirm Password"   value={confirmPw} onChange={e => { setConfirmPw(e.target.value); setPwErrors(p => ({ ...p, confirmPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.confirmPw} required />
-              <button
-                type="button"
-                onClick={handleChangePassword}
-                disabled={isUpdatingPw}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-40"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-              >
-                {isUpdatingPw ? 'Updating…' : 'Update Password'}
-              </button>
-            </div>
-          </SectionCard>
+          {!isAdminEditing && (
+            <SectionCard
+              title="Change Password"
+              accent="#9ca3af"
+              right={
+                <button
+                  type="button"
+                  onClick={() => setShowPw(s => !s)}
+                  className="text-[11px] font-bold text-gray-500 hover:text-white transition-colors"
+                >
+                  {showPw ? 'Hide' : 'Show'}
+                </button>
+              }
+            >
+              <div className="space-y-4">
+                <Field label="Current Password"  value={currentPw} onChange={e => { setCurrentPw(e.target.value); setPwErrors(p => ({ ...p, currentPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.currentPw} required />
+                <Field label="New Password"       value={newPw}     onChange={e => { setNewPw(e.target.value);     setPwErrors(p => ({ ...p, newPw: '' }));     }} inputType={showPw ? 'text' : 'password'} placeholder="At least 8 characters" error={pwErrors.newPw} required />
+                <Field label="Confirm Password"   value={confirmPw} onChange={e => { setConfirmPw(e.target.value); setPwErrors(p => ({ ...p, confirmPw: '' })); }} inputType={showPw ? 'text' : 'password'} error={pwErrors.confirmPw} required />
+                <button
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={isUpdatingPw}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-40"
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                >
+                  {isUpdatingPw ? 'Updating…' : 'Update Password'}
+                </button>
+              </div>
+            </SectionCard>
+          )}
 
           {/* Save CTA */}
           <button

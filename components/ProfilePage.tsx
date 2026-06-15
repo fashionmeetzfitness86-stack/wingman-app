@@ -18,10 +18,11 @@ import { ChartPieIcon } from './icons/ChartPieIcon';
 import { CreditCardIcon } from './icons/CreditCardIcon';
 import { CalendarDaysIcon } from './icons/CalendarDaysIcon';
 import { KeyIcon } from './icons/KeyIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import profileLogo from '../assets/profile-logo.png';
 
 interface ProfilePageProps {
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Page, params?: any) => void;
   currentUser: User;
   tokenBalance: number;
   bookingHistory: Booking[];
@@ -29,7 +30,15 @@ interface ProfilePageProps {
   venues: Venue[];
   onViewVenueDetails: (venue: Venue) => void;
   onLogout?: () => void;
+  viewedByAdmin?: boolean;
 }
+
+const CARD: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border:     '1px solid rgba(255,255,255,0.07)',
+  borderRadius: 20,
+  padding: 24,
+};
 
 // ── Helpers ────────────────────────────────────────────────────
 const calculateProfileCompleteness = (user: User): number => {
@@ -117,7 +126,7 @@ const VibePill: React.FC<{ children: string }> = ({ children }) => (
 
 // ── Main Page ──────────────────────────────────────────────────
 export const ProfilePage: React.FC<ProfilePageProps> = ({
-  onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails, onLogout,
+  onNavigate, currentUser, tokenBalance, bookingHistory, favoriteVenueIds, venues, onViewVenueDetails, onLogout, viewedByAdmin,
 }) => {
   const user = currentUser;
   if (!user) return null;
@@ -125,7 +134,30 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const completeness  = calculateProfileCompleteness(user);
   const age           = getAge(user.dob);
   const userBookings  = bookingHistory.filter(b => b.userId === user.id)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  const upcomingBookings = userBookings.filter(b => {
+    try {
+      const d = new Date(b.date);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return d >= today;
+    } catch {
+      return false;
+    }
+  });
+
+  const pastBookings = userBookings.filter(b => {
+    try {
+      const d = new Date(b.date);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return d < today;
+    } catch {
+      return true;
+    }
+  });
+
   const favoriteVenues = venues.filter(v => favoriteVenueIds.includes(v.id)).slice(0, 3);
   const eventsAttended = userBookings.filter(b => b.status === 'Completed').length;
 
@@ -140,10 +172,32 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   return (
     <div className="min-h-screen animate-fade-in pb-36" style={{ background: '#080808' }}>
 
-      {/* ── Brand logo ─────────────────────────────────────────── */}
-      <div className="flex justify-center pt-6 pb-1">
-        <img src={profileLogo} alt="WINGMAN" className="h-10 w-auto" />
-      </div>
+      {/* ── Brand logo or Sticky Admin Header ──────────────────── */}
+      {viewedByAdmin ? (
+        <div
+          className="sticky top-0 z-30 px-5 pt-5 pb-4 mb-4"
+          style={{ background: 'rgba(8,8,8,0.94)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => onNavigate('back' as Page)}
+              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              style={{ color: '#9ca3af' }}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+              Back to Dashboard
+            </button>
+            <h1 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Viewing User Profile
+            </h1>
+            <div className="w-20" />
+          </div>
+        </div>
+      ) : (
+        <div className="flex justify-center pt-6 pb-1">
+          <img src={profileLogo} alt="WINGMAN" className="h-10 w-auto" />
+        </div>
+      )}
 
       {/* ── Hero Card ──────────────────────────────────────────── */}
       <div className="relative px-5 pt-3 pb-0">
@@ -170,7 +224,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
               </div>
               <button
-                onClick={() => onNavigate('editProfile')}
+                onClick={() => onNavigate('editProfile', viewedByAdmin ? { viewedUserId: user.id } : undefined)}
                 id="profile-edit-photo-btn"
                 aria-label="Edit profile"
                 className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
@@ -199,7 +253,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             </div>
 
             <button
-              onClick={() => onNavigate('editProfile')}
+              onClick={() => onNavigate('editProfile', viewedByAdmin ? { viewedUserId: user.id } : undefined)}
               id="profile-edit-btn"
               className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all hover:opacity-80"
               style={{ background: `${accent}14`, border: `1px solid ${accent}30`, color: accent }}
@@ -255,7 +309,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="flex items-center justify-between mb-1.5">
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Profile Strength</p>
               <button
-                onClick={() => onNavigate('editProfile')}
+                onClick={() => onNavigate('editProfile', viewedByAdmin ? { viewedUserId: user.id } : undefined)}
                 className="text-[10px] font-bold transition-colors"
                 style={{ color: completeness === 100 ? '#4ade80' : accent }}
               >
@@ -304,7 +358,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <div className="px-5 mt-6">
           <SectionLabel
             action={
-              <button onClick={() => onNavigate('editProfile')} className="text-[10px] font-bold" style={{ color: accent }}>
+              <button onClick={() => onNavigate('editProfile', viewedByAdmin ? { viewedUserId: user.id } : undefined)} className="text-[10px] font-bold" style={{ color: accent }}>
                 Manage →
               </button>
             }
@@ -322,26 +376,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       )}
 
-      {/* ── Recent Bookings ────────────────────────────────────── */}
+      {/* ── Upcoming Reservations ────────────────────────────────── */}
       <div className="px-5 mt-6">
-        <SectionLabel
-          action={
-            <button onClick={() => onNavigate('bookings')} className="text-[10px] font-bold" style={{ color: accent }}>
-              View All →
-            </button>
-          }
-        >
-          Recent Activity
-        </SectionLabel>
+        <SectionLabel>Upcoming Reservations</SectionLabel>
         <div
           className="rounded-2xl overflow-hidden"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
-          {userBookings.length > 0 ? userBookings.map((b, i) => (
+          {upcomingBookings.length > 0 ? upcomingBookings.map((b, i) => (
             <div
               key={b.id}
               className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: i < userBookings.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+              style={{ borderBottom: i < upcomingBookings.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
             >
               <div>
                 <p className="text-sm font-bold text-white">{b.venueName}</p>
@@ -349,23 +395,55 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               </div>
               <span
                 className="text-[10px] font-black px-2 py-1 rounded-lg uppercase"
-                style={b.status === 'Confirmed'
-                  ? { background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }
-                  : { background: 'rgba(255,255,255,0.05)', color: '#6b7280', border: '1px solid rgba(255,255,255,0.07)' }}
+                style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}
               >
                 {b.status}
               </span>
             </div>
           )) : (
-            <div className="flex flex-col items-center py-10 text-center">
-              <p className="text-sm text-gray-600">No bookings yet.</p>
-              <button
-                onClick={() => onNavigate('eventTimeline')}
-                className="mt-3 text-xs font-bold"
-                style={{ color: accent }}
+            <div className="flex flex-col items-center py-6 text-center">
+              <p className="text-sm text-gray-600">No upcoming reservations.</p>
+              {!viewedByAdmin && (
+                <button
+                  onClick={() => onNavigate('eventTimeline')}
+                  className="mt-2 text-xs font-bold"
+                  style={{ color: accent }}
+                >
+                  Browse Events →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Past Experiences ────────────────────────────────────── */}
+      <div className="px-5 mt-6">
+        <SectionLabel>Past Experiences</SectionLabel>
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {pastBookings.length > 0 ? pastBookings.map((b, i) => (
+            <div
+              key={b.id}
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: i < pastBookings.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+            >
+              <div>
+                <p className="text-sm font-bold text-white">{b.venueName}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{b.date}</p>
+              </div>
+              <span
+                className="text-[10px] font-black px-2 py-1 rounded-lg uppercase"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#6b7280', border: '1px solid rgba(255,255,255,0.07)' }}
               >
-                Browse Events →
-              </button>
+                {b.status}
+              </span>
+            </div>
+          )) : (
+            <div className="flex flex-col items-center py-6 text-center">
+              <p className="text-sm text-gray-600">No past experiences.</p>
             </div>
           )}
         </div>
@@ -406,33 +484,121 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       )}
 
-      {/* ── Navigation Menu ────────────────────────────────────── */}
-      <div className="px-5 mt-6">
-        <SectionLabel>Quick Access</SectionLabel>
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-        >
-          {user.role === UserRole.WINGMAN && (
-            <NavRow id="profile-wingman-dash" icon={<ChartPieIcon className="w-4.5 h-4.5" />} label="Wingman Dashboard" accent="#fb923c" onClick={() => onNavigate('wingmanDashboard')} />
-          )}
-          <NavRow id="profile-access-groups" icon={<GroupIcon className="w-4.5 h-4.5" />} label="Access Groups" accent="#60a5fa" onClick={() => onNavigate('accessGroups')} />
-          <NavRow id="profile-invitations" icon={<UserPlusIcon className="w-4.5 h-4.5" />} label="Invitations" accent="#4ade80" onClick={() => onNavigate('invitations')} />
-          <NavRow id="profile-itineraries" icon={<RouteIcon className="w-4.5 h-4.5" />} label="Itineraries" accent="#a78bfa" onClick={() => onNavigate('myItineraries')} />
-          {user.role === UserRole.WINGMAN && (
-            <NavRow id="profile-wingman-stats" icon={<ChartBarIcon className="w-4.5 h-4.5" />} label="Wingman Stats" accent="#fb923c" onClick={() => onNavigate('wingmanStats')} />
-          )}
-          <NavRow id="profile-chats" icon={<ChatIcon className="w-4.5 h-4.5" />} label="Chats" accent="#818cf8" onClick={() => onNavigate('eventChatsList')} />
-          <NavRow id="profile-payment" icon={<CreditCardIcon className="w-4.5 h-4.5" />} label="Payment Methods" accent="#34d399" onClick={() => onNavigate('paymentMethods')} />
-          <NavRow id="profile-settings" icon={<SettingsIcon className="w-4.5 h-4.5" />} label="Settings" accent="#9ca3af" onClick={() => onNavigate('settings')} />
-          <div style={{ borderBottom: 'none' }}>
-            <NavRow id="profile-ask-gaby" icon={<AskGabyIcon className="w-4.5 h-4.5" />} label="Ask Gaby" accent="#fbbf24" onClick={() => onNavigate('chatbot')} />
+      {/* ── Admin viewed profile overlay details ───────────────── */}
+      {viewedByAdmin && (
+        <div className="px-5 mt-6 space-y-4">
+          <div style={CARD}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-1 h-5 rounded-full" style={{ background: accent }} />
+              <h2 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Account Details</h2>
+            </div>
+            <div className="space-y-3.5">
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">User ID</span>
+                <span className="text-sm font-mono text-gray-200">#{user.id}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Email</span>
+                <span className="text-sm text-gray-200">{user.email}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Phone</span>
+                <span className="text-sm font-mono text-gray-200">{user.phoneNumber || '—'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Approval Status</span>
+                <span className="text-sm font-bold uppercase tracking-wider" style={{ color: user.approvalStatus === 'approved' ? '#22C55E' : user.approvalStatus === 'rejected' ? '#EF4444' : '#F59E0B' }}>
+                  {user.approvalStatus || 'pending'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Account Status</span>
+                <span className="text-sm font-bold uppercase tracking-wider" style={{ color: user.status === 'active' ? '#22C55E' : '#EF4444' }}>
+                  {user.status}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Verification Status</span>
+                <span className="text-sm font-bold uppercase tracking-wider" style={{ color: user.verificationStatus === 'verified' ? '#22C55E' : '#EF4444' }}>
+                  {user.verificationStatus || 'unverified'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Token Balance</span>
+                <span className="text-sm font-bold text-yellow-400 flex items-center gap-1">
+                  🪙 {tokenBalance}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={CARD}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-1 h-5 rounded-full" style={{ background: '#F87171' }} />
+              <h2 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Emergency Contact</h2>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed font-semibold">
+              {user.emergencyContact || 'No emergency contact provided.'}
+            </p>
+          </div>
+
+          <div style={CARD}>
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-1 h-5 rounded-full" style={{ background: '#60A5FA' }} />
+              <h2 className="text-base font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Uploaded Documents</h2>
+            </div>
+            {user.uploadedDocuments && user.uploadedDocuments.length > 0 ? (
+              <div className="space-y-2">
+                {user.uploadedDocuments.map((doc, i) => (
+                  <a
+                    key={i}
+                    href={doc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/[0.04] border border-white/5"
+                    style={{ background: 'rgba(255,255,255,0.02)' }}
+                  >
+                    <span className="text-xs font-bold text-gray-300">Document #{i + 1}</span>
+                    <span className="text-xs text-blue-400 font-bold hover:underline">View File ↗</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No documents uploaded.</p>
+            )}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Navigation Menu ────────────────────────────────────── */}
+      {!viewedByAdmin && (
+        <div className="px-5 mt-6">
+          <SectionLabel>Quick Access</SectionLabel>
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            {user.role === UserRole.WINGMAN && (
+              <NavRow id="profile-wingman-dash" icon={<ChartPieIcon className="w-4.5 h-4.5" />} label="Wingman Dashboard" accent="#fb923c" onClick={() => onNavigate('wingmanDashboard')} />
+            )}
+            <NavRow id="profile-access-groups" icon={<GroupIcon className="w-4.5 h-4.5" />} label="Access Groups" accent="#60a5fa" onClick={() => onNavigate('accessGroups')} />
+            <NavRow id="profile-invitations" icon={<UserPlusIcon className="w-4.5 h-4.5" />} label="Invitations" accent="#4ade80" onClick={() => onNavigate('invitations')} />
+            <NavRow id="profile-itineraries" icon={<RouteIcon className="w-4.5 h-4.5" />} label="Itineraries" accent="#a78bfa" onClick={() => onNavigate('myItineraries')} />
+            {user.role === UserRole.WINGMAN && (
+              <NavRow id="profile-wingman-stats" icon={<ChartBarIcon className="w-4.5 h-4.5" />} label="Wingman Stats" accent="#fb923c" onClick={() => onNavigate('wingmanStats')} />
+            )}
+            <NavRow id="profile-chats" icon={<ChatIcon className="w-4.5 h-4.5" />} label="Chats" accent="#818cf8" onClick={() => onNavigate('eventChatsList')} />
+            <NavRow id="profile-payment" icon={<CreditCardIcon className="w-4.5 h-4.5" />} label="Payment Methods" accent="#34d399" onClick={() => onNavigate('paymentMethods')} />
+            <NavRow id="profile-settings" icon={<SettingsIcon className="w-4.5 h-4.5" />} label="Settings" accent="#9ca3af" onClick={() => onNavigate('settings')} />
+            <div style={{ borderBottom: 'none' }}>
+              <NavRow id="profile-ask-gaby" icon={<AskGabyIcon className="w-4.5 h-4.5" />} label="Ask Gaby" accent="#fbbf24" onClick={() => onNavigate('chatbot')} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Log Out ────────────────────────────────────────────── */}
-      {onLogout && (
+      {!viewedByAdmin && onLogout && (
         <div className="px-5 mt-4 mb-2">
           <button
             id="profile-logout-btn"
@@ -464,7 +630,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <div className="px-5 mt-6">
           <SectionLabel
             action={
-              <button onClick={() => onNavigate('editProfile')} className="text-[10px] font-bold" style={{ color: accent }}>
+              <button onClick={() => onNavigate('editProfile', viewedByAdmin ? { viewedUserId: user.id } : undefined)} className="text-[10px] font-bold" style={{ color: accent }}>
                 Edit →
               </button>
             }
@@ -492,7 +658,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       )}
 
       {/* ── Hire a Wingman CTA ───────────────────────────────────── */}
-      {user.role === UserRole.USER && (
+      {!viewedByAdmin && user.role === UserRole.USER && (
         <div className="px-5 mt-8">
           <button
             onClick={() => onNavigate('hireWingman')}
