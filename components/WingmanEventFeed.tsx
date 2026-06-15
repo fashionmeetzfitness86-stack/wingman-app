@@ -264,8 +264,8 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 }) => {
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
   const isApproved = currentUser.approvalStatus === 'approved';
-  const hasActiveSub = currentUser.subscriptionStatus === 'active';
-  const canBook = isAdmin || (isApproved && hasActiveSub);
+  // Approval alone unlocks booking — no subscription gate (matches App/CheckoutPage).
+  const canBook = isAdmin || isApproved;
 
   // ── Filters ──
   const [typeFilter, setTypeFilter] = useState<ExperienceType | 'All' | 'Schedule'>('All');

@@ -4,7 +4,10 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Node 22 ships native WebSocket, which @supabase/supabase-js needs at
+  # client construction. On Node 20 every Supabase-backed function (passcode,
+  # lead capture, bookings webhook, admin data) crashed with a 502.
+  NODE_VERSION = "22"
   ADMIN_EMAILS = "themainkeys@gmail.com"
 
 [[redirects]]

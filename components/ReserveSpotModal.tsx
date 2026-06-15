@@ -188,12 +188,13 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
           position: 'fixed', inset: 0,
           zIndex: 1010,
           display: 'flex',
-          alignItems: 'flex-end',     /* mobile default: bottom-sheet */
           justifyContent: 'center',
           padding: '0',
           pointerEvents: 'none',      /* let clicks fall through to backdrop */
         } as React.CSSProperties}
-        className="sm:items-center sm:p-4"
+        /* alignment via classes only — inline styles would override them.
+           mobile: bottom-sheet (items-end); desktop: anchored near top */
+        className="items-end sm:items-start sm:p-4 sm:pt-6"
       >
         <div
           onClick={e => e.stopPropagation()}
@@ -370,12 +371,14 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
                       <span className="text-xl flex-shrink-0">🔒</span>
                       <div>
                         <p className="text-sm font-bold text-white mb-1">
-                          Create a profile to book Wingman experiences
+                          {currentUser.approvalStatus === 'rejected'
+                            ? 'Application not approved'
+                            : 'Your profile is under review'}
                         </p>
                         <p className="text-xs text-gray-400 leading-relaxed">
                           {currentUser.approvalStatus === 'rejected'
                             ? 'Your application was not approved. Contact support for more info.'
-                            : 'Your profile is under review. Once approved by our team you\'ll be able to book — we\'ll let you know!'}
+                            : 'Once approved by our team you\'ll be able to book — we\'ll let you know!'}
                         </p>
                       </div>
                     </div>

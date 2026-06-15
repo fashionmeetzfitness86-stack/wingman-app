@@ -652,6 +652,44 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Fetch THIS client's own approval status from the server. The admin-only
+    // get-leads sync never reaches a regular client, so without this a client
+    // can't see that an admin approved them — and the booking gate stays locked.
+    useEffect(() => {
+        const email = currentUser.email?.trim().toLowerCase();
+        if (!email) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch(`/.netlify/functions/get-approval-status?email=${encodeURIComponent(email)}`);
+                if (!res.ok) return;
+                const { status } = await res.json();
+                if (cancelled || !status) return;
+                if (status !== currentUser.approvalStatus) {
+                    setCurrentUser(prev => ({ ...prev, approvalStatus: status }));
+                    setAppUsers(prev => prev.map(u =>
+                        u.email?.toLowerCase() === email ? { ...u, approvalStatus: status } : u
+                    ));
+                }
+            } catch { /* ignore — keep local status */ }
+        })();
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser.email]);
+
+    // Keep the logged-in user's own approval status in sync with the synced
+    // user list. Without this, an admin approval lands in appUsers but the
+    // booking gate (which reads currentUser.approvalStatus) stays locked until
+    // a full re-login. Match by email since ids can differ across devices.
+    useEffect(() => {
+        const email = currentUser.email?.toLowerCase();
+        if (!email) return;
+        const fresh = appUsers.find(u => u.email?.toLowerCase() === email);
+        if (fresh && fresh.approvalStatus && fresh.approvalStatus !== currentUser.approvalStatus) {
+            setCurrentUser(prev => ({ ...prev, approvalStatus: fresh.approvalStatus }));
+        }
+    }, [appUsers, currentUser.email, currentUser.approvalStatus]);
+
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
     // and survives a refresh.
@@ -1831,22 +1869,43 @@ export const App: React.FC = () => {
     };
 
     // canBook = true for admins/wingmen always.
-    // Regular users need admin approval AND profile ≥ 80% complete.
-    const profileCompletion = getProfileCompletion(currentUser);
+    // Regular users only need admin approval — phone + photo are already
+    // mandatory during onboarding, so we don't re-gate on profile completion
+    // (that was re-asking approved users for fields they'd already provided).
     const canBook =
         currentUser?.role === UserRole.ADMIN ||
         currentUser?.role === UserRole.WINGMAN ||
-        (currentUser?.approvalStatus === 'approved' && profileCompletion >= 80);
+        currentUser?.approvalStatus === 'approved';
 
     // --- Pass 2: User approval handlers ---
     // These ONLY mutate approvalStatus. They do not touch status, accessLevel, or any other field.
+    // Persist an approve/reject decision to Supabase user_profiles so the
+    // background sync doesn't pull the old 'pending' status back and revert it.
+    const persistApproval = async (userId: number, status: 'approved' | 'rejected' | 'pending') => {
+        const user = appUsers.find(u => u.id === userId);
+        const email = user?.email?.trim().toLowerCase();
+        if (!email) return;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) return; // not signed in as a Supabase admin — local-only fallback
+            await fetch('/.netlify/functions/set-approval', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email, status }),
+            });
+        } catch { /* fire-and-forget: local state already updated */ }
+    };
+
     const handleApproveUser = (userId: number) => {
         setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'approved' as const } : u));
+        void persistApproval(userId, 'approved');
         showToast('User approved successfully', 'success');
     };
 
     const handleRejectUser = (userId: number) => {
         setAppUsers(prev => prev.map(u => u.id === userId ? { ...u, approvalStatus: 'rejected' as const } : u));
+        void persistApproval(userId, 'rejected');
         showToast('User rejected', 'success');
     };
 

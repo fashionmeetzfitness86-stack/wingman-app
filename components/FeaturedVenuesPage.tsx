@@ -331,9 +331,9 @@ export const FeaturedVenuesPage: React.FC<FeaturedVenuesPageProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
 
   const isApproved = currentUser.approvalStatus === 'approved';
-  const hasActiveSub = currentUser.subscriptionStatus === 'active';
   const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN;
-  const canBook = isAdmin || (isApproved && hasActiveSub);
+  // Approval alone unlocks booking — no subscription gate (matches App/CheckoutPage).
+  const canBook = isAdmin || isApproved;
 
   // Generate all upcoming instances — filter out any that are malformed (stale localStorage)
   const allInstances = useMemo(
