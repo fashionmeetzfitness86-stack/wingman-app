@@ -60,10 +60,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [disclosureExpanded, setDisclosureExpanded] = useState(false);
 
   // ── Disclosure gate (legal) ───────────────────────────────────────────────
-  // All six acknowledgements are REQUIRED before checkout. We check explicit
+  // All seven acknowledgements are REQUIRED before checkout. We check explicit
   // keys — NOT Object.values(...).every(Boolean), which returns true for an
   // empty {} and would let users pay without agreeing to anything.
-  const REQUIRED_DISCLOSURE_KEYS = ['chk1', 'chk2', 'chk3', 'chk4', 'chk5', 'chk6'];
+  const REQUIRED_DISCLOSURE_KEYS = ['chk1', 'chk2', 'chk3', 'chk4', 'chk5', 'chk6', 'chk7'];
   const allDisclosuresAgreed = REQUIRED_DISCLOSURE_KEYS.every(
     key => agreedToDisclosure[key] === true
   );
@@ -115,33 +115,48 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   return (
     <div className="animate-fade-in text-white min-h-screen">
-      {/* Page Header */}
+      {/* ── Page Header ── */}
       <div className="px-4 md:px-8 pt-6 pb-0 max-w-7xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-black text-white mb-1">My Plans</h1>
-        <p className="text-sm text-gray-500 mb-5">Manage your reservations and purchases</p>
+        <div className="mb-5">
+          <h1 className="text-2xl md:text-3xl font-black text-white mb-0.5"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            My{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>Plans</span>
+          </h1>
+          <p className="text-xs text-gray-600">Manage your reservations &amp; purchases</p>
+        </div>
 
         {/* Tab Bar */}
         <div
           className="flex gap-1 rounded-2xl p-1"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           {TABS.map(tab => (
             <button
               key={tab.key}
+              id={`plans-tab-${tab.key}`}
               onClick={() => setActiveTab(tab.key)}
               className="relative flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-200"
               style={
                 activeTab === tab.key
-                  ? { background: 'rgba(255,255,255,0.10)', color: '#fff' }
-                  : { color: '#6B7280' }
+                  ? { background: 'linear-gradient(135deg, rgba(224,64,251,0.18), rgba(123,97,255,0.18), rgba(0,212,255,0.10))', color: '#fff', boxShadow: 'inset 0 0 0 1px rgba(224,64,251,0.2)' }
+                  : { color: '#4B5563' }
               }
             >
               <span>{tab.label}</span>
               {tab.count > 0 && (
                 <span
-                  className="text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0"
+                  className="text-[9px] font-black rounded-full w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: activeTab === tab.key ? tab.color : 'rgba(255,255,255,0.08)',
+                    background: activeTab === tab.key
+                      ? 'linear-gradient(135deg, #E040FB, #7B61FF)'
+                      : 'rgba(255,255,255,0.07)',
                     color: activeTab === tab.key ? '#fff' : '#6B7280',
                   }}
                 >
@@ -165,12 +180,20 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               {cartItems.length > 0 ? (
                 <>
                   <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-400">
-                      <span className="text-white font-bold">{cartItems.length}</span> item{cartItems.length !== 1 ? 's' : ''} in your cart
+                    <p className="text-xs text-gray-500">
+                      <span className="text-white font-black">{cartItems.length}</span>
+                      <span className="ml-1">item{cartItems.length !== 1 ? 's' : ''} in cart</span>
                     </p>
                     <div className="flex gap-3">
-                      <button onClick={() => setSelectedItemIds(cartItems.map(i => i.id))} className="text-xs font-semibold text-gray-400 hover:text-white transition-colors">Select All</button>
-                      <button onClick={() => setSelectedItemIds([])} className="text-xs font-semibold text-gray-400 hover:text-white transition-colors">Deselect All</button>
+                      <button
+                        onClick={() => setSelectedItemIds(cartItems.map(i => i.id))}
+                        className="text-[11px] font-bold transition-colors"
+                        style={{ color: '#7B61FF' }}
+                      >Select All</button>
+                      <button
+                        onClick={() => setSelectedItemIds([])}
+                        className="text-[11px] font-bold text-gray-600 hover:text-gray-400 transition-colors"
+                      >Clear</button>
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -336,6 +359,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                             body: 'Certain experiences may include beverages, hospitality amenities, or hosted services. Any beverages or hospitality offerings provided during an experience are determined by the Wingman host and may vary based on number of participants, venue policies, event type, capacity limitations, and operational considerations. Wingman does not guarantee specific brands, bottle quantities, beverage selections, seating positions, or hospitality inclusions unless explicitly stated in the experience description.',
                           },
                           {
+                            title: '3A. ALCOHOL & BOTTLE SERVICE POLICY',
+                            body: 'YOUR PAYMENT DOES NOT INCLUDE THE PURCHASE OF BOTTLES, BOTTLE SERVICE, PREMIUM LIQUOR PACKAGES, OR GUARANTEED DRINK QUANTITIES. If you or your guests wish to order additional bottles, premium spirits, food, cocktails, champagne, or any other items beyond what is being offered by the Wingman host, those purchases are entirely optional and must be paid directly by you at your own expense at the venue. The Wingman platform is not responsible for optional purchases you choose to make at the venue.',
+                          },
+                          {
                             title: '4. SOCIAL INTRODUCTIONS',
                             body: 'Wingman hosts may facilitate social introductions and networking opportunities during experiences.',
                             notList: ['Specific individuals will attend', 'Social outcomes', 'Business opportunities', 'Personal relationships', 'Dating outcomes', 'Introductions to any specific guest'],
@@ -386,8 +413,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         { id: 'chk-2', key: 'chk2', label: 'I understand that I am not purchasing ownership or exclusive control of a VIP table, yacht, restaurant reservation, or venue space.' },
                         { id: 'chk-3', key: 'chk3', label: 'I understand that all experiences are managed by the assigned Wingman host.' },
                         { id: 'chk-4', key: 'chk4', label: 'I understand that hospitality offerings may vary based on the event and participation levels.' },
-                        { id: 'chk-5', key: 'chk5', label: 'I agree to the Wingman Terms & Conditions and Refund Policy.' },
-                        { id: 'chk-6', key: 'chk6', label: 'I voluntarily choose to participate in this experience.' },
+                        { id: 'chk-5', key: 'chk5', label: 'I understand that my payment does NOT include bottles, bottle service, additional drinks, food, or any extra venue purchases — those are my personal responsibility.' },
+                        { id: 'chk-6', key: 'chk6', label: 'I agree to the Wingman Terms & Conditions and Refund Policy.' },
+                        { id: 'chk-7', key: 'chk7', label: 'I voluntarily choose to participate in this experience.' },
                       ].map(({ id, key, label }) => {
                         const checked = (agreedToDisclosure as any)[key] ?? false;
                         return (
@@ -437,13 +465,20 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <button
                     onClick={() => onConfirmCheckout(paymentMethod, selectedItemIds)}
                     disabled={selectedItemIds.length === 0 || !allDisclosuresAgreed || isCheckoutLoading}
-                    className="mt-3 w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-                    style={{ background: 'linear-gradient(135deg, #FFFFFF, #9CA3AF, #374151)', boxShadow: '0 8px 24px rgba(255,255,255,0.25)' }}
+                    className="mt-3 w-full text-white font-black py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:opacity-90 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed disabled:transform-none"
+                    style={{
+                      background: allDisclosuresAgreed && selectedItemIds.length > 0
+                        ? 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)'
+                        : 'rgba(255,255,255,0.07)',
+                      boxShadow: allDisclosuresAgreed && selectedItemIds.length > 0
+                        ? '0 8px 28px rgba(224,64,251,0.35)'
+                        : 'none',
+                    }}
                   >
                     <CreditCardIcon className="w-5 h-5" />
                     {isCheckoutLoading
                       ? 'Processing…'
-                      : `Confirm & Pay (${selectedItemIds.length} item${selectedItemIds.length !== 1 ? 's' : ''})`}
+                      : `Confirm & Pay${selectedItemIds.length > 0 ? ` · $${totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}`}
                   </button>
                 </div>
               </div>

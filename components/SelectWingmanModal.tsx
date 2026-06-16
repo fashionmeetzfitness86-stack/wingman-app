@@ -75,9 +75,10 @@ export const SelectWingmanModal: React.FC<SelectWingmanModalProps> = ({ isOpen, 
                         }
                     }}
                     disabled={wingmen.length === 0}
-                    className="bg-white text-black hover:bg-gray-200 text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E5E5E5] transition-colors shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="font-bold py-3 px-6 rounded-lg transition-all hover:opacity-90 focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 6px 20px rgba(224,64,251,0.3)' }}
                 >
-                    Book with General Concierge
+                    Book with General Wingman
                 </button>
             </div>
           )}

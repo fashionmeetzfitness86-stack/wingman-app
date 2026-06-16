@@ -498,6 +498,39 @@ export const ReserveSpotModal: React.FC<ReserveSpotModalProps> = ({
                 </div>
               )}
 
+              {/* ── Pricing & Alcohol Disclosure ── */}
+              {!isBooked && canBook && event.status !== 'sold-out' && event.status !== 'cancelled' && (
+                <div
+                  className="rounded-xl p-3.5 text-[10.5px] leading-relaxed space-y-1.5"
+                  style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.18)' }}
+                >
+                  <p className="font-black text-[11px] uppercase tracking-widest" style={{ color: '#F59E0B' }}>
+                    🥂 What's Included
+                  </p>
+                  {event.experienceType === 'Dinner' ? (
+                    <p style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      <span className="font-semibold text-white/75">$450 flat rate</span> covers access for <span className="font-semibold text-white/75">up to 2 guests</span> to the Wingman hosted dining experience.
+                    </p>
+                  ) : event.experienceType === 'Yacht' ? (
+                    <p style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      <span className="font-semibold text-white/75">$400 per person</span> covers access to the Wingman hosted yacht experience.
+                    </p>
+                  ) : (
+                    <p style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      <span className="font-semibold text-white/75">$500 per person</span> covers access to the Wingman hosted VIP nightlife experience.
+                    </p>
+                  )}
+                  <div style={{ borderTop: '1px solid rgba(245,158,11,0.15)', paddingTop: '8px', marginTop: '6px' }}>
+                    <p className="font-bold text-[10px] uppercase tracking-wide mb-1" style={{ color: 'rgba(239,68,68,0.85)' }}>
+                      ⚠ Not Included
+                    </p>
+                    <p style={{ color: 'rgba(255,255,255,0.45)' }}>
+                      Your payment does <span className="font-semibold text-white/65">not</span> include bottles, bottle service, premium spirits, food, cocktails, or any additional orders. Any extra purchases at the venue are your personal responsibility and will be billed separately.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Bottom padding so sticky CTA doesn't cover last content */}
               <div className="h-2" />
             </div>
