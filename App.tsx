@@ -800,7 +800,11 @@ export const App: React.FC = () => {
                 updates.approvalStatus = fresh.approvalStatus;
                 changed = true;
             }
-            if (fresh.role && fresh.role !== currentUser.role) {
+            // GUARD: never overwrite an Admin role with a lower-privilege role from appUsers.
+            // If the current user is locally Admin, their role cannot be demoted by a stale
+            // appUsers entry. Only apply role updates for non-admin users.
+            const isAdminLocally = currentUser.role === UserRole.ADMIN;
+            if (fresh.role && fresh.role !== currentUser.role && !isAdminLocally) {
                 updates.role = fresh.role;
                 changed = true;
             }
@@ -809,6 +813,7 @@ export const App: React.FC = () => {
             }
         }
     }, [appUsers, currentUser.email, currentUser.approvalStatus, currentUser.role]);
+
 
     // Ensure the active logged-in Wingman is present in the appWingmen list
     useEffect(() => {
@@ -3448,6 +3453,7 @@ export const App: React.FC = () => {
                         currentPage={currentPage} 
                         currentUser={currentUser} 
                         onLogout={handleLogout}
+                        isAdmin={currentUser.role === UserRole.ADMIN || !!realAdminUser}
                     />
 
                     <CartPanel 

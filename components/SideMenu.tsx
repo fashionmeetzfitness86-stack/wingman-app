@@ -23,6 +23,7 @@ interface SideMenuProps {
   currentPage: Page;
   currentUser: User;
   onLogout?: () => void;
+  isAdmin?: boolean; // true when realAdminUser session is active
 }
 
 const MenuItem: React.FC<{
@@ -54,7 +55,12 @@ export const SideMenu: React.FC<SideMenuProps> = ({
   currentPage,
   currentUser,
   onLogout,
+  isAdmin = false,
 }) => {
+  // isAdminUser: true when the logged-in session belongs to an admin
+  // (either directly via role, or via realAdminUser session in App.tsx)
+  const isAdminUser = isAdmin || currentUser.role === UserRole.ADMIN;
+  const isWingmanPromo = currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO;
 
   // ── ESC key closes menu ──────────────────────────────────────
   useEffect(() => {
@@ -141,7 +147,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'home'}
               onClick={() => handleNavigation('home')}
             />
-            {((currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO) || currentUser.role === UserRole.ADMIN) && (
+            {(isWingmanPromo || isAdminUser) && (
               <MenuItem
                 icon={<ChartPieIcon className="w-5 h-5" />}
                 label="Wingman Dashboard"
@@ -161,7 +167,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'exclusiveExperiences' || currentPage === 'eventTimeline'}
               onClick={() => handleNavigation('eventTimeline')}
             />
-            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+            {(isAdminUser || currentUser.role === UserRole.WINGMAN) && (
               <MenuItem
                 icon={<ChallengesIcon className="w-5 h-5" />}
                 label="Challenges"
@@ -169,7 +175,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
                 onClick={() => handleNavigation('challenges')}
               />
             )}
-            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+            {(isAdminUser || currentUser.role === UserRole.WINGMAN) && (
               <MenuItem
                 icon={<FriendsIcon className="w-5 h-5" />}
                 label="Friends Zone"
@@ -183,7 +189,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'store'}
               onClick={() => handleNavigation('store')}
             />
-            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.WINGMAN) && (
+            {(isAdminUser || currentUser.role === UserRole.WINGMAN) && (
               <MenuItem
                 icon={<ChatIcon className="w-5 h-5" />}
                 label="Chats"
@@ -197,7 +203,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'userProfile'}
               onClick={() => handleNavigation('userProfile')}
             />
-            {currentUser.role === UserRole.ADMIN && (
+            {isAdminUser && (
               <MenuItem
                 icon={<ChartPieIcon className="w-5 h-5" />}
                 label="Admin Dashboard"
@@ -205,7 +211,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
                 onClick={() => handleNavigation('adminDashboard')}
               />
             )}
-            {currentUser.role === UserRole.ADMIN && (
+            {isAdminUser && (
               <MenuItem
                 icon={<AskGabyIcon className="w-5 h-5" />}
                 label="Ask Gaby"
