@@ -550,14 +550,21 @@ export const App: React.FC = () => {
         } catch {}
         // 3. Remove from React state
         setAppUsers(prev => prev.filter(u => !purgeEmails.includes((u.email || '').toLowerCase())));
-        // 4. Fire-and-forget: delete from Supabase
-        for (const email of purgeEmails) {
-            void fetch('/.netlify/functions/delete-profile', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
-            }).catch(() => null);
-        }
+        // 4. Fire-and-forget: delete from Supabase (include auth token so the function can authorize)
+        void (async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+                if (!token) return; // not logged in, skip server-side delete
+                for (const email of purgeEmails) {
+                    void fetch('/.netlify/functions/delete-profile', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ email }),
+                    }).catch(() => null);
+                }
+            } catch { /* silent — local purge already done */ }
+        })();
         // Mark done so this never runs again
         localStorage.setItem('wm_purge_v1', 'done');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1412,8 +1419,10 @@ export const App: React.FC = () => {
     };
 
     const handleJoinGuestlistConfirm = (wingmanId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => {
-        const venue = venues.find(v => v.id === venueId);
-        const wingman = wingmen.find(p => p.id === wingmanId);
+        // Use live state (appVenues/appWingmen) not stale seed imports so
+        // admin-added or updated venues/wingmen are reflected correctly.
+        const venue = appVenues.find(v => v.id === venueId);
+        const wingman = appWingmen.find(p => p.id === wingmanId);
 
         const newRequest: GuestlistJoinRequest = {
             id: Date.now(),

@@ -174,6 +174,30 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = ({
       city,
     };
     onUpdateUser(updatedUser);
+
+    // Persist changes to Supabase so they sync cross-device (same as EditProfilePage).
+    // Fire-and-forget — never blocks the UI.
+    void (async () => {
+      try {
+        const { data: { session } } = await (await import('../lib/supabase')).supabase.auth.getSession();
+        const token = session?.access_token;
+        void fetch('/.netlify/functions/register-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            id: String(wingmanUser.id),
+            name: wingmanUser.name,
+            email: wingmanUser.email,
+            phone: wingmanUser.phoneNumber,
+            city,
+            profilePhoto: profilePhoto.startsWith('data:') ? undefined : profilePhoto,
+          }),
+        }).catch(() => null);
+      } catch { /* silent — local state already updated */ }
+    })();
   };
 
   return (

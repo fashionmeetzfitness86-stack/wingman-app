@@ -37,26 +37,23 @@ export default async (req: Request) => {
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.warn('[Wingman] STRIPE_WEBHOOK_SECRET not set — webhook signature verification skipped (unsafe)');
+    // SECURITY: never process unverified Stripe events in production.
+    // Configure STRIPE_WEBHOOK_SECRET in Netlify environment variables.
+    console.error('[Wingman] STRIPE_WEBHOOK_SECRET not set — rejecting webhook (unsafe to process without signature verification)');
+    return new Response(JSON.stringify({ error: 'Webhook not configured' }), { status: 400 });
   }
 
   let event: Stripe.Event;
 
   try {
-    const stripe = new Stripe(getStripeKey(), { apiVersion: '2026-02-25.clover' });
+    const stripe = new Stripe(getStripeKey(), { apiVersion: '2026-02-25.clover' as any });
     const rawBody = await req.text();
-
-    if (webhookSecret) {
-      const signature = req.headers.get('stripe-signature') ?? '';
-      try {
-        event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-      } catch (err: any) {
-        console.error('[Wingman] Webhook signature verification failed:', err.message);
-        return new Response(JSON.stringify({ error: 'Webhook signature invalid' }), { status: 400 });
-      }
-    } else {
-      // Skip signature check if secret not configured (dev/staging only)
-      event = JSON.parse(rawBody) as Stripe.Event;
+    const signature = req.headers.get('stripe-signature') ?? '';
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    } catch (err: any) {
+      console.error('[Wingman] Webhook signature verification failed:', err.message);
+      return new Response(JSON.stringify({ error: 'Webhook signature invalid' }), { status: 400 });
     }
   } catch (err: any) {
     console.error('[Wingman] stripe-webhook parse error:', err.message);
