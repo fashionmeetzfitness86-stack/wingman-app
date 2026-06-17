@@ -57,23 +57,28 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Forbidden' }, 403);
   }
 
-  // Fetch passcode leads
-  const leadsRes = await supabase
-    .from('passcode_leads')
-    .select('*')
-    .order('captured_at', { ascending: false })
-    .limit(1000);
-
-  // Fetch registered user profiles (table may not exist yet — handle gracefully)
-  const profilesRes = await supabase
-    .from('user_profiles')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(1000);
+  // Fetch passcode leads, registered user profiles, and roles map in parallel
+  const [leadsRes, profilesRes, rolesRes] = await Promise.all([
+    supabase
+      .from('passcode_leads')
+      .select('*')
+      .order('captured_at', { ascending: false })
+      .limit(1000),
+    supabase
+      .from('user_profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1000),
+    supabase
+      .from('platform_settings')
+      .select('value')
+      .eq('key', 'user_roles_v1')
+      .maybeSingle()
+  ]);
 
   return jsonResponse(req, {
     leads: leadsRes.data || [],
-    // Silently ignore if user_profiles table doesn't exist yet
     profiles: profilesRes.error ? [] : (profilesRes.data || []),
+    roles: rolesRes.data?.value || {}
   });
 };

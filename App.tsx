@@ -650,10 +650,17 @@ export const App: React.FC = () => {
                     }
                 }
 
+                const rolesMap = json.roles || {};
+
                 // Merge registered user profiles
                 for (const profile of serverProfiles) {
                     const email = (profile.email || '').toLowerCase();
                     if (!email) continue;
+                    
+                    const roleData = rolesMap[email];
+                    const serverRole = roleData?.role || UserRole.USER;
+                    const serverAccess = roleData?.accessLevel || UserAccessLevel.GENERAL;
+                    
                     const existingIdx = updated.findIndex(u => u.email.toLowerCase() === email);
                     if (existingIdx === -1) {
                         // New user not seen on this device — add them
@@ -665,8 +672,8 @@ export const App: React.FC = () => {
                             phoneNumber: profile.phone,
                             city: profile.city,
                             profilePhoto: profile.profile_photo || `https://i.pravatar.cc/150?u=${newId}`,
-                            accessLevel: UserAccessLevel.GENERAL,
-                            role: UserRole.USER,
+                            accessLevel: serverAccess as any,
+                            role: serverRole as any,
                             status: 'active' as const,
                             approvalStatus: (profile.approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
                             subscriptionStatus: 'free_tier' as const,
@@ -688,6 +695,8 @@ export const App: React.FC = () => {
                         if (profile.city && profile.city !== existing.city)                        patch.city          = profile.city;
                         if (profile.profile_photo && profile.profile_photo !== existing.profilePhoto) patch.profilePhoto = profile.profile_photo;
                         if (existing.approvalStatus !== serverStatus)                              patch.approvalStatus = serverStatus;
+                        if (existing.role !== serverRole)                                          patch.role          = serverRole as any;
+                        if (existing.accessLevel !== serverAccess)                                  patch.accessLevel   = serverAccess as any;
 
                         if (Object.keys(patch).length > 0) {
                             updated[existingIdx] = { ...existing, ...patch };
@@ -719,12 +728,29 @@ export const App: React.FC = () => {
             try {
                 const res = await fetch(`/.netlify/functions/get-approval-status?email=${encodeURIComponent(email)}`);
                 if (!res.ok) return;
-                const { status } = await res.json();
-                if (cancelled || !status) return;
-                if (status !== currentUser.approvalStatus) {
-                    setCurrentUser(prev => ({ ...prev, approvalStatus: status }));
+                const { status, role, accessLevel } = await res.json();
+                if (cancelled) return;
+                
+                const updates: Partial<User> = {};
+                let changed = false;
+                
+                if (status && status !== currentUser.approvalStatus) {
+                    updates.approvalStatus = status;
+                    changed = true;
+                }
+                if (role && role !== currentUser.role) {
+                    updates.role = role as any;
+                    changed = true;
+                }
+                if (accessLevel && accessLevel !== currentUser.accessLevel) {
+                    updates.accessLevel = accessLevel as any;
+                    changed = true;
+                }
+                
+                if (changed) {
+                    setCurrentUser(prev => ({ ...prev, ...updates }));
                     setAppUsers(prev => prev.map(u =>
-                        u.email?.toLowerCase() === email ? { ...u, approvalStatus: status } : u
+                        u.email?.toLowerCase() === email ? { ...u, ...updates } : u
                     ));
                 }
             } catch { /* ignore — keep local status */ }
@@ -757,6 +783,32 @@ export const App: React.FC = () => {
             }
         }
     }, [appUsers, currentUser.email, currentUser.approvalStatus, currentUser.role]);
+
+    // Ensure the active logged-in Wingman is present in the appWingmen list
+    useEffect(() => {
+        if (currentUser && currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO) {
+            setAppWingmen(prev => {
+                const exists = prev.some(w => w.id === currentUser.id);
+                if (exists) return prev;
+                const newWingman: Wingman = {
+                    id: currentUser.id,
+                    name: currentUser.name,
+                    handle: currentUser.instagramHandle ? `@${currentUser.instagramHandle}` : `@${currentUser.name.replace(/\s/g, '').toLowerCase()}`,
+                    rating: 5.0,
+                    bio: currentUser.bio || `Professional Wingman`,
+                    profilePhoto: currentUser.profilePhoto || `https://i.pravatar.cc/150?u=${currentUser.id}`,
+                    city: currentUser.city || 'Miami',
+                    weeklySchedule: [],
+                    assignedVenueIds: [],
+                    earnings: 0,
+                    isOnline: true,
+                    favoritedByCount: 0,
+                    galleryImages: currentUser.galleryImages || []
+                };
+                return [...prev, newWingman];
+            });
+        }
+    }, [currentUser]);
 
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
@@ -2043,6 +2095,21 @@ export const App: React.FC = () => {
 
     // --- Admin Functions ---
 
+    const persistUserRoleOnServer = async (userObj: User) => {
+        const email = userObj.email?.trim().toLowerCase();
+        if (!email) return;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            if (!token) return;
+            await fetch('/.netlify/functions/set-user-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email, role: userObj.role, accessLevel: userObj.accessLevel }),
+            });
+        } catch { /* ignore */ }
+    };
+
     const handleAdminAddUser = async (user: Omit<User, 'id' | 'joinDate'>) => {
         const newUser: User = {
             ...user,
@@ -2070,6 +2137,7 @@ export const App: React.FC = () => {
             };
             setAppWingmen(prev => [...prev, newWingman]);
         }
+        void persistUserRoleOnServer(newUser);
         showToast('User created successfully', 'success');
     };
 
@@ -2114,6 +2182,7 @@ export const App: React.FC = () => {
             setCurrentUser(updatedUser);
         }
         
+        void persistUserRoleOnServer(updatedUser);
         setUserToEdit(null);
         showToast('User updated successfully', 'success');
     };
@@ -2167,6 +2236,7 @@ export const App: React.FC = () => {
         setAppWingmen(prev => [...prev, newWingman]);
         
         setWingmanApplications(prev => prev.map(a => a.id === appId ? { ...a, status: 'approved' } : a));
+        void persistUserRoleOnServer(newUser);
         showToast(`${app.fullName} approved as Wingman!`, 'success');
     };
 

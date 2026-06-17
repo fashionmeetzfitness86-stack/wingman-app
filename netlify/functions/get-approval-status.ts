@@ -28,16 +28,30 @@ export default async (req: Request) => {
   const email = (new URL(req.url).searchParams.get('email') || '').trim().toLowerCase();
   if (!email) return jsonResponse(req, { error: 'email required' }, 400);
 
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('approval_status')
-    .eq('email', email)
-    .maybeSingle();
+  const [profileRes, rolesRes] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('approval_status')
+      .eq('email', email)
+      .maybeSingle(),
+    supabase
+      .from('platform_settings')
+      .select('value')
+      .eq('key', 'user_roles_v1')
+      .maybeSingle()
+  ]);
 
-  if (error) {
-    console.error('[Wingman] get-approval-status failed:', error.message);
-    return jsonResponse(req, { status: 'pending', error: 'query_failed' });
+  if (profileRes.error) {
+    console.error('[Wingman] get-approval-status profile query failed:', profileRes.error.message);
   }
 
-  return jsonResponse(req, { status: data?.approval_status || 'pending' });
+  const approvalStatus = profileRes.data?.approval_status || 'pending';
+  const rolesMap = (rolesRes.data?.value || {}) as Record<string, { role: string; accessLevel: string }>;
+  const userRoleData = rolesMap[email];
+
+  return jsonResponse(req, {
+    status: approvalStatus,
+    role: userRoleData?.role || 'User',
+    accessLevel: userRoleData?.accessLevel || 'General Access'
+  });
 };
