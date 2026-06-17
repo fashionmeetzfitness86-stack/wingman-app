@@ -131,6 +131,7 @@ export interface Venue {
   isFeatured?: boolean;
   searchTags?: string[];
   adminNotes?: string;
+  isHidden?: boolean; // Admin-controlled visibility toggle
 }
 
 export interface Wingman {
@@ -242,6 +243,9 @@ export interface Event {
   };
   accessLevels?: UserAccessLevel[];
   arrivalTime?: string; // Add optional meetup arrival time override
+  isHidden?: boolean; // Admin-controlled visibility toggle
+  wingmanId?: number;
+  hostId?: number;
 }
 
 export interface EventInvitationRequest {
@@ -360,6 +364,8 @@ export interface EventInstance {
   status: 'available' | 'limited' | 'sold-out' | 'cancelled';
   isCancelledByAdmin?: boolean;
   adminNotes?: string;
+  wingmanId?: number;
+  hostId?: number;
 }
 
 /** A user's confirmed booking for an EventInstance */
@@ -372,6 +378,10 @@ export interface InstanceBooking {
   bookedAt: string;                  // ISO timestamp
   guestName: string;
   guestEmail: string;
+  wingmanId?: number;
+  hostId?: number;
+  checkedIn?: boolean;
+  specialRequests?: string;
 }
 
 export interface ConfirmedExperienceBookingDetails {
@@ -704,3 +714,17 @@ export type Page =
   | 'eventDetail'
   | 'hireWingman'
   | 'back';
+
+export interface WingmanRequest {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  userPhone?: string;
+  wingmanId: number;
+  experienceTitle: string;
+  dateRequested: string;
+  message?: string;
+  status: 'pending' | 'accepted' | 'declined' | 'completed';
+  timestamp: string;
+}

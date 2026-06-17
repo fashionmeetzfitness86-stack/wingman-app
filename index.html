@@ -72,6 +72,10 @@
         --settings-row-border: rgba(255,255,255,0.08);
         --settings-row-hover: rgba(255,255,255,0.07);
         --settings-icon-color: #E040FB;
+
+        /* Input / Form controls */
+        --color-input:        #0F0F14;
+        --color-foreground:   #FFFFFF;
       }
 
       /* ── LIGHT MODE — Golden Hour ──────────────────────────── */
@@ -120,6 +124,10 @@
         --settings-row-border: rgba(0,0,0,0.07);
         --settings-row-hover: rgba(123,31,162,0.05);
         --settings-icon-color: #7B1FA2;
+
+        /* Input / Form controls */
+        --color-input:        #FFFFFF;
+        --color-foreground:   #1A1020;
       }
 
       /* ── LIGHT-MODE OVERRIDES for hardcoded Tailwind dark utilities ── */
@@ -293,6 +301,27 @@
       [data-modal-backdrop] {
         touch-action: none;
         overscroll-behavior: none;
+      }
+
+      /* Style native select options and date/time controls to match theme */
+      select option {
+        background-color: #0F0F14 !important;
+        color: #FFFFFF !important;
+      }
+      .light select option {
+        background-color: #FFFFFF !important;
+        color: #1A1020 !important;
+      }
+      
+      input[type="date"],
+      input[type="time"],
+      select {
+        color-scheme: dark;
+      }
+      .light input[type="date"],
+      .light input[type="time"],
+      .light select {
+        color-scheme: light;
       }
 
     </style>

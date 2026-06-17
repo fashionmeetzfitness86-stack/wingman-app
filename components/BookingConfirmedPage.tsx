@@ -10,6 +10,19 @@ interface BookingConfirmedPageProps {
     onStartChat?: (item: any) => void;
 }
 
+// ── Small detail row for the receipt info section ────────────────────────────
+const InfoRow: React.FC<{ icon: string; label: string; value: string; highlight?: boolean }> = ({
+    icon, label, value, highlight,
+}) => (
+    <div className="flex items-start gap-3 py-2.5 border-b border-dashed border-gray-200 last:border-0">
+        <span className="text-base flex-shrink-0 mt-0.5">{icon}</span>
+        <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{label}</p>
+            <p className={`text-sm font-semibold mt-0.5 leading-snug ${highlight ? 'text-red-600' : 'text-gray-900'}`}>{value}</p>
+        </div>
+    </div>
+);
+
 export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ items = [], onNavigate, onStartChat }) => {
 
     const totalAmount = items.reduce((acc, item) => {
@@ -28,7 +41,6 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
 
     const transactionId   = getTransactionId();
     const transactionDate = new Date().toLocaleString();
-
     const paymentMethod   = items.length > 0 && items[0].paymentMethod ? items[0].paymentMethod : 'usd';
     const isTokenPayment  = paymentMethod === 'tokens';
     const isFree          = totalAmount === 0;
@@ -61,7 +73,8 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
 
                     {/* Hero */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/10 rounded-full mb-4 border border-green-500/20">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
+                            style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
                             <CheckCircleIcon className="w-10 h-10 text-green-500" />
                         </div>
                         <h1 className="text-3xl font-bold text-white">
@@ -74,14 +87,14 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
                     <div className="bg-white text-black rounded-2xl shadow-2xl overflow-hidden">
 
                         {/* Header */}
-                        <div className="bg-gray-100 p-4 border-b border-gray-200 text-center">
-                            <h2 className="font-bold text-lg tracking-widest uppercase text-gray-600">Receipt</h2>
-                            <p className="text-xs text-gray-500 font-mono">{transactionDate}</p>
+                        <div className="p-4 border-b border-gray-200 text-center" style={{ background: '#F9FAFB' }}>
+                            <h2 className="font-black text-lg tracking-widest uppercase text-gray-700">Wingman Receipt</h2>
+                            <p className="text-xs text-gray-400 font-mono mt-0.5">{transactionDate}</p>
                         </div>
 
                         {/* Line items */}
-                        <div className="p-6">
-                            <div className="space-y-4 mb-6">
+                        <div className="p-5">
+                            <div className="space-y-4 mb-5">
                                 {items.map((item, idx) => {
                                     const itemPrice = item.paymentOption === 'full' ? item.fullPrice : item.depositPrice;
                                     const itemDisplayPrice = (itemPrice === 0 || !itemPrice)
@@ -91,35 +104,147 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
                                             : `$${(itemPrice || 0).toFixed(2)}`;
 
                                     let subtitle = '';
-                                    if (item.type === 'table')      subtitle = item.tableDetails?.tableOption?.name || 'Table Reservation';
-                                    else if (item.type === 'event') subtitle = 'Wingman Experience';
+                                    if (item.type === 'table')          subtitle = item.tableDetails?.tableOption?.name || 'Table Reservation';
+                                    else if (item.type === 'event')     subtitle = 'Wingman Experience';
                                     else if (item.type === 'experience') subtitle = 'Experience Booking';
-                                    else if (item.type === 'guestlist')  subtitle = 'Guestlist Entry';
-                                    else if (item.type === 'storeItem')  subtitle = item.storeItemDetails?.item.category || 'Store Item';
+                                    else if (item.type === 'guestlist') subtitle = 'Guestlist Entry';
+                                    else if (item.type === 'storeItem') subtitle = item.storeItemDetails?.item.category || 'Store Item';
+
+                                    // Pull venue details from tableDetails if present
+                                    const venue = item.tableDetails?.venue;
+                                    const wingman = item.tableDetails?.wingman;
+                                    const guestCount = item.tableDetails?.numberOfGuests;
+                                    const guestDetails = item.tableDetails?.guestDetails;
+                                    const specialRequests = item.tableDetails?.specialRequests;
 
                                     return (
-                                        <div key={idx} className="border-b border-dashed border-gray-200 pb-3 last:border-0 last:pb-0">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <div className="text-left">
-                                                    <p className="font-bold text-sm">{item.name}</p>
+                                        <div key={idx} className="border-b border-dashed border-gray-200 pb-4 last:border-0 last:pb-0">
+                                            {/* Item header */}
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="text-left flex-1 pr-3">
+                                                    <p className="font-black text-sm">{item.name}</p>
                                                     <p className="text-xs text-gray-500">{item.date || item.sortableDate || 'No Date'}</p>
                                                     {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
                                                     {item.paymentOption === 'deposit' && (
                                                         <span className="text-[10px] font-bold uppercase bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">Deposit</span>
                                                     )}
                                                 </div>
-                                                <p className={`font-mono font-semibold text-sm ${itemDisplayPrice === 'FREE' ? 'text-green-600' : ''}`}>
+                                                <p className={`font-mono font-bold text-sm flex-shrink-0 ${itemDisplayPrice === 'FREE' ? 'text-green-600' : ''}`}>
                                                     {itemDisplayPrice}
                                                 </p>
                                             </div>
-                                            {item.tableDetails?.specialRequests && (
-                                                <div className="text-xs text-gray-500 italic bg-gray-50 p-2 rounded mt-1">
-                                                    Request: {item.tableDetails.specialRequests}
+
+                                            {/* ── Detailed event info ─────────────────────────── */}
+                                            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+
+                                                {/* Arrival time */}
+                                                <InfoRow
+                                                    icon="🕐"
+                                                    label="Arrival Time"
+                                                    value={
+                                                        venue?.arrivalTime ||
+                                                        (item as any).arrivalTime ||
+                                                        'As confirmed by your Wingman'
+                                                    }
+                                                />
+
+                                                {/* Dress code */}
+                                                <InfoRow
+                                                    icon="👔"
+                                                    label="Dress Code"
+                                                    value={venue?.dressCode || 'Upscale nightlife attire'}
+                                                />
+
+                                                {/* Age restriction */}
+                                                <InfoRow
+                                                    icon="🔞"
+                                                    label="Age Requirement"
+                                                    value="21+ only — valid government-issued ID required at the door"
+                                                    highlight
+                                                />
+
+                                                {/* ID reminder */}
+                                                <InfoRow
+                                                    icon="🪪"
+                                                    label="Bring Your ID"
+                                                    value="Driver's license, state ID, or passport. No ID = no entry. No exceptions."
+                                                    highlight
+                                                />
+
+                                                {/* Entry notes */}
+                                                {venue?.entryNotes && (
+                                                    <InfoRow
+                                                        icon="🚪"
+                                                        label="Entry Instructions"
+                                                        value={venue.entryNotes}
+                                                    />
+                                                )}
+
+                                                {/* Arrival tip */}
+                                                {venue?.arrivalTip && (
+                                                    <InfoRow
+                                                        icon="💡"
+                                                        label="Pro Tip"
+                                                        value={venue.arrivalTip}
+                                                    />
+                                                )}
+
+                                                {/* Wingman */}
+                                                {wingman && (
+                                                    <InfoRow
+                                                        icon="⚡"
+                                                        label="Your Wingman"
+                                                        value={`${wingman.name} (${wingman.handle})`}
+                                                    />
+                                                )}
+
+                                                {/* Guest count */}
+                                                {guestCount !== undefined && guestCount > 0 && (
+                                                    <InfoRow
+                                                        icon="👥"
+                                                        label="Party Size"
+                                                        value={`${guestCount} guest${guestCount !== 1 ? 's' : ''}`}
+                                                    />
+                                                )}
+
+                                                {/* Guest details (if booked for someone else) */}
+                                                {guestDetails?.name && (
+                                                    <InfoRow
+                                                        icon="🎫"
+                                                        label="Booking For"
+                                                        value={`${guestDetails.name}${guestDetails.email ? ` · ${guestDetails.email}` : ''}`}
+                                                    />
+                                                )}
+
+                                                {/* Address */}
+                                                {venue?.address && (
+                                                    <InfoRow
+                                                        icon="📍"
+                                                        label="Address"
+                                                        value={venue.address}
+                                                    />
+                                                )}
+
+                                            </div>
+
+                                            {/* Special requests */}
+                                            {specialRequests && (
+                                                <div className="text-xs text-gray-500 italic bg-gray-50 p-2 rounded mt-2" style={{ border: '1px solid #E5E7EB' }}>
+                                                    📝 Special request: {specialRequests}
                                                 </div>
                                             )}
                                         </div>
                                     );
                                 })}
+                            </div>
+
+                            {/* ── Important Reminders banner ─────────────────── */}
+                            <div className="rounded-xl p-3 mb-5 space-y-1.5" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-red-600 mb-2">⚠️ Important Reminders</p>
+                                <p className="text-xs text-red-800 leading-relaxed">• <strong>Bring a valid government-issued photo ID.</strong> 21+ entry only. No ID = denied entry.</p>
+                                <p className="text-xs text-red-800 leading-relaxed">• Dress code is strictly enforced at the door. Review your dress code above.</p>
+                                <p className="text-xs text-red-800 leading-relaxed">• Arrive within your arrival window. Late arrivals may not be accommodated.</p>
+                                <p className="text-xs text-gray-500 leading-relaxed mt-2">You are purchasing access to a hosted Wingman Experience. Bottles, drinks, and food are purchased separately at the venue.</p>
                             </div>
 
                             {/* Totals */}
@@ -144,13 +269,14 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
                         </div>
 
                         {/* QR footer */}
-                        <div className="bg-gray-50 p-4 border-t border-gray-200 text-center">
-                            <p className="text-xs text-gray-400 font-mono mb-2">Booking ID: {transactionId}</p>
+                        <div className="p-4 border-t border-gray-200 text-center" style={{ background: '#F9FAFB' }}>
+                            <p className="text-xs text-gray-400 font-mono mb-3">Booking ID: {transactionId}</p>
                             <img
                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${transactionId}&bgcolor=F9FAFB&color=000000&qzone=0`}
                                 alt="Booking QR Code"
-                                className="w-24 h-24 mx-auto mix-blend-multiply opacity-80"
+                                className="w-28 h-28 mx-auto mix-blend-multiply opacity-80"
                             />
+                            <p className="text-[10px] text-gray-400 mt-2">Show this QR at the door with your ID</p>
                         </div>
                     </div>
 

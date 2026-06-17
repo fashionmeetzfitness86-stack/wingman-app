@@ -38,7 +38,9 @@ export const DEFAULT_EVENTS: Event[] = [
     capacity: 5,
     venueId: 201,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 1,
+    hostId: 1
   },
   {
     id: 'rec-mon-boobytrap',
@@ -53,7 +55,9 @@ export const DEFAULT_EVENTS: Event[] = [
     capacity: 5,
     venueId: 202,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 2,
+    hostId: 2
   },
   {
     id: 'rec-mon-e11even',
@@ -85,7 +89,9 @@ export const DEFAULT_EVENTS: Event[] = [
     capacity: 5,
     venueId: 203,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 1,
+    hostId: 1
   },
   {
     id: 'rec-tue-monaclub',
@@ -100,7 +106,9 @@ export const DEFAULT_EVENTS: Event[] = [
     capacity: 5,
     venueId: 204,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 2,
+    hostId: 2
   },
   {
     id: 'rec-tue-e11even',
@@ -675,7 +683,8 @@ export function generateEventFeed(
   forceSoldOutMap: Record<string, boolean> = {},
   customArrivalMap: Record<string, string> = {},
   customInstanceMap: Record<string, Partial<EventInstance>> = {},
-  eventsListOverride?: Event[]
+  eventsListOverride?: Event[],
+  includeHidden: boolean = false
 ): EventInstance[] {
   const isBrowser = typeof window !== 'undefined';
   const finalEvents = eventsListOverride ?? (isBrowser ? JSON.parse(localStorage.getItem('wingman_events') ?? 'null') : null) ?? DEFAULT_EVENTS;
@@ -693,6 +702,7 @@ export function generateEventFeed(
   const instances: EventInstance[] = [];
 
   for (const event of finalEvents) {
+    if (event.isHidden && !includeHidden) continue;
     const dates: string[] = [];
     const startDate = new Date(event.date + 'T00:00:00');
 
@@ -725,6 +735,7 @@ export function generateEventFeed(
     const storedVenues = isBrowser ? localStorage.getItem('wingman_venues') : null;
     const allVenuesList = storedVenues ? JSON.parse(storedVenues) : venuesMock;
     const venueObj = allVenuesList.find((v: any) => v.id === event.venueId);
+    if (venueObj?.isHidden && !includeHidden) continue;
     const venueName = venueObj?.name ?? `Venue #${event.venueId}`;
     const venueAddress = venueObj?.address ?? venueObj?.location ?? '';
 
@@ -769,6 +780,8 @@ export function generateEventFeed(
         coverImage: overrides.coverImage || event.image,
         status: overrides.status || computeStatus(spotsBooked, overrides.totalCapacity ?? event.capacity ?? (expType === 'Dinner' ? 10 : expType === 'Yacht' ? 12 : 5), cancelled, forceSoldOut),
         isCancelledByAdmin: cancelled,
+        wingmanId: overrides.wingmanId ?? event.wingmanId,
+        hostId: overrides.hostId ?? event.hostId,
       });
     }
   }

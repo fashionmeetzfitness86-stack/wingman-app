@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest, InstanceBooking } from '../types';
+import { Wingman, User, Page, AccessGroup, EventInvitationRequest, UserAccessLevel, Event, UserRole, Venue, CartItem, WingmanApplication, GuestlistJoinRequest, StoreItem, EventInvitation, AppNotification, PushCampaign, MembershipRequest, InstanceBooking, WingmanRequest } from '../types';
 import { supabase } from '../lib/supabase';
 
 // ── Sub-components (all preserved, just moved to legacy drawer) ──────────────
@@ -24,7 +24,7 @@ import { AccessControlTab } from './admin/AccessControlTab';
 import { AdminLiveData } from './admin/AdminLiveData';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type PrimaryTab = 'overview' | 'live' | 'bookings' | 'events' | 'users' | 'accessControl' | 'approvals';
+type PrimaryTab = 'overview' | 'live' | 'bookings' | 'events' | 'users' | 'accessControl' | 'approvals' | 'wingmanRequests';
 type LegacyTab = 'analytics' | 'wingmanStats' | 'wingmen' | 'venues' | 'store' | 'pushNotifications';
 
 interface AdminDashboardProps {
@@ -36,6 +36,8 @@ interface AdminDashboardProps {
     pendingGroups: AccessGroup[];
     invitationRequests: EventInvitationRequest[];
     pendingTableReservations: CartItem[];
+    wingmanRequests: WingmanRequest[];
+    onViewDashboard?: (wingman: Wingman) => void;
     onEditUser: (user: User) => void;
     onAddUser: () => void;
     onBlockUser: (user: User) => void;
@@ -85,6 +87,8 @@ interface AdminDashboardProps {
     onRejectMembershipRequest: (requestId: number) => void;
     instanceBookings?: InstanceBooking[];
     passcodLeads?: PasscodeLead[];
+    onToggleHideVenue?: (venue: Venue) => void;
+    onToggleHideEvent?: (event: Event) => void;
 }
 
 // ── Shared FilterDropdown (unchanged) ─────────────────────────────────────────
@@ -577,6 +581,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     // Modal state
     const [userForAnalytics, setUserForAnalytics] = useState<User | null>(null);
     const [wingmanForStats, setWingmanForStats] = useState<Wingman | null>(null);
+    const [showHiddenVenues, setShowHiddenVenues] = useState(true);
+    const [showHiddenEvents, setShowHiddenEvents] = useState(true);
 
     // Save-all state
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -663,8 +669,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         const searchMatch = searchTerm === '' || e.title.toLowerCase().includes(searchTerm.toLowerCase()) || e.description.toLowerCase().includes(searchTerm.toLowerCase());
         const typeMatch = eventTypeFilter === 'all' || e.type === eventTypeFilter;
         const venueMatch = eventVenueFilter === 'all' || e.venueId === parseInt(eventVenueFilter);
-        return searchMatch && typeMatch && venueMatch;
-    }), [events, searchTerm, eventTypeFilter, eventVenueFilter]);
+        const hiddenMatch = showHiddenEvents || !e.isHidden;
+        return searchMatch && typeMatch && venueMatch && hiddenMatch;
+    }), [events, searchTerm, eventTypeFilter, eventVenueFilter, showHiddenEvents]);
 
     const filteredWingmen = useMemo(() => wingmen.filter(p => {
         const searchMatch = searchTerm === '' || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.handle.toLowerCase().includes(searchTerm.toLowerCase()) || p.city.toLowerCase().includes(searchTerm.toLowerCase());
@@ -678,8 +685,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         const locationMatch = venueLocationFilter === 'all' || v.location === venueLocationFilter;
         const musicTypeMatch = venueMusicTypeFilter === 'all' || v.musicType === venueMusicTypeFilter;
         const vibeMatch = venueVibeFilter === 'all' || v.vibe === venueVibeFilter;
-        return searchMatch && locationMatch && musicTypeMatch && vibeMatch;
-    }), [venues, searchTerm, venueLocationFilter, venueMusicTypeFilter, venueVibeFilter]);
+        const hiddenMatch = showHiddenVenues || !v.isHidden;
+        return searchMatch && locationMatch && musicTypeMatch && vibeMatch && hiddenMatch;
+    }), [venues, searchTerm, venueLocationFilter, venueMusicTypeFilter, venueVibeFilter, showHiddenVenues]);
 
     const wingmanCities = useMemo(() => [...new Set(wingmen.map(p => p.city))], [wingmen]);
     const venueLocations = useMemo(() => [...new Set(venues.map(v => v.location))], [venues]);
@@ -740,16 +748,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             </div>
         );
         if (tab === 'events') return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FilterDropdown label="Type" value={eventTypeFilter} onChange={setEventTypeFilter} options={['EXCLUSIVE', 'INVITE ONLY']} />
+            <div className="flex flex-wrap gap-4 items-end">
+                <FilterDropdown label="Type" value={eventTypeFilter} onChange={setEventTypeFilter} options={[{ value: 'EXCLUSIVE', label: 'Exclusive' }, { value: 'INVITE ONLY', label: 'Invite Only' }]} />
                 <FilterDropdown label="Venue" value={eventVenueFilter} onChange={setEventVenueFilter} options={venues.map(v => ({ value: v.id.toString(), label: v.name }))} />
+                <button
+                    onClick={() => setShowHiddenEvents(p => !p)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${showHiddenEvents ? 'border-amber-500/40 text-amber-400 bg-amber-400/10' : 'border-[#1C1D22] text-gray-500 hover:text-gray-300 hover:border-gray-600'}`}
+                    title={showHiddenEvents ? 'Currently showing hidden events' : 'Hidden events are filtered out'}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                        {showHiddenEvents ? <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></> : <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></>}
+                    </svg>
+                    {showHiddenEvents ? 'Showing Hidden' : 'Show Hidden'}
+                </button>
             </div>
         );
         if (tab === 'venues') return (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-4 items-end">
                 <FilterDropdown label="Location" value={venueLocationFilter} onChange={setVenueLocationFilter} options={venueLocations} />
                 <FilterDropdown label="Music" value={venueMusicTypeFilter} onChange={setVenueMusicTypeFilter} options={venueMusicTypes} />
                 <FilterDropdown label="Vibe" value={venueVibeFilter} onChange={setVenueVibeFilter} options={venueVibes} />
+                <button
+                    onClick={() => setShowHiddenVenues(p => !p)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${showHiddenVenues ? 'border-amber-500/40 text-amber-400 bg-amber-400/10' : 'border-[#1C1D22] text-gray-500 hover:text-gray-300 hover:border-gray-600'}`}
+                    title={showHiddenVenues ? 'Currently showing hidden venues' : 'Hidden venues are filtered out'}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                        {showHiddenVenues ? <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></> : <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></>}
+                    </svg>
+                    {showHiddenVenues ? 'Showing Hidden' : 'Show Hidden'}
+                </button>
             </div>
         );
         return null;
@@ -772,7 +800,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             {filteredWingmen.length > 0 ? filteredWingmen.map(wingman => {
                                 const user = props.users.find(u => u.id === wingman.id);
                                 if (!user) return null;
-                                return <AdminWingmanListItem key={wingman.id} wingman={wingman} user={user} onEdit={props.onEditWingman} onDelete={props.onDeleteWingman} onPreview={props.onPreviewWingman} onSuspend={props.onSuspendWingman} onViewStats={p => setWingmanForStats(p)} />;
+                                return <AdminWingmanListItem key={wingman.id} wingman={wingman} user={user} onEdit={props.onEditWingman} onDelete={props.onDeleteWingman} onPreview={props.onPreviewWingman} onSuspend={props.onSuspendWingman} onViewStats={p => setWingmanForStats(p)} onViewDashboard={props.onViewDashboard} />;
                             }) : <p className="text-center text-gray-500 py-8">No wingmen found.</p>}
                         </div>
                     );
@@ -822,7 +850,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                             )}
                             <button onClick={props.onAddEvent} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Event</button>
                         </div>
-                        {filteredEvents.length > 0 ? filteredEvents.map(event => <AdminEventListItem key={event.id} event={event} venueName={getVenueName(event.venueId)} onEdit={props.onEditEvent} onDelete={props.onDeleteEvent} onPreview={props.onPreviewEvent} isSelected={selectedEventIds.includes(event.id)} onToggleSelect={handleToggleEventSelection} />) : <p className="text-center text-gray-500 py-8">No events found.</p>}
+                        {filteredEvents.length > 0
+                            ? filteredEvents.map(event => (
+                                <AdminEventListItem
+                                    key={event.id}
+                                    event={event}
+                                    venueName={getVenueName(event.venueId)}
+                                    onEdit={props.onEditEvent}
+                                    onDelete={props.onDeleteEvent}
+                                    onPreview={props.onPreviewEvent}
+                                    isSelected={selectedEventIds.includes(event.id)}
+                                    onToggleSelect={handleToggleEventSelection}
+                                    onToggleHide={props.onToggleHideEvent}
+                                />
+                            ))
+                            : <p className="text-center text-gray-500 py-8">No events found.</p>
+                        }
                     </div>
                 );
             case 'users':
@@ -908,6 +951,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         onRejectMembershipRequest={props.onRejectMembershipRequest}
                     />
                 );
+            case 'wingmanRequests':
+                return (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-xl font-bold">Wingman Requests Oversight</h2>
+                            <span className="text-xs bg-gray-800 text-gray-300 px-3 py-1 rounded-full">
+                                Total: {props.wingmanRequests.length}
+                            </span>
+                        </div>
+                        <div className="overflow-x-auto bg-[#0F1014] border border-[#1C1D22] rounded-md">
+                            <table className="w-full text-left text-sm text-gray-300">
+                                <thead className="text-xs uppercase bg-[#1C1D22] text-gray-400">
+                                    <tr>
+                                        <th className="px-6 py-3">User</th>
+                                        <th className="px-6 py-3">Requested Wingman</th>
+                                        <th className="px-6 py-3">Experience</th>
+                                        <th className="px-6 py-3">Requested Date</th>
+                                        <th className="px-6 py-3">Status</th>
+                                        <th className="px-6 py-3">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#1C1D22]">
+                                    {props.wingmanRequests.length > 0 ? (
+                                        props.wingmanRequests.map(req => {
+                                            const w = props.wingmen.find(wing => wing.id === req.wingmanId);
+                                            return (
+                                                <tr key={req.id} className="hover:bg-[#141418] transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <p className="font-bold text-white">{req.userName}</p>
+                                                        <p className="text-xs text-gray-500">{req.userEmail}</p>
+                                                        {req.userPhone && <p className="text-xs text-gray-500">{req.userPhone}</p>}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            {w?.profilePhoto && (
+                                                                <img className="w-6 h-6 rounded-full object-cover" src={w.profilePhoto} alt={w.name} />
+                                                            )}
+                                                            <span className="font-semibold text-white">{w?.name || `Wingman #${req.wingmanId}`}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-semibold text-white">
+                                                        {req.experienceTitle}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs">
+                                                        {req.dateRequested}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${
+                                                            req.status === 'pending' ? 'bg-yellow-950 text-yellow-400 border border-yellow-800' :
+                                                            req.status === 'accepted' ? 'bg-green-950 text-green-400 border border-green-800' :
+                                                            req.status === 'completed' ? 'bg-blue-950 text-blue-400 border border-blue-800' :
+                                                            'bg-red-950 text-red-400 border border-red-800'
+                                                        }`}>
+                                                            {req.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-500">
+                                                        {new Date(req.timestamp).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6} className="text-center py-8 text-gray-500">
+                                                No Wingman requests found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
             default:
                 return null;
         }
@@ -925,6 +1042,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 <TabBtn label="Users"          active={!isLegacyActive && activeTab === 'users'}          badge={pendingApprovalsCount}  onClick={() => handleGoTo('users')} />
                 <TabBtn label="Access Control" active={!isLegacyActive && activeTab === 'accessControl'}  onClick={() => handleGoTo('accessControl')} />
                 <TabBtn label="Approvals"      active={!isLegacyActive && activeTab === 'approvals'}      badge={pendingRequestsCount}   onClick={() => handleGoTo('approvals')} />
+                <TabBtn label="Wingman Requests" active={!isLegacyActive && activeTab === 'wingmanRequests'} badge={props.wingmanRequests.filter(r => r.status === 'pending').length} onClick={() => handleGoTo('wingmanRequests')} />
             </div>
 
             {/* ── More Tools Drawer Toggle ────────────────────────────────── */}

@@ -7,6 +7,7 @@ import { EyeIcon } from './icons/FeatureIcons';
 import { UserMinusIcon } from './icons/UserMinusIcon';
 import { UserPlusIcon } from './icons/UserPlusIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
+import { ChartPieIcon } from './icons/ChartPieIcon';
 
 interface AdminWingmanListItemProps {
     wingman: Wingman;
@@ -16,9 +17,10 @@ interface AdminWingmanListItemProps {
     onPreview: (wingman: Wingman) => void;
     onSuspend: (user: User) => void;
     onViewStats?: (wingman: Wingman) => void;
+    onViewDashboard?: (wingman: Wingman) => void;
 }
 
-export const AdminWingmanListItem: React.FC<AdminWingmanListItemProps> = ({ wingman, user, onEdit, onDelete, onPreview, onSuspend, onViewStats }) => {
+export const AdminWingmanListItem: React.FC<AdminWingmanListItemProps> = ({ wingman, user, onEdit, onDelete, onPreview, onSuspend, onViewStats, onViewDashboard }) => {
     
     const status = user.status;
 
@@ -54,6 +56,11 @@ export const AdminWingmanListItem: React.FC<AdminWingmanListItemProps> = ({ wing
                     {onViewStats && (
                         <button onClick={() => onViewStats(wingman)} className="p-2 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-md transition-colors" aria-label={`View stats for ${wingman.name}`} title="View Stats">
                             <ChartBarIcon className="w-5 h-5" />
+                        </button>
+                    )}
+                    {onViewDashboard && (
+                        <button onClick={() => onViewDashboard(wingman)} className="p-2 text-gray-400 hover:text-purple-400 hover:bg-white/5 rounded-md transition-colors" aria-label={`View dashboard for ${wingman.name}`} title="View Dashboard">
+                            <ChartPieIcon className="w-5 h-5" />
                         </button>
                     )}
                     <button onClick={() => onPreview(wingman)} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors" aria-label={`Preview wingman ${wingman.name}`} title="Preview Profile">
