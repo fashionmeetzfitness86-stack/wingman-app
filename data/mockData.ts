@@ -18,7 +18,20 @@ export const users: User[] = [
     subscriptionStatus: 'active'
   },
   {
-    id: 999, // Super Admin
+    id: 998, // Super Admin — secondary email
+    name: 'Anderson Correavaz',
+    email: 'themainkeys@gmail.com',
+    profilePhoto: 'https://i.pravatar.cc/150?u=998',
+    accessLevel: UserAccessLevel.ADMIN,
+    role: UserRole.ADMIN,
+    city: 'Miami',
+    joinDate: '2022-01-01',
+    status: 'active',
+    approvalStatus: 'approved',
+    subscriptionStatus: 'active'
+  },
+  {
+    id: 999, // Super Admin — primary email
     name: 'Anderson Correavaz',
     email: 'anderson.correavaz@gmail.com',
     profilePhoto: 'https://i.pravatar.cc/150?u=999',

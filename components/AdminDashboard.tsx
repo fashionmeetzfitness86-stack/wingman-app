@@ -862,24 +862,84 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             case 'events':
                 return (
                     <div className="space-y-3">
-                        <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
-                            {selectedEventIds.length > 0 ? (
-                                <div className="flex items-center gap-2 bg-gray-800 p-2 rounded-lg animate-fade-in">
-                                    <span className="text-sm font-semibold text-white px-2">{selectedEventIds.length} Selected</span>
-                                    <button onClick={() => handleBulkUpdateType('EXCLUSIVE')} className="text-xs bg-green-900/50 text-green-300 px-3 py-1.5 rounded hover:bg-green-800 transition-colors">Set Exclusive</button>
-                                    <button onClick={() => handleBulkUpdateType('INVITE ONLY')} className="text-xs bg-purple-900/50 text-purple-300 px-3 py-1.5 rounded hover:bg-purple-800 transition-colors">Set Invite Only</button>
-                                    <button onClick={handleBulkDelete} className="p-1.5 bg-red-900/50 text-red-400 rounded hover:bg-red-800 transition-colors" title="Delete Selected">
-                                        <TrashIcon className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => setSelectedEventIds([])} className="p-1.5 text-gray-400 hover:text-white">
-                                        <CloseIcon className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <button onClick={handleSelectAllEvents} className="text-sm text-gray-400 hover:text-white font-semibold">Select All Visible</button>
-                            )}
-                            <button onClick={props.onAddEvent} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Event</button>
+                        {/* ── Header row ── */}
+                        <div className="flex flex-wrap justify-between items-center gap-3 mb-2">
+                            <div className="flex items-center gap-3">
+                                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                    {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''}
+                                    {filteredEvents.some(e => e.isHidden) && (
+                                        <span className="ml-2" style={{ color: '#F59E0B' }}>
+                                            · {filteredEvents.filter(e => e.isHidden).length} hidden
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                            <button
+                                onClick={props.onAddEvent}
+                                className="text-sm font-bold py-2 px-4 rounded-xl text-white transition-all active:scale-95 flex items-center gap-2"
+                                style={{
+                                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                                    boxShadow: '0 4px 14px rgba(249,115,22,0.25)',
+                                }}
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                Add Event
+                            </button>
                         </div>
+
+                        {/* ── Bulk-action toolbar ── */}
+                        {selectedEventIds.length > 0 ? (
+                            <div
+                                className="flex items-center gap-2 p-3 rounded-xl animate-fade-in"
+                                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                            >
+                                <span
+                                    className="text-xs font-bold px-2.5 py-1 rounded-full"
+                                    style={{ background: 'rgba(249,115,22,0.15)', color: '#f97316', border: '1px solid rgba(249,115,22,0.3)' }}
+                                >
+                                    {selectedEventIds.length} selected
+                                </span>
+                                <button
+                                    onClick={() => handleBulkUpdateType('EXCLUSIVE')}
+                                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                                    style={{ background: 'rgba(77,184,124,0.12)', color: '#4DB87C', border: '1px solid rgba(77,184,124,0.2)' }}
+                                >
+                                    Set Exclusive
+                                </button>
+                                <button
+                                    onClick={() => handleBulkUpdateType('INVITE ONLY')}
+                                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                                    style={{ background: 'rgba(139,92,246,0.12)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}
+                                >
+                                    Set Invite Only
+                                </button>
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="p-1.5 rounded-lg transition-colors"
+                                    style={{ background: 'rgba(212,80,80,0.1)', color: '#D45050', border: '1px solid rgba(212,80,80,0.2)' }}
+                                    title="Delete Selected"
+                                >
+                                    <TrashIcon className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setSelectedEventIds([])}
+                                    className="p-1.5 text-gray-500 hover:text-white transition-colors ml-auto"
+                                    title="Clear selection"
+                                >
+                                    <CloseIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleSelectAllEvents}
+                                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}
+                            >
+                                Select All Visible
+                            </button>
+                        )}
+
+                        {/* ── Event list ── */}
                         {filteredEvents.length > 0
                             ? filteredEvents.map(event => (
                                 <AdminEventListItem
@@ -894,7 +954,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                                     onToggleHide={props.onToggleHideEvent}
                                 />
                             ))
-                            : <p className="text-center text-gray-500 py-8">No events found.</p>
+                            : (
+                                <div
+                                    className="py-16 text-center rounded-2xl"
+                                    style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}
+                                >
+                                    <div className="text-3xl mb-3 opacity-20">📅</div>
+                                    <p className="text-sm text-gray-600">No events found.</p>
+                                    <p className="text-[11px] text-gray-700 mt-1">Try adjusting your filters or add a new event.</p>
+                                </div>
+                            )
                         }
                     </div>
                 );
