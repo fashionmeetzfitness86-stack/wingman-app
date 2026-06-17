@@ -158,10 +158,19 @@ export const App: React.FC = () => {
             const saved = localStorage.getItem('wingman_venues');
             if (!saved) return venues;
             const parsed: Venue[] = JSON.parse(saved);
-            // Merge: ensure all seed venues exist (by id), then append admin-created ones
+            // Build a map of saved venues by id so we can overlay admin-set fields (e.g. isHidden)
+            const savedMap = new Map(parsed.map(v => [v.id, v]));
+            // Merge: seed venues get isHidden / adminNotes etc. overlaid from saved state
+            const mergedSeeds = venues.map(v => {
+                const savedVenue = savedMap.get(v.id);
+                if (!savedVenue) return v;
+                // Preserve admin-controlled fields from localStorage; keep seed data for everything else
+                return { ...v, isHidden: savedVenue.isHidden, adminNotes: savedVenue.adminNotes ?? v.adminNotes };
+            });
+            // Append any admin-created venues (non-seed IDs)
             const seedIds = new Set(venues.map(v => v.id));
             const savedNonSeed = parsed.filter(v => !seedIds.has(v.id));
-            return [...venues, ...savedNonSeed];
+            return [...mergedSeeds, ...savedNonSeed];
         } catch (e) {
             return venues;
         }
@@ -169,6 +178,12 @@ export const App: React.FC = () => {
     const [appStoreItems, setAppStoreItems] = useState<StoreItem[]>(storeItems);
     // Venues/events visible to non-admin users (hidden items excluded)
     const visibleVenues = React.useMemo(() => appVenues.filter(v => !v.isHidden), [appVenues]);
+    // Events visible to users: excludes explicitly hidden events AND events tied to hidden venues
+    const hiddenVenueIds = React.useMemo(() => new Set(appVenues.filter(v => v.isHidden).map(v => v.id)), [appVenues]);
+    const visibleEvents = React.useMemo(
+        () => appEvents.filter(e => !e.isHidden && !hiddenVenueIds.has(e.venueId)),
+        [appEvents, hiddenVenueIds]
+    );
     const [appChallenges, setAppChallenges] = useState<Challenge[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_challenges');
@@ -550,14 +565,21 @@ export const App: React.FC = () => {
         } catch {}
         // 3. Remove from React state
         setAppUsers(prev => prev.filter(u => !purgeEmails.includes((u.email || '').toLowerCase())));
-        // 4. Fire-and-forget: delete from Supabase
-        for (const email of purgeEmails) {
-            void fetch('/.netlify/functions/delete-profile', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
-            }).catch(() => null);
-        }
+        // 4. Fire-and-forget: delete from Supabase (include auth token so the function can authorize)
+        void (async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+                if (!token) return; // not logged in, skip server-side delete
+                for (const email of purgeEmails) {
+                    void fetch('/.netlify/functions/delete-profile', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ email }),
+                    }).catch(() => null);
+                }
+            } catch { /* silent — local purge already done */ }
+        })();
         // Mark done so this never runs again
         localStorage.setItem('wm_purge_v1', 'done');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -778,7 +800,11 @@ export const App: React.FC = () => {
                 updates.approvalStatus = fresh.approvalStatus;
                 changed = true;
             }
-            if (fresh.role && fresh.role !== currentUser.role) {
+            // GUARD: never overwrite an Admin role with a lower-privilege role from appUsers.
+            // If the current user is locally Admin, their role cannot be demoted by a stale
+            // appUsers entry. Only apply role updates for non-admin users.
+            const isAdminLocally = currentUser.role === UserRole.ADMIN;
+            if (fresh.role && fresh.role !== currentUser.role && !isAdminLocally) {
                 updates.role = fresh.role;
                 changed = true;
             }
@@ -787,6 +813,7 @@ export const App: React.FC = () => {
             }
         }
     }, [appUsers, currentUser.email, currentUser.approvalStatus, currentUser.role]);
+
 
     // Ensure the active logged-in Wingman is present in the appWingmen list
     useEffect(() => {
@@ -1412,8 +1439,18 @@ export const App: React.FC = () => {
     };
 
     const handleJoinGuestlistConfirm = (wingmanId: number, venueId: number, date: string, maleGuests: number, femaleGuests: number) => {
-        const venue = venues.find(v => v.id === venueId);
-        const wingman = wingmen.find(p => p.id === wingmanId);
+        // Use live state (appVenues/appWingmen) not stale seed imports so
+        // admin-added or updated venues/wingmen are reflected correctly.
+        const venue = appVenues.find(v => v.id === venueId);
+        const wingman = appWingmen.find(p => p.id === wingmanId);
+
+        // Block guestlist join for hidden venues (non-admins only)
+        const isUserAdmin = currentUser.role === UserRole.ADMIN || !!realAdminUser;
+        if (venue?.isHidden && !isUserAdmin) {
+            showToast('This venue is currently unavailable.', 'error');
+            setActiveModal(null);
+            return;
+        }
 
         const newRequest: GuestlistJoinRequest = {
             id: Date.now(),
@@ -1461,6 +1498,12 @@ export const App: React.FC = () => {
     };
 
     const handleBookVenue = (venue: Venue) => {
+        // Block booking hidden venues for non-admins
+        const isUserAdmin = currentUser.role === UserRole.ADMIN || !!realAdminUser;
+        if (venue.isHidden && !isUserAdmin) {
+            showToast('This venue is currently unavailable.', 'error');
+            return;
+        }
         setActiveModal({ type: 'wingmanSelection', venue });
     };
     
@@ -2827,7 +2870,7 @@ export const App: React.FC = () => {
                         }
                     }} 
                     itinerary={existingItinerary} 
-                    venues={appVenues} 
+                    venues={visibleVenues} 
                     events={appEvents} 
                     experiences={experiences} 
                     users={appUsers} 
@@ -3140,7 +3183,7 @@ export const App: React.FC = () => {
                     onViewVenueDetails={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
                     currentUser={currentUser} 
                     events={appEvents}
-                    venues={appVenues}
+                    venues={visibleVenues}
                     likedEventIds={likedEventIds}
                     onToggleLikeEvent={handleToggleLikeEvent}
                     bookmarkedEventIds={bookmarkedEventIds}
@@ -3155,7 +3198,23 @@ export const App: React.FC = () => {
             case 'venueDetails': {
                 const isUserAdmin = currentUser.role === UserRole.ADMIN || !!realAdminUser;
                 const venue = appVenues.find(v => v.id === pageParams.venueId);
-                if (!venue || (venue.isHidden && !isUserAdmin)) return <div className="text-white p-8">Venue not found</div>;
+                if (!venue) return <div className="text-white p-8">Venue not found.</div>;
+                if (venue.isHidden && !isUserAdmin) return (
+                    <div className="min-h-screen bg-[#080808] flex items-center justify-center p-8">
+                        <div className="text-center max-w-sm">
+                            <div className="text-5xl mb-4 opacity-30">🚫</div>
+                            <h2 className="text-xl font-black text-white mb-2">Venue Unavailable</h2>
+                            <p className="text-sm text-gray-500 leading-relaxed mb-6">This venue is currently unavailable. New reservations are not being accepted at this time.</p>
+                            <button
+                                onClick={() => handleNavigate('featuredVenues')}
+                                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                                style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
+                            >
+                                Browse Other Venues
+                            </button>
+                        </div>
+                    </div>
+                );
                 return <VenueDetailsPage 
                     venue={venue} 
                     onBack={() => handleNavigate('back' as Page)} 
@@ -3212,7 +3271,13 @@ export const App: React.FC = () => {
                     isAdminEditing={isAdminEditing}
                 />;
             }
-            case 'referFriend': return <ReferFriendPage />;
+            case 'referFriend': {
+                if (currentUser.role !== UserRole.ADMIN) {
+                    setTimeout(() => setCurrentPage('home'), 0);
+                    return null;
+                }
+                return <ReferFriendPage />;
+            }
             case 'hireWingman': return <HireWingmanPage
                 currentUser={currentUser}
                 onNavigate={handleNavigate}
@@ -3388,6 +3453,7 @@ export const App: React.FC = () => {
                         currentPage={currentPage} 
                         currentUser={currentUser} 
                         onLogout={handleLogout}
+                        isAdmin={currentUser.role === UserRole.ADMIN || !!realAdminUser}
                     />
 
                     <CartPanel 
@@ -3448,7 +3514,7 @@ export const App: React.FC = () => {
                                 handleNavigate('checkout');
                             }}
                             onKeepBooking={() => setActiveModal(null)} 
-                            venues={appVenues} 
+                            venues={visibleVenues} 
                         />
                     )}
                     

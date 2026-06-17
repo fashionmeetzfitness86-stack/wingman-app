@@ -17,53 +17,65 @@ interface AnalyticsTabProps {
     wingmen: Wingman[];
 }
 
+// ─── Shared table primitives ───────────────────────────────────────────────────
 const Table: React.FC<{ headers: string[]; children: React.ReactNode }> = ({ headers, children }) => (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
         <table className="w-full text-sm text-left text-gray-300">
-            <thead className="text-xs text-gray-400 uppercase bg-gray-800">
-                <tr>
+            <thead>
+                <tr className="border-b border-white/[0.06]">
                     {headers.map(header => (
-                        <th key={header} scope="col" className="px-4 py-3">{header}</th>
+                        <th key={header} scope="col"
+                            className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                            {header}
+                        </th>
                     ))}
                 </tr>
             </thead>
-            <tbody>
-                {children}
-            </tbody>
+            <tbody>{children}</tbody>
         </table>
     </div>
 );
 
 const TableRow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <tr className="bg-gray-900 border-b border-gray-800 hover:bg-gray-800">{children}</tr>
+    <tr className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors">{children}</tr>
 );
 
 const TableCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <td className="px-4 py-3">{children}</td>
+    <td className="px-4 py-3 text-gray-300">{children}</td>
 );
 
+// ─── Charts ────────────────────────────────────────────────────────────────────
 const RevenueChart: React.FC<{ data: { month: string; revenue: number }[] }> = ({ data }) => {
-  const maxRevenue = Math.max(...data.map(d => d.revenue), 1); // Avoid division by zero
+  const maxRevenue = Math.max(...data.map(d => d.revenue), 1);
   if (data.length === 0) {
-    return <div className="p-4 text-center text-gray-500 h-full flex items-center justify-center">No revenue data for chart.</div>;
+    return (
+      <div className="p-8 flex flex-col items-center justify-center gap-2 text-center">
+        <span className="text-3xl opacity-30">📊</span>
+        <p className="text-sm text-gray-600">No revenue data for chart.</p>
+      </div>
+    );
   }
   return (
     <div>
-      <h4 className="text-lg font-semibold text-white p-4">Revenue Over Time</h4>
-      <div className="p-4 h-64 flex items-end gap-4 border-t border-gray-800">
+      <h4 className="text-sm font-bold text-white px-5 pt-5 pb-1">Revenue Over Time</h4>
+      <div className="px-5 pb-5 pt-3 h-52 flex items-end gap-3">
         {data.map(({ month, revenue }) => (
-          <div key={month} className="flex-1 flex flex-col items-center gap-2 h-full">
+          <div key={month} className="flex-1 flex flex-col items-center gap-2 h-full group">
             <div className="relative flex-1 w-full flex items-end justify-center">
               <div
-                className="w-3/4 bg-gradient-to-t from-[#FFFFFF] to-[#f472b6] rounded-t-md group transition-all duration-300 hover:opacity-80"
-                style={{ height: `${(revenue / maxRevenue) * 100}%` }}
+                className="w-full rounded-t-lg transition-all duration-500 group-hover:opacity-80"
+                style={{
+                  height: `${(revenue / maxRevenue) * 100}%`,
+                  background: 'linear-gradient(to top, #f97316, #fb923c)',
+                  minHeight: 4,
+                }}
               >
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   ${Math.round(revenue).toLocaleString()}
                 </span>
               </div>
             </div>
-            <span className="text-xs font-semibold text-gray-400">{month}</span>
+            <span className="text-[10px] font-semibold text-gray-500">{month}</span>
           </div>
         ))}
       </div>
@@ -74,22 +86,30 @@ const RevenueChart: React.FC<{ data: { month: string; revenue: number }[] }> = (
 const BookingsByVenueChart: React.FC<{ data: { name: string; count: number }[] }> = ({ data }) => {
   const maxCount = Math.max(...data.map(d => d.count), 1);
   if (data.length === 0) {
-     return <div className="p-4 text-center text-gray-500 h-full flex items-center justify-center">No booking data for chart.</div>;
+    return (
+      <div className="p-8 flex flex-col items-center justify-center gap-2 text-center">
+        <span className="text-3xl opacity-30">🏛</span>
+        <p className="text-sm text-gray-600">No booking data for chart.</p>
+      </div>
+    );
   }
   return (
     <div>
-      <h4 className="text-lg font-semibold text-white p-4">Bookings by Venue</h4>
-      <div className="p-4 space-y-3 border-t border-gray-800">
+      <h4 className="text-sm font-bold text-white px-5 pt-5 pb-1">Bookings by Venue</h4>
+      <div className="px-5 pb-5 pt-3 space-y-3">
         {data.slice(0, 5).map(({ name, count }) => (
-          <div key={name} className="flex items-center gap-4 group">
-            <span className="text-sm font-semibold text-gray-400 w-28 truncate" title={name}>{name}</span>
-            <div className="flex-1 bg-gray-700 rounded-full h-4">
+          <div key={name} className="flex items-center gap-3 group">
+            <span className="text-xs text-gray-500 w-24 truncate flex-shrink-0" title={name}>{name}</span>
+            <div className="flex-1 bg-white/[0.06] rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-[#50B6FF] to-[#60a5fa] h-4 rounded-full transition-all duration-500"
-                style={{ width: `${(count / maxCount) * 100}%` }}
+                className="h-2.5 rounded-full transition-all duration-500"
+                style={{
+                  width: `${(count / maxCount) * 100}%`,
+                  background: 'linear-gradient(to right, #f97316, #fb923c)',
+                }}
               />
             </div>
-            <span className="text-sm font-bold text-white w-8 text-right">{count}</span>
+            <span className="text-xs font-bold text-white w-5 text-right">{count}</span>
           </div>
         ))}
       </div>
@@ -97,8 +117,30 @@ const BookingsByVenueChart: React.FC<{ data: { name: string; count: number }[] }
   );
 };
 
+// ─── Shared section header ─────────────────────────────────────────────────────
+const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-4">{children}</h3>
+);
 
-export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestlistRequests, allRsvps, users, events, venues, wingmen }) => {
+// ─── Search input ──────────────────────────────────────────────────────────────
+const SearchInput: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}> = ({ value, onChange, placeholder }) => (
+  <input
+    type="text"
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    placeholder={placeholder}
+    className="w-full bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] focus:border-orange-500/50 text-white placeholder-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all mb-4"
+  />
+);
+
+// ─── Main component ────────────────────────────────────────────────────────────
+export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
+    bookedItems, guestlistRequests, allRsvps, users, events, venues, wingmen,
+}) => {
     const [bookingSearch, setBookingSearch] = useState('');
     const [guestlistSearch, setGuestlistSearch] = useState('');
     const [rsvpSearch, setRsvpSearch] = useState('');
@@ -112,7 +154,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
         const storeSales = bookedItems.filter(item => item.type === 'storeItem');
         const storeRevenue = storeSales.reduce((acc, item) => acc + (item.fullPrice || 0), 0);
         const totalItemsSold = storeSales.reduce((acc, item) => acc + item.quantity, 0);
-        
         return {
             revenue: bookingRevenue + storeRevenue,
             bookings: bookedItems.filter(i => i.type !== 'storeItem').length,
@@ -131,10 +172,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
             const price = item.type === 'storeItem' ? item.fullPrice : (item.paymentOption === 'full' ? item.fullPrice : item.depositPrice);
             monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (price || 0);
         });
-        const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         return monthOrder.filter(m => monthlyRevenue[m]).map(month => ({ month, revenue: monthlyRevenue[month] }));
     }, [bookedItems]);
-    
+
     const bookingsByVenueData = useMemo(() => {
         const venueCounts: { [key: string]: number } = {};
         bookedItems.filter(i => i.type !== 'storeItem').forEach(item => {
@@ -148,96 +189,95 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
     const filteredBookings = useMemo(() => {
         const bookings = bookedItems.filter(item => item.type !== 'storeItem');
         if (!bookingSearch) return bookings;
-        const lowercasedQuery = bookingSearch.toLowerCase();
+        const q = bookingSearch.toLowerCase();
         return bookings.filter(item => {
             const userName = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || '';
             const wingmanName = item.tableDetails?.wingman?.name || '';
-            return (
-                item.name.toLowerCase().includes(lowercasedQuery) ||
-                userName.toLowerCase().includes(lowercasedQuery) ||
-                wingmanName.toLowerCase().includes(lowercasedQuery)
-            );
+            return item.name.toLowerCase().includes(q) || userName.toLowerCase().includes(q) || wingmanName.toLowerCase().includes(q);
         });
     }, [bookingSearch, bookedItems]);
 
     const filteredGuestlist = useMemo(() => {
         if (!guestlistSearch) return guestlistRequests;
-        const lowercasedQuery = guestlistSearch.toLowerCase();
+        const q = guestlistSearch.toLowerCase();
         return guestlistRequests.filter(req => {
             const user = users.find(u => u.id === req.userId);
             const venue = venues.find(v => v.id === req.venueId);
             const wingman = wingmen.find(p => p.id === req.wingmanId);
-            return (
-                (user && user.name.toLowerCase().includes(lowercasedQuery)) ||
-                (venue && venue.name.toLowerCase().includes(lowercasedQuery)) ||
-                (wingman && wingman.name.toLowerCase().includes(lowercasedQuery))
-            );
+            return (user?.name.toLowerCase().includes(q)) || (venue?.name.toLowerCase().includes(q)) || (wingman?.name.toLowerCase().includes(q));
         });
     }, [guestlistSearch, guestlistRequests, users, venues, wingmen]);
-    
+
     const filteredRsvps = useMemo(() => {
         if (!rsvpSearch) return allRsvps;
-        const lowercasedQuery = rsvpSearch.toLowerCase();
+        const q = rsvpSearch.toLowerCase();
         return allRsvps.filter(rsvp => {
             const user = users.find(u => u.id === rsvp.userId);
             const event = events.find(e => e.id === rsvp.eventId);
-            return (
-                (user && user.name.toLowerCase().includes(lowercasedQuery)) ||
-                (event && event.title.toLowerCase().includes(lowercasedQuery))
-            );
+            return (user?.name.toLowerCase().includes(q)) || (event?.title.toLowerCase().includes(q));
         });
     }, [rsvpSearch, allRsvps, users, events]);
 
     const filteredStorePurchases = useMemo(() => {
         const purchases = bookedItems.filter(item => item.type === 'storeItem');
         if (!storeSearch) return purchases;
-        const lowercasedQuery = storeSearch.toLowerCase();
-        return purchases.filter(item => item.name.toLowerCase().includes(lowercasedQuery));
+        const q = storeSearch.toLowerCase();
+        return purchases.filter(item => item.name.toLowerCase().includes(q));
     }, [storeSearch, bookedItems]);
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-10">
+            {/* Key Metrics */}
             <div>
-                <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Key Metrics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                    <StatCard icon={<CurrencyDollarIcon className="w-7 h-7" />} label="Total Revenue" value={`$${stats.revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} />
-                    <StatCard icon={<BookingsIcon className="w-7 h-7" />} label="Total Bookings" value={stats.bookings.toString()} />
-                    <StatCard icon={<GuestlistIcon className="w-7 h-7" />} label="Guestlist Signups" value={stats.guestlistSignups.toString()} />
-                    <StatCard icon={<CalendarIcon className="w-7 h-7" />} label="Event RSVPs" value={stats.eventRsvps.toString()} />
-                    <StatCard icon={<CurrencyDollarIcon className="w-7 h-7" />} label="Store Revenue" value={`$${stats.storeRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} />
-                    <StatCard icon={<StoreIcon className="w-7 h-7" />} label="Items Sold" value={stats.itemsSold.toString()} />
+                <SectionHeading>Key Metrics</SectionHeading>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <StatCard icon={<CurrencyDollarIcon className="w-5 h-5" />} label="Total Revenue" value={`$${stats.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                    <StatCard icon={<BookingsIcon className="w-5 h-5" />} label="Total Bookings" value={stats.bookings.toString()} />
+                    <StatCard icon={<GuestlistIcon className="w-5 h-5" />} label="Guestlist Signups" value={stats.guestlistSignups.toString()} />
+                    <StatCard icon={<CalendarIcon className="w-5 h-5" />} label="Event RSVPs" value={stats.eventRsvps.toString()} />
+                    <StatCard icon={<CurrencyDollarIcon className="w-5 h-5" />} label="Store Revenue" value={`$${stats.storeRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                    <StatCard icon={<StoreIcon className="w-5 h-5" />} label="Items Sold" value={stats.itemsSold.toString()} />
                 </div>
             </div>
 
+            {/* Visualizations */}
             <div>
-                <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Visualizations</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden"><RevenueChart data={revenueData} /></div>
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden"><BookingsByVenueChart data={bookingsByVenueData} /></div>
+                <SectionHeading>Visualizations</SectionHeading>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+                        <RevenueChart data={revenueData} />
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+                        <BookingsByVenueChart data={bookingsByVenueData} />
+                    </div>
                 </div>
             </div>
 
+            {/* Data Tables */}
             <div>
-                <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wider mb-4">Data Tables</h3>
-                <div className="space-y-8">
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                        <h3 className="text-xl font-bold mb-4">Recent Store Purchases</h3>
-                        <input type="text" placeholder="Search store purchases..." value={storeSearch} onChange={e => setStoreSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+                <SectionHeading>Data Tables</SectionHeading>
+                <div className="space-y-6">
+                    {/* Store Purchases */}
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+                        <p className="text-sm font-bold text-white mb-4">Recent Store Purchases</p>
+                        <SearchInput value={storeSearch} onChange={setStoreSearch} placeholder="Search store purchases..." />
                         <Table headers={['Item', 'Category', 'Quantity', 'Price (USD)']}>
-                           {filteredStorePurchases.map(item => (
+                            {filteredStorePurchases.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell>{item.name}</TableCell>
                                     <TableCell>{item.storeItemDetails?.item.category}</TableCell>
                                     <TableCell>{item.quantity}</TableCell>
                                     <TableCell>${(item.fullPrice || 0).toFixed(2)}</TableCell>
                                 </TableRow>
-                           ))}
+                            ))}
                         </Table>
+                        {filteredStorePurchases.length === 0 && <p className="text-center text-gray-600 text-sm py-6 italic">No store purchases.</p>}
                     </div>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                        <h3 className="text-xl font-bold mb-4">Recent Bookings</h3>
-                        <input type="text" placeholder="Search bookings by user, item, or wingman..." value={bookingSearch} onChange={e => setBookingSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+                    {/* Bookings */}
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+                        <p className="text-sm font-bold text-white mb-4">Recent Bookings</p>
+                        <SearchInput value={bookingSearch} onChange={setBookingSearch} placeholder="Search bookings by user, item, or wingman..." />
                         <Table headers={['User', 'Item', 'Date', 'Wingman', 'Price']}>
                             {filteredBookings.map(item => {
                                 const userName = item.tableDetails?.guestDetails?.name || item.eventDetails?.guestDetails?.name || 'N/A';
@@ -251,14 +291,16 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
                                         <TableCell>{wingmanName}</TableCell>
                                         <TableCell>${price?.toFixed(2)}</TableCell>
                                     </TableRow>
-                                )
+                                );
                             })}
                         </Table>
+                        {filteredBookings.length === 0 && <p className="text-center text-gray-600 text-sm py-6 italic">No bookings found.</p>}
                     </div>
 
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                        <h3 className="text-xl font-bold mb-4">Guestlist Attendance</h3>
-                        <input type="text" placeholder="Search by user, venue, or wingman..." value={guestlistSearch} onChange={e => setGuestlistSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+                    {/* Guestlist */}
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+                        <p className="text-sm font-bold text-white mb-4">Guestlist Attendance</p>
+                        <SearchInput value={guestlistSearch} onChange={setGuestlistSearch} placeholder="Search by user, venue, or wingman..." />
                         <Table headers={['User', 'Venue', 'Wingman', 'Date', 'Status']}>
                             {filteredGuestlist.map(req => {
                                 const user = users.find(u => u.id === req.userId);
@@ -271,21 +313,23 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
                                         <TableCell>{wingman?.name || 'N/A'}</TableCell>
                                         <TableCell>{req.date}</TableCell>
                                         <TableCell>
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${
-                                                req.status === 'approved' ? 'bg-green-900/50 text-green-300' :
-                                                req.status === 'pending' ? 'bg-yellow-900/50 text-yellow-300' :
-                                                'bg-red-900/50 text-red-300'
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full capitalize ${
+                                                req.status === 'approved' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                                                req.status === 'pending' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' :
+                                                'bg-red-500/15 text-red-400 border border-red-500/20'
                                             }`}>{req.status}</span>
                                         </TableCell>
                                     </TableRow>
-                                )
+                                );
                             })}
                         </Table>
+                        {filteredGuestlist.length === 0 && <p className="text-center text-gray-600 text-sm py-6 italic">No guestlist entries found.</p>}
                     </div>
-                    
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                        <h3 className="text-xl font-bold mb-4">Event RSVPs</h3>
-                        <input type="text" placeholder="Search by user or event..." value={rsvpSearch} onChange={e => setRsvpSearch(e.target.value)} className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 mb-4" />
+
+                    {/* RSVPs */}
+                    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+                        <p className="text-sm font-bold text-white mb-4">Event RSVPs</p>
+                        <SearchInput value={rsvpSearch} onChange={setRsvpSearch} placeholder="Search by user or event..." />
                         <Table headers={['User', 'Event', 'Event Date']}>
                             {filteredRsvps.map(rsvp => {
                                 const user = users.find(u => u.id === rsvp.userId);
@@ -296,9 +340,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ bookedItems, guestli
                                         <TableCell>{event?.title || 'N/A'}</TableCell>
                                         <TableCell>{event?.date || 'N/A'}</TableCell>
                                     </TableRow>
-                                )
+                                );
                             })}
                         </Table>
+                        {filteredRsvps.length === 0 && <p className="text-center text-gray-600 text-sm py-6 italic">No RSVPs found.</p>}
                     </div>
                 </div>
             </div>

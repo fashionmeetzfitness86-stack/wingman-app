@@ -807,12 +807,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 case 'venues':
                     return (
                         <div className="space-y-3">
-                            <div className="flex justify-end mb-4">
-                                <button onClick={props.onAddVenue} className="bg-white text-black hover:bg-gray-200 text-sm font-semibold py-2 px-4 rounded-md transition-colors">Add Venue</button>
+                            <div className="flex items-center justify-between mb-4">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                                    {filteredVenues.length} venue{filteredVenues.length !== 1 ? 's' : ''}
+                                    {filteredVenues.some(v => v.isHidden) && (
+                                        <span className="ml-2 text-amber-500">
+                                            · {filteredVenues.filter(v => v.isHidden).length} hidden
+                                        </span>
+                                    )}
+                                </p>
+                                <button
+                                    onClick={props.onAddVenue}
+                                    className="text-sm font-bold py-2 px-4 rounded-xl text-white transition-all active:scale-95"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                                        boxShadow: '0 4px 14px rgba(249,115,22,0.25)',
+                                    }}
+                                >
+                                    + Add Venue
+                                </button>
                             </div>
-                            {filteredVenues.length > 0 ? filteredVenues.map(venue => <AdminVenueListItem key={venue.id} venue={venue} onEdit={props.onEditVenue} onDelete={props.onDeleteVenue} onPreview={props.onPreviewVenue} />) : <p className="text-center text-gray-500 py-8">No venues found.</p>}
+                            {filteredVenues.length > 0
+                                ? filteredVenues.map(venue => (
+                                    <AdminVenueListItem
+                                        key={venue.id}
+                                        venue={venue}
+                                        onEdit={props.onEditVenue}
+                                        onDelete={props.onDeleteVenue}
+                                        onPreview={props.onPreviewVenue}
+                                        onToggleHide={props.onToggleHideVenue}
+                                    />
+                                ))
+                                : <p className="text-center text-gray-600 py-12 italic text-sm">No venues found.</p>
+                            }
                         </div>
                     );
+
                 case 'store':
                     return <StoreTab storeItems={props.storeItems} onAddItem={props.onAddStoreItem} onEditItem={props.onEditStoreItem} onDeleteItem={props.onDeleteStoreItem} onPreviewItem={props.onPreviewStoreItem} />;
                 case 'pushNotifications':

@@ -693,6 +693,18 @@ export function generateEventFeed(
   const finalCustomArrivalMap = (isBrowser ? JSON.parse(localStorage.getItem('wingman_custom_arrival_map') ?? 'null') : null) ?? customArrivalMap;
   const finalCustomInstanceMap = (isBrowser ? JSON.parse(localStorage.getItem('wingman_custom_instances') ?? 'null') : null) ?? customInstanceMap;
 
+  // Build set of hidden venue IDs so events tied to hidden venues are excluded for non-admin feeds
+  let hiddenVenueIdSet: Set<number> = new Set();
+  if (!includeHidden && isBrowser) {
+    try {
+      const storedVenues = localStorage.getItem('wingman_venues');
+      if (storedVenues) {
+        const vArr: { id: number; isHidden?: boolean }[] = JSON.parse(storedVenues);
+        hiddenVenueIdSet = new Set(vArr.filter(v => v.isHidden).map(v => v.id));
+      }
+    } catch { /* ignore */ }
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -703,6 +715,8 @@ export function generateEventFeed(
 
   for (const event of finalEvents) {
     if (event.isHidden && !includeHidden) continue;
+    // Skip events whose venue is hidden (non-admin feeds only)
+    if (!includeHidden && typeof event.venueId === 'number' && hiddenVenueIdSet.has(event.venueId)) continue;
     const dates: string[] = [];
     const startDate = new Date(event.date + 'T00:00:00');
 

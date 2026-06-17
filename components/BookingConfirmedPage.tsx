@@ -268,6 +268,70 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
                             </div>
                         </div>
 
+                        {/* ── Save This Receipt + Legal Notice ───────────── */}
+                        <div className="px-5 pb-5">
+                            {/* Save-receipt callout */}
+                            <div
+                                className="rounded-xl p-4 mb-4 flex items-start gap-3"
+                                style={{
+                                    background: 'linear-gradient(135deg, #FFF7ED, #FFFBF5)',
+                                    border: '1.5px solid #FED7AA',
+                                }}
+                            >
+                                <span className="text-2xl flex-shrink-0 mt-0.5">📸</span>
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 mb-1">Save This Receipt</p>
+                                    <p className="text-xs text-orange-900 leading-relaxed">
+                                        Please <strong>screenshot or save this receipt</strong> as proof of your purchase. You may be asked to present it when checking in for your Wingman experience.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Legal / what-you-purchased notice */}
+                            <div
+                                className="rounded-xl p-4 space-y-3"
+                                style={{
+                                    background: '#F8F9FA',
+                                    border: '1px solid #E5E7EB',
+                                }}
+                            >
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-1.5">
+                                    <span>ℹ️</span> Important Information
+                                </p>
+
+                                {/* What you purchased */}
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">What You Purchased</p>
+                                    <p className="text-xs text-gray-700 leading-relaxed">
+                                        Your payment confirms the purchase of <strong>access to a curated Wingman experience</strong>. Wingman sells and organizes exclusive social and hospitality experiences, providing access to attend with a Wingman host and, where applicable, other participants.
+                                    </p>
+                                </div>
+
+                                {/* Divider */}
+                                <div style={{ height: 1, background: '#E5E7EB' }} />
+
+                                {/* Not included */}
+                                <div
+                                    className="rounded-lg p-3"
+                                    style={{ background: '#FFF1F2', border: '1px solid #FECDD3' }}
+                                >
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-red-600 mb-1.5">⚠️ Not Included</p>
+                                    <p className="text-xs text-red-900 leading-relaxed">
+                                        This purchase <strong>does not include bottles, alcohol, food, beverages, table minimums, gratuities, or any additional venue charges</strong>, unless explicitly stated in the booking details.
+                                    </p>
+                                </div>
+
+                                {/* Guest responsibility */}
+                                <p className="text-xs text-gray-600 leading-relaxed">
+                                    Any optional purchases made during the experience—including bottle service, drinks, meals, upgrades, or other personal expenses—are <strong>the sole responsibility of the guest</strong> and must be paid directly to the venue.
+                                </p>
+
+                                <p className="text-[10px] text-gray-400 leading-relaxed border-t border-gray-200 pt-3">
+                                    Keep this receipt for your records and bring it with you on the day of your experience.
+                                </p>
+                            </div>
+                        </div>
+
                         {/* QR footer */}
                         <div className="p-4 border-t border-gray-200 text-center" style={{ background: '#F9FAFB' }}>
                             <p className="text-xs text-gray-400 font-mono mb-3">Booking ID: {transactionId}</p>

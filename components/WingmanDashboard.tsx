@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Wingman, Page, User, Venue, Event, InstanceBooking, WingmanRequest, FriendZoneChat, FriendZoneChatMessage, GuestlistChat, GuestlistChatMessage } from '../types';
 import { generateEventFeed } from '../utils/eventSchedule';
 
@@ -76,6 +76,21 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = ({
   const [availability, setAvailability] = useState<string>(
     wingman.weeklySchedule?.map(s => `${s.day}: ${venues.find(v => v.id === s.venueId)?.name || s.venueId}`).join(', ') || ''
   );
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) setProfilePhoto(dataUrl);
+      setPhotoUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Generate event occurrences for the next 4 weeks
   const allInstances = useMemo(() => {
@@ -159,6 +174,30 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = ({
       city,
     };
     onUpdateUser(updatedUser);
+
+    // Persist changes to Supabase so they sync cross-device (same as EditProfilePage).
+    // Fire-and-forget — never blocks the UI.
+    void (async () => {
+      try {
+        const { data: { session } } = await (await import('../lib/supabase')).supabase.auth.getSession();
+        const token = session?.access_token;
+        void fetch('/.netlify/functions/register-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            id: String(wingmanUser.id),
+            name: wingmanUser.name,
+            email: wingmanUser.email,
+            phone: wingmanUser.phoneNumber,
+            city,
+            profilePhoto: profilePhoto.startsWith('data:') ? undefined : profilePhoto,
+          }),
+        }).catch(() => null);
+      } catch { /* silent — local state already updated */ }
+    })();
   };
 
   return (
@@ -736,15 +775,67 @@ export const WingmanDashboard: React.FC<WingmanDashboardProps> = ({
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-400 uppercase">Profile Photo URL</label>
-                <input
-                  type="text"
-                  value={profilePhoto}
-                  onChange={e => setProfilePhoto(e.target.value)}
-                  className="w-full bg-[#0F1014] border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500 text-white"
-                  required
-                />
+              {/* ── Profile Photo Upload ── */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">Profile Photo</label>
+                <div className="flex items-center gap-4">
+                  {/* Clickable avatar preview */}
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="relative flex-shrink-0 group"
+                    title="Click to upload photo"
+                  >
+                    <img
+                      src={profilePhoto || 'https://i.pravatar.cc/150?u=wingman'}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-white/10 group-hover:border-orange-500 transition-colors"
+                      onError={e => { (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/150?u=wingman'; }}
+                    />
+                    <div className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {photoUploading ? (
+                        <svg className="w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+
+                  <div className="flex-grow space-y-2">
+                    {/* Upload button */}
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/40 hover:border-orange-500 text-orange-400 font-bold text-sm rounded-lg px-4 py-2.5 transition-all active:scale-[0.98]"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                      </svg>
+                      {photoUploading ? 'Uploading…' : 'Upload Photo'}
+                    </button>
+                    {/* Hidden file input */}
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoFileChange}
+                    />
+                    {/* URL fallback */}
+                    <input
+                      type="text"
+                      value={profilePhoto}
+                      onChange={e => setProfilePhoto(e.target.value)}
+                      placeholder="Or paste an image URL…"
+                      className="w-full bg-[#0F1014] border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 

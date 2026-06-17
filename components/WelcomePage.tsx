@@ -158,6 +158,8 @@ const LoginScreen: React.FC<{
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [stayLoggedIn, setStayLoggedIn] = useState(true);
+  const [emailFocus, setEmailFocus] = useState(false);
+  const [pwFocus, setPwFocus] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,24 +171,35 @@ const LoginScreen: React.FC<{
       const ok = await onLogin(email.trim().toLowerCase(), password, stayLoggedIn);
       if (!ok) setError('Email or password not recognised. Please try again.');
     } catch {
-      setError('Could not sign in. Please try again.');
+      setError('Could not sign in. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const borderColor = (focused: boolean, hasError: boolean) =>
+    hasError
+      ? 'rgba(239,68,68,0.5)'
+      : focused
+        ? 'rgba(255,255,255,0.4)'
+        : 'rgba(255,255,255,0.1)';
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808', overflowY: 'auto' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
-        <button onClick={onBack} className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
+        >
           ← Back
         </button>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-5 py-8">
         <div className="w-full max-w-sm">
-          {/* Logo — login page only */}
+          {/* Logo */}
           <div className="mb-10 flex justify-center">
             <img src={loginLogo} alt="WINGMAN" className="h-16 w-auto" />
           </div>
@@ -198,50 +211,91 @@ const LoginScreen: React.FC<{
             <p className="text-xs text-gray-500">Log in to access your exclusive concierge.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+          {/*
+            IMPORTANT: Do NOT add autoComplete="off" to this form.
+            Browser password managers need autoComplete="on" (the default)
+            plus proper name/id/autoComplete attributes on inputs to work.
+          */}
+          <form onSubmit={handleSubmit} className="space-y-4" method="post">
+
+            {/* Email */}
             <div>
-              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <label
+                htmlFor="login-email"
+                className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2"
+              >
                 Email Address
               </label>
               <input
+                id="login-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setError(''); }}
+                onFocus={() => setEmailFocus(true)}
+                onBlur={() => setEmailFocus(false)}
                 placeholder="you@example.com"
                 autoComplete="email"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
                 className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${borderColor(emailFocus, !!error && !email.trim())}`,
+                }}
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <label
+                htmlFor="login-password"
+                className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
+                  name="password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError(''); }}
+                  onFocus={() => setPwFocus(true)}
+                  onBlur={() => setPwFocus(false)}
                   placeholder="••••••••"
                   autoComplete="current-password"
                   className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 outline-none transition-all pr-12"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${error ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${borderColor(pwFocus, !!error && !password.trim())}`,
+                  }}
                 />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  tabIndex={-1}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                >
                   <IcoEye shown={showPw} />
                 </button>
               </div>
             </div>
 
+            {/* Error message */}
             {error && (
-              <div className="rounded-xl px-4 py-3 text-[11px] text-red-400"
-                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <div
+                className="rounded-xl px-4 py-3 text-[11px] text-red-400"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+                role="alert"
+              >
                 {error}
               </div>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -249,15 +303,24 @@ const LoginScreen: React.FC<{
               style={{
                 background: loading ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 50%, #374151 100%)',
                 color: loading ? '#9CA3AF' : '#000',
-              }}>
+              }}
+            >
               {loading ? 'Signing in…' : 'Log In'}
             </button>
 
             {/* Stay logged in */}
             <label
-              className="flex items-center gap-2.5 cursor-pointer mt-3"
-              onClick={() => setStayLoggedIn(s => !s)}
+              htmlFor="stay-logged-in"
+              className="flex items-center gap-2.5 cursor-pointer mt-3 select-none"
             >
+              <input
+                id="stay-logged-in"
+                name="stayLoggedIn"
+                type="checkbox"
+                checked={stayLoggedIn}
+                onChange={e => setStayLoggedIn(e.target.checked)}
+                className="sr-only"
+              />
               <div
                 className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                 style={stayLoggedIn
@@ -270,22 +333,25 @@ const LoginScreen: React.FC<{
                   </svg>
                 )}
               </div>
-              <span className="text-[11px] text-gray-500 select-none">Stay logged in</span>
+              <span className="text-[11px] text-gray-500">Stay logged in</span>
             </label>
 
-          <button
-            onClick={onForgotPassword}
-            className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-5"
-          >
-            Forgot your password?
-          </button>
-          </form>
+            {/* Forgot password — must be type="button" so it never submits the form */}
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="w-full text-center text-[11px] text-gray-600 hover:text-gray-400 transition-colors mt-4 py-1"
+            >
+              Forgot your password?
+            </button>
 
+          </form>
         </div>
       </div>
     </div>
   );
 };
+
 
 // ─── Forgot Password Screen ────────────────────────────────────
 
