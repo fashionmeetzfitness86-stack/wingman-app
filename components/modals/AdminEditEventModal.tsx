@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Event, Venue, UserAccessLevel } from '../../types';
+import { Event, Venue, UserAccessLevel, Wingman } from '../../types';
 import { CloseIcon } from '../icons/CloseIcon';
 import { CloudArrowUpIcon } from '../icons/CloudArrowUpIcon';
 import { TrashIcon } from '../icons/TrashIcon';
@@ -8,6 +8,7 @@ import { TrashIcon } from '../icons/TrashIcon';
 interface AdminEditEventModalProps {
   event: Event | null;
   venues: Venue[];
+  wingmen?: Wingman[];
   isOpen: boolean;
   onClose: () => void;
   onSave: (event: Event) => void;
@@ -132,7 +133,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 );
 
 // ── Main modal ────────────────────────────────────────────────────────────────
-export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event, venues, isOpen, onClose, onSave }) => {
+export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event, venues, wingmen = [], isOpen, onClose, onSave }) => {
   const [editedEvent, setEditedEvent] = useState<Partial<Event>>(event || {});
   const [saved, setSaved] = useState(false);
 
@@ -265,7 +266,14 @@ export const AdminEditEventModal: React.FC<AdminEditEventModalProps> = ({ event,
               <SelectField label="Venue" value={String(editedEvent.venueId || '')} onChange={e => handleChange('venueId', parseInt(e.target.value, 10))} options={venues.map(v => ({ label: v.name, value: v.id }))} required />
               <SelectField label="Event Type" value={editedEvent.type || 'EXCLUSIVE'} onChange={e => handleChange('type', e.target.value as 'EXCLUSIVE' | 'INVITE ONLY')} options={['EXCLUSIVE', 'INVITE ONLY']} required />
             </div>
-            <InputField label="Start Date" type="date" value={editedEvent.date || ''} onChange={e => handleChange('date', e.target.value)} required />
+            <div className="grid grid-cols-2 gap-3">
+              <InputField label="Start Date" type="date" value={editedEvent.date || ''} onChange={e => handleChange('date', e.target.value)} required />
+              <SelectField label="Host Wingman" value={String(editedEvent.wingmanId || '')} onChange={e => {
+                const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                handleChange('wingmanId', val);
+                handleChange('hostId', val);
+              }} options={wingmen.map(w => ({ label: w.name, value: w.id }))} />
+            </div>
             <TextAreaField label="Description" value={editedEvent.description || ''} onChange={e => handleChange('description', e.target.value)} />
           </Section>
 

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Wingman, Venue, TableOption, UserAccessLevel, User, CartItem, UserRole } from '../types';
 import { CloseIcon } from './icons/CloseIcon';
@@ -7,6 +7,12 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { AddedToPlansModal } from './modals/AddedToPlansModal';
 import { ExclamationCircleIcon } from './icons/ExclamationCircleIcon';
+import {
+  getExperienceTypeFromCategory,
+  calculateWingmanPrice,
+  getPriceLabel,
+  getPriceBreakdown,
+} from '../utils/wingmanPricing';
 
 interface BookingFlowProps {
   wingman: Wingman;
@@ -21,40 +27,92 @@ interface BookingFlowProps {
   venues: Venue[];
 }
 
-const TAX_SERVICE_RATE = 0.36;
 const DEPOSIT_AMOUNT = 50;
 const LARGE_GROUP_MAX_GUESTS = 20;
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const DetailRow: React.FC<{ label: string; value: string | number }> = ({ label, value }) => (
-    <div className="flex justify-between items-center text-sm">
-        <p className="text-gray-400">{label}</p>
-        <p className="font-semibold text-white text-right">{value}</p>
-    </div>
+const TAX_SERVICE_RATE = 0.36;
+const RESTAURANT_BLOCK_SIZE = 2;
+// Legacy compat — kept only for header pill restaurant block-bar display
+const RESTAURANT_CATEGORIES = ['Restaurant', 'Luxury Restaurant', 'Waterfront Restaurant'];
+const isRestaurantVenue = (venue: Venue | null): boolean =>
+  !!venue && RESTAURANT_CATEGORIES.some(c => venue.category?.toLowerCase() === c.toLowerCase());
+
+// ─── Shared styled detail row ───────────────────────────────
+const DetailRow: React.FC<{ label: string; value: string | number; highlight?: boolean }> = ({ label, value, highlight }) => (
+  <div className="flex justify-between items-center">
+    <p className="text-[12px] text-gray-500">{label}</p>
+    <p className={`text-[12px] font-bold text-right ${highlight ? 'text-amber-400' : 'text-white'}`}>{value}</p>
+  </div>
 );
 
+// ─── Styled text input ──────────────────────────────────────
+const StyledInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean }> = ({ hasError, className, ...props }) => (
+  <input
+    {...props}
+    className={`w-full text-white text-sm rounded-xl px-4 py-3 transition-all outline-none ${className ?? ''}`}
+    style={{
+      background: 'rgba(255,255,255,0.04)',
+      border: `1px solid ${hasError ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.1)'}`,
+    }}
+  />
+);
 
-export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAddToCart, currentUser, initialVenue, initialDate, tableBookings, onNavigateToCheckout, onKeepBooking, venues }) => {
+// ─── Guest stepper ──────────────────────────────────────────
+const GuestStepper: React.FC<{
+  label: string; icon: string; value: number | '';
+  onChange: (v: number | '') => void; hasError?: boolean;
+}> = ({ label, icon, value, onChange, hasError }) => (
+  <div
+    className="flex-1 flex items-center justify-between rounded-xl px-4 py-3"
+    style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${hasError ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)'}` }}
+  >
+    <div className="flex items-center gap-2">
+      <span className="text-base">{icon}</span>
+      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, Number(value || 0) - 1))}
+        className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-lg leading-none transition-all hover:opacity-80"
+        style={{ background: 'rgba(255,255,255,0.08)' }}
+        aria-label={`Decrease ${label}`}
+      >−</button>
+      <span className="text-white font-black text-sm w-4 text-center">{value === '' ? 0 : value}</span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(LARGE_GROUP_MAX_GUESTS, Number(value || 0) + 1))}
+        className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-lg leading-none transition-all hover:opacity-80"
+        style={{ background: 'rgba(255,255,255,0.1)' }}
+        aria-label={`Increase ${label}`}
+      >+</button>
+    </div>
+  </div>
+);
+
+export const BookingFlow: React.FC<BookingFlowProps> = ({
+  wingman, onClose, onAddToCart, currentUser, initialVenue, initialDate,
+  tableBookings, onNavigateToCheckout, onKeepBooking, venues
+}) => {
   const [step, setStep] = useState(initialVenue ? 2 : 1);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(initialVenue || null);
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || '');
   const [selectedTable, setSelectedTable] = useState<TableOption | null>(null);
-  const isPrivilegedUser = useMemo(() => currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN, [currentUser.accessLevel, currentUser.role]);
-
+  const isPrivilegedUser = useMemo(
+    () => currentUser.accessLevel === UserAccessLevel.APPROVED_GIRL || currentUser.role === UserRole.ADMIN,
+    [currentUser]
+  );
   const [numberOfMaleGuests, setNumberOfMaleGuests] = useState<number | ''>(isPrivilegedUser ? 0 : 1);
   const [numberOfFemaleGuests, setNumberOfFemaleGuests] = useState<number | ''>(isPrivilegedUser ? 1 : 0);
   const [errors, setErrors] = useState<{ date?: string; guests?: string }>({});
-
   const [bookingFor, setBookingFor] = useState<'self' | 'guest'>('self');
   const [guestDetails, setGuestDetails] = useState({ name: '', email: '', phone: '' });
   const [specialRequests, setSpecialRequests] = useState('');
-  
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
-  // Ref for focus first input
   const firstInputRef = useRef<HTMLInputElement | HTMLButtonElement>(null);
 
-  // ── Body scroll lock + hide bottom nav (same pattern as ReserveSpotModal) ───
+  // Body scroll lock
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -68,468 +126,512 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ wingman, onClose, onAd
     return () => {
       document.body.style.overflow = prev;
       if (nav) {
-        nav.style.zIndex        = nav.dataset.prevZ ?? '';
+        nav.style.zIndex = nav.dataset.prevZ ?? '';
         nav.style.pointerEvents = '';
-        nav.style.visibility    = '';
+        nav.style.visibility = '';
         delete nav.dataset.prevZ;
       }
     };
   }, []);
 
-  // ── ESC key to close ─────────────────────────────────────────
+  // ESC to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  // Sync initial props
+  useEffect(() => {
+    if (initialVenue) { setSelectedVenue(initialVenue); setStep(2); }
+    if (initialDate) setSelectedDate(initialDate);
+  }, [initialVenue, initialDate]);
+
+  // Focus management
+  useEffect(() => {
+    if (firstInputRef.current) firstInputRef.current.focus();
+  }, [step]);
+
   const wingmanVenues = useMemo(() => {
-      const assigned = venues.filter(v => wingman.assignedVenueIds.includes(v.id));
-      if (initialVenue && !assigned.find(v => v.id === initialVenue.id)) {
-          return [initialVenue, ...assigned];
-      }
-      return assigned;
+    const assigned = venues.filter(v => wingman.assignedVenueIds.includes(v.id));
+    if (initialVenue && !assigned.find(v => v.id === initialVenue.id)) return [initialVenue, ...assigned];
+    return assigned;
   }, [wingman.assignedVenueIds, venues, initialVenue]);
 
   const minDate = useMemo(() => {
-      const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, []);
-
-  useEffect(() => {
-    if (initialVenue) {
-        setSelectedVenue(initialVenue);
-        setStep(2);
-    }
-    if (initialDate) {
-        setSelectedDate(initialDate);
-    }
-  }, [initialVenue, initialDate]);
-  
-  // Focus management
-  useEffect(() => {
-      if (firstInputRef.current) {
-          firstInputRef.current.focus();
-      }
-  }, [step]);
 
   const totalGuests = useMemo(() => Number(numberOfMaleGuests || 0) + Number(numberOfFemaleGuests || 0), [numberOfMaleGuests, numberOfFemaleGuests]);
 
-  const totalWithTaxAndService = useMemo(() => {
-    const totalMinSpend = selectedTable?.minSpend || 0;
-    return totalMinSpend * (1 + TAX_SERVICE_RATE);
-  }, [selectedTable]);
+  // ── Central Wingman pricing ──────────────────────────────────────────────────
+  const experienceType = useMemo(
+    () => getExperienceTypeFromCategory(selectedVenue?.category) ?? 'nightclub',
+    [selectedVenue]
+  );
+  const wingmanTotal = useMemo(
+    () => calculateWingmanPrice(experienceType, Math.max(1, totalGuests)),
+    [experienceType, totalGuests]
+  );
+  const wingmanPriceLabel = useMemo(() => getPriceLabel(experienceType), [experienceType]);
+  const wingmanPriceBreakdown = useMemo(
+    () => getPriceBreakdown(experienceType, Math.max(1, totalGuests)),
+    [experienceType, totalGuests]
+  );
+  const restaurantBlocks = useMemo(
+    () => Math.ceil(Math.max(1, totalGuests) / RESTAURANT_BLOCK_SIZE),
+    [totalGuests]
+  );
 
   const handleVenueSelect = (venue: Venue) => { setSelectedVenue(venue); setStep(2); };
-  
-  const handleTableSelect = (table: TableOption) => { 
-      setSelectedTable(table); 
-      setStep(4); 
-  };
+  const handleTableSelect = (table: TableOption) => { setSelectedTable(table); setStep(4); };
 
   const validateAndProceed = () => {
-    const newErrors: { date?: string; guests?: string } = {};
-    let isValid = true;
-    
-    if (!selectedDate) {
-        newErrors.date = "Please select a date for your reservation.";
-        isValid = false;
-    } else if (selectedDate < minDate) {
-        newErrors.date = "Please select a future date.";
-        isValid = false;
-    } else if (selectedVenue) {
-         const dateObj = new Date(selectedDate + 'T00:00:00');
-         if (isNaN(dateObj.getTime())) {
-             newErrors.date = "Invalid date selected.";
-             isValid = false;
-         } else {
-             const dayOfWeek = WEEKDAYS[dateObj.getDay()];
-             const isOpen = selectedVenue.operatingDays.some(day => day.toLowerCase() === dayOfWeek.toLowerCase());
-             
-             if (!isOpen) {
-                 newErrors.date = `${selectedVenue.name} is closed on ${dayOfWeek}s.`;
-                 isValid = false;
-             }
-         }
+    const errs: { date?: string; guests?: string } = {};
+    let ok = true;
+    if (!selectedDate) { errs.date = 'Please select a date.'; ok = false; }
+    else if (selectedDate < minDate) { errs.date = 'Please select a future date.'; ok = false; }
+    else if (selectedVenue) {
+      const day = WEEKDAYS[new Date(selectedDate + 'T00:00:00').getDay()];
+      if (!selectedVenue.operatingDays.some(d => d.toLowerCase() === day.toLowerCase())) {
+        errs.date = `${selectedVenue.name} is closed on ${day}s.`;
+        ok = false;
+      }
     }
-
-    if (step === 2 && totalGuests === 0) {
-      newErrors.guests = "Please specify the number of guests.";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-
-    if (isValid) {
-        setStep(s => s + 1);
-    }
+    if (step === 2 && totalGuests === 0) { errs.guests = 'Please add at least 1 guest.'; ok = false; }
+    setErrors(errs);
+    if (ok) setStep(s => s + 1);
   };
-  
+
   const handleConfirmBooking = () => {
     if (!selectedVenue || !selectedTable || !selectedDate) return;
-    
     if (bookingFor === 'guest' && (!guestDetails.name || !guestDetails.email)) {
-        (window as any).showAppToast?.("Please enter the guest's name and email.");
-        return;
+      (window as any).showAppToast?.("Please enter the guest's name and email.");
+      return;
     }
-
     const cartItem: CartItem = {
-      id: `table-${selectedVenue.id}-${selectedDate}-${selectedTable.id}-${Date.now()}`,
+      id: `table-${selectedVenue.id}-${selectedDate}-${selectedTable.id}-exp${experienceType}-guests${Math.max(1, totalGuests)}-${Date.now()}`,
       type: 'table',
       name: selectedVenue.name,
       image: selectedVenue.coverImage,
       date: new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
       sortableDate: selectedDate,
       quantity: 1,
-      fullPrice: totalWithTaxAndService,
+      fullPrice: wingmanTotal,
       depositPrice: DEPOSIT_AMOUNT,
       paymentOption: 'full',
       tableDetails: {
-        venue: selectedVenue, tableOption: selectedTable, wingman: wingman, numberOfGuests: totalGuests,
-        guestDetails: bookingFor === 'guest' ? guestDetails : { name: currentUser.name, email: currentUser.email, phone: currentUser.phoneNumber || ''},
-        specialRequests: specialRequests
-      }
+        venue: selectedVenue,
+        tableOption: selectedTable,
+        wingman,
+        numberOfGuests: totalGuests,
+        guestDetails: bookingFor === 'guest'
+          ? guestDetails
+          : { name: currentUser.name, email: currentUser.email, phone: currentUser.phoneNumber || '' },
+        specialRequests,
+      },
     };
     onAddToCart(cartItem);
-    onClose();
-    onNavigateToCheckout();
+    setShowSuccessModal(true);
+  };
+
+  // ── Step labels for progress bar ────────────────────────────
+  const STEPS = initialVenue
+    ? ['Date & Guests', 'Select Table', 'Confirm']
+    : ['Venue', 'Date & Guests', 'Select Table', 'Confirm'];
+  const totalSteps = STEPS.length;
+  const currentStepIdx = initialVenue ? step - 2 : step - 1;
+
+  // ─────────────────────────────────────────────────────────────
+  // STEP RENDERERS
+  // ─────────────────────────────────────────────────────────────
+
+  const renderStep1Venue = () => (
+    <div role="region" aria-label="Select a Venue" className="space-y-3">
+      {wingmanVenues.map((venue, i) => (
+        <button
+          key={venue.id}
+          onClick={() => handleVenueSelect(venue)}
+          ref={i === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
+          className="w-full text-left rounded-2xl overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99] focus:outline-none"
+          style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
+          aria-label={`Select ${venue.name}`}
+        >
+          <div className="relative h-24 overflow-hidden">
+            <img src={venue.coverImage} alt={venue.name} className="w-full h-full object-cover" style={{ filter: 'brightness(0.55)' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%)' }} />
+            <div className="absolute bottom-3 left-4 right-4">
+              <p className="font-black text-white text-sm leading-tight">{venue.name}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{venue.location}</p>
+            </div>
+          </div>
+          <div className="px-4 py-2.5 flex items-center justify-between">
+            <p className="text-[10px] text-gray-500">Open: <span className="text-gray-400">{venue.operatingDays.join(', ')}</span></p>
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.2)' }}>
+              Available
+            </span>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderStep2DateGuests = () => (
+    <div role="region" aria-label="Select Date and Guests" className="space-y-5">
+      <div>
+        <label htmlFor="booking-date" className="block text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">
+          Select Date
+        </label>
+        <input
+          type="date"
+          id="booking-date"
+          ref={firstInputRef as React.RefObject<HTMLInputElement>}
+          value={selectedDate}
+          onChange={e => { setSelectedDate(e.target.value); setErrors({ ...errors, date: undefined }); }}
+          min={minDate}
+          aria-invalid={!!errors.date}
+          className="w-full text-white text-sm rounded-xl px-4 py-3 transition-all outline-none"
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: `1px solid ${errors.date ? 'rgba(239,68,68,0.6)' : 'rgba(255,255,255,0.1)'}`,
+            colorScheme: 'dark',
+          }}
+        />
+        {errors.date && (
+          <div className="flex items-center gap-1.5 text-red-400 text-xs mt-2 animate-fade-in">
+            <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{errors.date}</span>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Guests</label>
+        <div className="flex gap-3">
+          <GuestStepper label="Men" icon="♂" value={numberOfMaleGuests} onChange={setNumberOfMaleGuests} hasError={!!errors.guests} />
+          <GuestStepper label="Women" icon="♀" value={numberOfFemaleGuests} onChange={setNumberOfFemaleGuests} hasError={!!errors.guests} />
+        </div>
+        {totalGuests > 0 && (
+          <p className="text-[10px] text-gray-600 mt-2 text-center">{totalGuests} guest{totalGuests !== 1 ? 's' : ''} total</p>
+        )}
+        {errors.guests && (
+          <div className="flex items-center gap-1.5 text-red-400 text-xs mt-2 animate-fade-in">
+            <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{errors.guests}</span>
+          </div>
+        )}
+      </div>
+
+      {totalGuests > 0 && (
+        <div
+          className="rounded-2xl px-4 py-3"
+          style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.18)' }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Experience Pricing</p>
+              <p className="text-[11px] text-amber-400/60 mt-0.5">
+                {wingmanPriceBreakdown}
+              </p>
+            </div>
+            <p className="text-xl font-black text-amber-400">${wingmanTotal.toLocaleString()}</p>
+          </div>
+          {experienceType === 'restaurant' && (
+            <div className="flex gap-2 mt-2">
+              {Array.from({ length: restaurantBlocks }).map((_, i) => (
+                <div key={i} className="flex-1 h-1 rounded-full" style={{ background: 'rgba(245,158,11,0.4)' }} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <button
+        onClick={validateAndProceed}
+        className="w-full font-black py-4 rounded-2xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+        style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 24px rgba(224,64,251,0.3)' }}
+      >
+        Continue
+      </button>
+    </div>
+  );
+
+  const renderStep3Table = () => {
+    const tablesForVenue = selectedVenue?.tableOptions && selectedVenue.tableOptions.length > 0
+      ? selectedVenue.tableOptions
+      : [{ id: 'general-inquiry', name: 'General Reservation Request', area: 'General', minSpend: 0, description: 'Submit a request and your Wingman will follow up with options.', capacityHint: 'Small Groups' } as TableOption];
+
+    return (
+      <div role="region" aria-label="Select a Table" className="space-y-3">
+        {tablesForVenue.map((table, i) => {
+          const tableKey = `${table.id}-${selectedDate}`;
+          const booked = tableBookings[tableKey] || 0;
+          const available = table.totalAvailable === undefined || booked < table.totalAvailable;
+          const isSelected = selectedTable?.id === table.id;
+
+          return (
+            <button
+              key={table.id}
+              onClick={() => available && handleTableSelect(table)}
+              ref={i === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
+              disabled={!available}
+              className="w-full text-left rounded-2xl p-4 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none"
+              style={{
+                background: isSelected ? 'rgba(224,64,251,0.08)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isSelected ? 'rgba(224,64,251,0.35)' : 'rgba(255,255,255,0.08)'}`,
+              }}
+              aria-disabled={!available}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1 min-w-0 pr-3">
+                  <p className="font-black text-white text-sm">{table.name}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{table.description}</p>
+                </div>
+                {!available && (
+                  <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
+                    style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    Sold Out
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="flex items-center gap-2">
+                  <UsersIcon className="w-3.5 h-3.5 text-gray-600" />
+                  <div>
+                    <p className="text-[9px] text-gray-600 uppercase tracking-wide">Capacity</p>
+                    <p className="text-[11px] font-bold text-gray-300">{table.capacityHint}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] text-gray-600 uppercase tracking-wide">Est. Total</p>
+                  <p className="text-sm font-black text-amber-400">${wingmanTotal.toLocaleString()}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderStep4Confirm = () => {
+    if (!selectedVenue || !selectedTable) return null;
+    const dateLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+    return (
+      <div role="region" aria-label="Confirm Booking" className="space-y-4">
+        <div className="rounded-2xl p-4 space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-3">Reservation Summary</p>
+          <DetailRow label="Venue" value={selectedVenue.name} />
+          <DetailRow label="Date" value={dateLabel} />
+          <DetailRow label="Table" value={selectedTable.name} />
+          <DetailRow label="Wingman" value={wingman.name} />
+          <DetailRow label="Guests" value={Math.max(1, totalGuests)} />
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', marginTop: '10px' }} className="space-y-2">
+            <DetailRow label="Pricing" value={wingmanPriceLabel} />
+            <DetailRow label={wingmanPriceBreakdown} value={`$${wingmanTotal.toLocaleString()}`} />
+            <div className="flex justify-between items-center pt-1">
+              <p className="text-xs font-black text-white">Total</p>
+              <p className="text-base font-black text-amber-400">
+                ${wingmanTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Booking for</p>
+          <div className="flex gap-2">
+            {(['self', 'guest'] as const).map(opt => (
+              <button
+                key={opt}
+                onClick={() => setBookingFor(opt)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-black transition-all"
+                style={bookingFor === opt
+                  ? { background: 'linear-gradient(135deg, #E040FB, #7B61FF)', color: '#fff' }
+                  : { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                {opt === 'self' ? 'Myself' : 'A Guest'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {bookingFor === 'guest' && (
+          <div className="space-y-2.5 animate-fade-in">
+            <StyledInput type="text" value={guestDetails.name} onChange={e => setGuestDetails({ ...guestDetails, name: e.target.value })} placeholder="Guest Full Name" required aria-label="Guest Full Name" />
+            <StyledInput type="email" value={guestDetails.email} onChange={e => setGuestDetails({ ...guestDetails, email: e.target.value })} placeholder="Guest Email" required aria-label="Guest Email" />
+            <StyledInput type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({ ...guestDetails, phone: e.target.value })} placeholder="Guest Phone (Optional)" aria-label="Guest Phone" />
+          </div>
+        )}
+
+        <div>
+          <label className="block text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Special Requests <span className="normal-case font-normal text-gray-700">(optional)</span></label>
+          <textarea
+            value={specialRequests}
+            onChange={e => setSpecialRequests(e.target.value)}
+            placeholder="Booth preference, birthday setup, dietary needs…"
+            rows={3}
+            className="w-full text-white text-sm rounded-xl px-4 py-3 outline-none resize-none placeholder-gray-700 transition-all"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+          />
+        </div>
+
+        <div className="rounded-xl px-4 py-3 text-[10px] leading-relaxed" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', color: '#4B5563' }}>
+          You are purchasing access to a hosted Wingman Experience. You are not purchasing bottles, bottle service, or ownership of a table. Any additional bottles, drinks, food, or upgrades requested at the venue are paid separately by you directly to the venue.
+        </div>
+      </div>
+    );
   };
 
   const renderStepContent = () => {
     switch (step) {
-        case 1: // Select Venue
-            return (
-                <div role="region" aria-label="Select a Venue">
-                    <h2 className="text-2xl font-bold text-white mb-6">Select a Venue</h2>
-                    <div className="space-y-3">
-                        {wingmanVenues.map((venue, index) => (
-                            <button 
-                                key={venue.id} 
-                                onClick={() => handleVenueSelect(venue)} 
-                                ref={index === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
-                                className="w-full flex items-center gap-4 p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-left group focus:ring-2 focus:ring-[#FFFFFF] focus:outline-none" 
-                                aria-label={`Select ${venue.name}`}
-                            >
-                                <img src={venue.coverImage} alt={venue.name} className="w-20 h-14 object-cover rounded-md group-hover:opacity-80 transition-opacity" />
-                                <div>
-                                    <p className="font-bold text-white">{venue.name}</p>
-                                    <p className="text-sm text-gray-400">{venue.location}</p>
-                                    <p className="text-xs text-gray-500 mt-1">Open: {venue.operatingDays.join(', ')}</p>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
-        case 2: // Date & Guests
-            return (
-                <div role="region" aria-label="Select Date and Guests">
-                    <h2 className="text-2xl font-bold text-white mb-6">Date & Guests</h2>
-                    <div className="space-y-6">
-                        <div>
-                            <label htmlFor="booking-date" className="block text-sm font-medium text-gray-300 mb-2">Select Date</label>
-                            <input 
-                                type="date" 
-                                id="booking-date" 
-                                ref={firstInputRef as React.RefObject<HTMLInputElement>}
-                                value={selectedDate} 
-                                onChange={e => { setSelectedDate(e.target.value); setErrors({...errors, date: undefined}); }} 
-                                min={minDate} 
-                                className={`w-full bg-gray-800 border ${errors.date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-600 focus:border-[#FFFFFF] focus:ring-[#FFFFFF]'} text-white rounded-lg p-3 transition-colors`} 
-                                aria-invalid={!!errors.date}
-                                aria-describedby={errors.date ? "date-error" : undefined}
-                            />
-                             {errors.date && (
-                                <div id="date-error" className="flex items-center gap-2 text-red-400 text-sm mt-2 animate-fade-in">
-                                    <ExclamationCircleIcon className="w-4 h-4" />
-                                    <span>{errors.date}</span>
-                                </div>
-                             )}
-                             {selectedVenue && !errors.date && (
-                                 <p className="text-xs text-gray-500 mt-2 ml-1">
-                                     Open: <span className="text-gray-400">{selectedVenue.operatingDays.join(', ')}</span>
-                                 </p>
-                             )}
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Number of Guests</label>
-                            <div className="flex gap-4">
-                                <div className="relative w-1/2">
-                                    <UsersIcon className="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" />
-                                    <input 
-                                        type="number" 
-                                        value={numberOfMaleGuests} 
-                                        onChange={e => { setNumberOfMaleGuests(e.target.value === '' ? '' : parseInt(e.target.value, 10)); setErrors({...errors, guests: undefined}); }} 
-                                        placeholder="Males" 
-                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#FFFFFF]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
-                                        min="0" 
-                                        max={LARGE_GROUP_MAX_GUESTS} 
-                                        aria-label="Number of male guests"
-                                    />
-                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">M</span>
-                                </div>
-                                <div className="relative w-1/2">
-                                    <UsersIcon className="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" />
-                                    <input 
-                                        type="number" 
-                                        value={numberOfFemaleGuests} 
-                                        onChange={e => { setNumberOfFemaleGuests(e.target.value === '' ? '' : parseInt(e.target.value, 10)); setErrors({...errors, guests: undefined}); }} 
-                                        placeholder="Females" 
-                                        className={`w-full bg-gray-800 border ${errors.guests ? 'border-red-500 focus:border-red-500' : 'border-gray-600 focus:border-[#FFFFFF]'} text-white rounded-lg p-3 pl-10 focus:ring-1`} 
-                                        min="0" 
-                                        max={LARGE_GROUP_MAX_GUESTS} 
-                                        aria-label="Number of female guests"
-                                    />
-                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">F</span>
-                                </div>
-                            </div>
-                            {errors.guests && (
-                                <div className="flex items-center gap-2 text-red-400 text-sm mt-2 animate-fade-in">
-                                    <ExclamationCircleIcon className="w-4 h-4" />
-                                    <span>{errors.guests}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <button 
-                        onClick={validateAndProceed} 
-                        className="mt-10 w-full bg-white text-black hover:bg-gray-200 text-white font-bold py-3.5 px-4 rounded-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-[#E5E5E5] active:scale-95 shadow-lg shadow-pink-500/20 focus:ring-2 focus:ring-white focus:outline-none"
-                    >
-                        Next
-                    </button>
-                </div>
-            );
-        case 3: // Select Table
-            const tablesForVenue = selectedVenue?.tableOptions && selectedVenue.tableOptions.length > 0 
-                ? selectedVenue.tableOptions 
-                : [{
-                    id: 'general-inquiry',
-                    name: 'General Reservation Request',
-                    area: 'General',
-                    minSpend: 0,
-                    description: 'Submit a request for a table. A wingman will contact you with options.',
-                    capacityHint: 'Small Groups'
-                } as TableOption];
-
-            return (
-                <div role="region" aria-label="Select a Table">
-                    <h2 className="text-2xl font-bold text-white mb-6">Select a Table</h2>
-                    <div className="space-y-3">
-                        {tablesForVenue.map((table, index) => {
-                        const tableKey = `${table.id}-${selectedDate}`;
-                        const bookingsForTable = tableBookings[tableKey] || 0;
-                        const isAvailable = table.totalAvailable === undefined || bookingsForTable < table.totalAvailable;
-
-                        return (
-                                <button 
-                                    key={table.id} 
-                                    onClick={() => handleTableSelect(table)} 
-                                    ref={index === 0 ? firstInputRef as React.RefObject<HTMLButtonElement> : null}
-                                    disabled={!isAvailable} 
-                                    className="w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-800/50 disabled:cursor-not-allowed flex flex-col border border-transparent hover:border-gray-600 focus:ring-2 focus:ring-[#FFFFFF] focus:outline-none"
-                                    aria-disabled={!isAvailable}
-                                >
-                                    <div className="w-full text-left">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <p className="font-bold text-white">{table.name}</p>
-                                                <p className="text-sm text-gray-400 mt-1">{table.description}</p>
-                                            </div>
-                                            {!isAvailable && <span className="text-xs font-bold text-red-400 mt-1 flex-shrink-0 ml-2 bg-red-900/20 px-2 py-1 rounded">SOLD OUT</span>}
-                                        </div>
-
-                                        <div className="flex justify-between items-end mt-3 pt-3 border-t border-gray-700">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <UsersIcon className="w-5 h-5 text-gray-400" />
-                                                <div>
-                                                    <p className="text-xs text-gray-400">Capacity</p>
-                                                    <p className="font-semibold text-white">{table.capacityHint}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-gray-400">Min Spend</p>
-                                                <p className="font-bold text-lg text-amber-400">${table.minSpend.toLocaleString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {table.notes && <p className="text-xs text-amber-300/80 mt-2 text-left bg-amber-900/30 p-2 rounded-md w-full border border-amber-900/50">Note: {table.notes}</p>}
-                                </button>
-                        );
-                        })}
-                    </div>
-                </div>
-            );
-        case 4: // Confirmation
-            if (!selectedVenue || !selectedTable) return null;
-            return (
-                <div role="region" aria-label="Confirm Booking">
-                    <h2 className="text-2xl font-bold text-white mb-4">Confirm Your Booking</h2>
-
-                    {/* 1. Summary */}
-                    <div className="bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-700 mb-6">
-                        <div className="flex items-center justify-between border-b border-gray-700 pb-3 mb-3">
-                            <h3 className="font-bold text-white">Reservation Summary</h3>
-                            <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">Step 4 of 4</span>
-                        </div>
-                        <DetailRow label="Venue" value={selectedVenue.name} />
-                        <DetailRow label="Date" value={new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} />
-                        <DetailRow label="Table" value={selectedTable.name} />
-                        <DetailRow label="Wingman" value={wingman.name} />
-                        <DetailRow label="Guests" value={totalGuests} />
-                        
-                        <div className="border-t border-gray-700 !mt-4 pt-3">
-                            <DetailRow label="Table Min Spend" value={`$${selectedTable.minSpend.toLocaleString()}`} />
-                            <div className="flex justify-between items-center text-sm py-1">
-                                <p className="text-gray-400">Tax & Service (36%)</p>
-                                <p className="font-semibold text-white text-right">${(selectedTable.minSpend * TAX_SERVICE_RATE).toLocaleString()}</p>
-                            </div>
-                            <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-gray-700/50 mt-2">
-                                <p className="text-white">Total Estimated</p>
-                                <p className="text-amber-400">${totalWithTaxAndService.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* 2. Guest Info */}
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">Who are you booking for?</h3>
-                        <div className="flex gap-4 mb-4">
-                            <button onClick={() => setBookingFor('self')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'self' ? 'bg-white/10 border-gray-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>Myself</button>
-                            <button onClick={() => setBookingFor('guest')} className={`w-1/2 p-3 rounded-lg border-2 font-semibold transition-colors ${bookingFor === 'guest' ? 'bg-white/10 border-gray-500 text-white' : 'bg-gray-800 border-gray-800 text-gray-400 hover:bg-gray-700'}`}>A Guest</button>
-                        </div>
-
-                        {bookingFor === 'guest' && (
-                            <div className="space-y-3 animate-fade-in">
-                                 <input type="text" value={guestDetails.name} onChange={e => setGuestDetails({...guestDetails, name: e.target.value})} placeholder="Guest Full Name" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" required aria-label="Guest Full Name" />
-                                 <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} placeholder="Guest Email" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" required aria-label="Guest Email" />
-                                 <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} placeholder="Guest Phone (Optional)" className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-pink-500 focus:border-gray-500" aria-label="Guest Phone" />
-                            </div>
-                        )}
-                 </div>
-
-                    {/* 3. Special Requests */}
-                    <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Special Requests (Optional)</label>
-                        <textarea
-                            value={specialRequests}
-                            onChange={(e) => setSpecialRequests(e.target.value)}
-                            placeholder="e.g., Booth location preference, birthday celebration, bottle requests..."
-                            className="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-3 focus:ring-[#FFFFFF] focus:border-[#FFFFFF] resize-none h-24 placeholder-gray-500"
-                        />
-                    </div>
-
-                    {/* CTA is in sticky footer — see stickyFooterCTA */}
-                </div>
-            );
-        default:
-            return null;
+      case 1: return renderStep1Venue();
+      case 2: return renderStep2DateGuests();
+      case 3: return renderStep3Table();
+      case 4: return renderStep4Confirm();
+      default: return null;
     }
   };
 
-  // ── Sticky CTA (Step 4 only) — always visible, never inside scroll area ──
   const stickyFooterCTA = step === 4 && selectedVenue && selectedTable ? (
-    <div
-      className="flex-shrink-0 px-6 pt-3 pb-6"
-      style={{ background: '#121212', borderTop: '1px solid rgba(255,255,255,0.07)' }}
-    >
+    <div className="flex-shrink-0 px-5 pt-3 pb-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       <button
         onClick={handleConfirmBooking}
-        className="w-full font-black py-4 rounded-2xl text-black text-base transition-all active:scale-[0.98] hover:opacity-90"
-        style={{
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%)',
-          boxShadow: '0 8px 28px rgba(255,255,255,0.15)',
-        }}
+        className="w-full font-black py-4 rounded-2xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
+        style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 28px rgba(224,64,251,0.35)' }}
       >
-        Confirm &amp; Add to Plans
+        Confirm &amp; Add to Plans — ${wingmanTotal.toLocaleString()}
       </button>
-      <p className="text-center text-xs text-gray-600 mt-2">Spot reserved instantly · Pay at checkout</p>
+      <p className="text-center text-[10px] text-gray-700 mt-2">Reserved instantly · Pay at checkout</p>
     </div>
   ) : null;
 
   const modal = (
     <>
-      {/* ── Backdrop ─────────────────────────────────────────── */}
+      {/* Backdrop */}
       <div
         aria-hidden="true"
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0,
-          zIndex: 1000,
-          background: 'rgba(0,0,0,0.8)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
         } as React.CSSProperties}
       />
 
-      {/* ── Sheet ────────────────────────────────────────────── */}
+      {/* Sheet */}
       <div
         style={{
-          position: 'fixed', inset: 0,
-          zIndex: 1010,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px',
-          pointerEvents: 'none',
+          position: 'fixed', inset: 0, zIndex: 1010,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px', pointerEvents: 'none',
         } as React.CSSProperties}
       >
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="booking-modal-title"
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
           style={{
             pointerEvents: 'auto',
-            width: '100%',
-            maxWidth: 520,
-            maxHeight: '90vh',
-            background: '#121212',
-            borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.9)',
+            width: '100%', maxWidth: 480, maxHeight: '92vh',
+            background: '#0E0E10',
+            borderRadius: 24,
+            border: '1px solid rgba(255,255,255,0.09)',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.95)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
-          {/* ── Header ───────────────────────────────────────── */}
-          <div className="flex justify-between items-center p-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <div>
-              <h2 id="booking-modal-title" className="text-xl font-bold text-white">
-                {step === 1 ? 'Select a Venue' : step === 2 ? 'Date & Guests' : step === 3 ? 'Select a Table' : 'Confirm Details'}
-              </h2>
-              {step > 1 && selectedVenue && <p className="text-xs text-gray-400">at {selectedVenue.name}</p>}
+          {/* ── Header ─────────────────────────────────────── */}
+          <div className="flex-shrink-0 px-5 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1 min-w-0 pr-3">
+                <h2 id="booking-modal-title" className="font-black text-white text-base leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  {step === 1 ? 'Select a Venue' : step === 2 ? 'Date & Guests' : step === 3 ? 'Select a Table' : 'Confirm Details'}
+                </h2>
+                {step > 1 && selectedVenue && (
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <p className="text-[10px] font-semibold" style={{ color: '#E040FB' }}>
+                      at {selectedVenue.name}
+                    </p>
+                    {/* ── Live pricing pill — always visible ── */}
+                    {totalGuests > 0 ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                        style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)' }}
+                      >
+                        🍽 ${wingmanTotal.toLocaleString()} · {wingmanPriceBreakdown}
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                        style={{ background: 'rgba(245,158,11,0.10)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}
+                      >
+                        {wingmanPriceLabel}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center w-8 h-8 rounded-full transition-all hover:opacity-80 flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.07)' }}
+                aria-label="Close booking flow"
+              >
+                <CloseIcon className="w-4 h-4 text-gray-400" />
+              </button>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 transition-colors" aria-label="Close booking flow">
-              <CloseIcon className="w-6 h-6" />
-            </button>
+
+            {/* Step progress bar */}
+            <div className="flex gap-1.5">
+              {STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className="h-1 rounded-full flex-1 transition-all duration-500"
+                  style={{
+                    background: i <= currentStepIdx
+                      ? 'linear-gradient(90deg, #E040FB, #7B61FF)'
+                      : 'rgba(255,255,255,0.08)',
+                  }}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between mt-1.5">
+              {STEPS.map((label, i) => (
+                <p key={i} className="text-[9px] font-bold uppercase tracking-widest" style={{ color: i === currentStepIdx ? '#E040FB' : '#374151' }}>
+                  {label}
+                </p>
+              ))}
+            </div>
           </div>
 
-          {/* ── Scrollable body ───────────────────────────────── */}
+          {/* ── Scrollable body ─────────────────────────────── */}
           <div
-            className="flex-1 overflow-y-auto overscroll-contain p-6 scroll-smooth"
-            style={{ minHeight: 0, WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-            onTouchMove={(e) => e.stopPropagation()}
+            className="flex-1 overflow-y-auto overscroll-contain p-5"
+            style={{ minHeight: 0, WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' } as React.CSSProperties}
+            onTouchMove={e => e.stopPropagation()}
           >
             {renderStepContent()}
           </div>
 
-          {/* ── Sticky CTA footer (Step 4 only) ──────────────── */}
+          {/* ── Sticky CTA (step 4) ─────────────────────────── */}
           {stickyFooterCTA}
 
-          {/* ── Back nav ─────────────────────────────────────── */}
+          {/* ── Back nav ────────────────────────────────────── */}
           {step > 1 && (
-            <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: stickyFooterCTA ? 'none' : '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="px-5 py-3 flex-shrink-0" style={{ borderTop: stickyFooterCTA ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
               <button
                 onClick={() => setStep(step - 1)}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-white transition-colors text-xs font-semibold"
                 aria-label="Go to previous step"
               >
-                <ChevronLeftIcon className="w-5 h-5" />
+                <ChevronLeftIcon className="w-4 h-4" />
                 Back
               </button>
             </div>

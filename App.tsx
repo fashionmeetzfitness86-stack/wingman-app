@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { hasActivePasscodeSession, grantPasscodeAccess, getAccessSession, getPasscodeLeads, formatTimeRemaining, markLeadAsConverted, PasscodeLead } from './utils/accessControl';
-import { User, Page, Wingman, Venue, Event, EventInstance, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage } from './types';
+import { User, Page, Wingman, Venue, Event, EventInstance, CartItem, AccessGroup, Itinerary, FriendZoneChat, AppNotification, UserRole, UserAccessLevel, Experience, GuestlistJoinRequest, EventInvitation, WingmanApplication, ExperienceInvitationRequest, GroupJoinRequest, PaymentMethod, StoreItem, EventInvitationRequest as EventInvitationReq, FriendZoneChatMessage, Challenge, GuestlistChat, EventChat, GuestlistChatMessage, EventChatMessage, PushCampaign, MembershipRequest, InstanceBooking, WingmanChat, WingmanChatMessage, GroupMessage, WingmanRequest } from './types';
 import { users, wingmen, venues, events, experiences, challenges, storeItems, accessGroups, itineraries, mockNotifications, mockFriendZoneChats, mockGuestlistChats, mockEventChats, mockEventChatMessages, mockGuestlistChatMessages, mockFriendZoneChatMessages, mockInvitationRequests, mockEventInvitations, mockGuestlistJoinRequests, mockWingmanApplications, mockDataExportRequests, mockPaymentMethods, mockWingmanChats, mockWingmanChatMessages } from './data/mockData';
 import { generateEventFeed, DEFAULT_EVENTS } from './utils/eventSchedule';
 
@@ -167,6 +167,8 @@ export const App: React.FC = () => {
         }
     });
     const [appStoreItems, setAppStoreItems] = useState<StoreItem[]>(storeItems);
+    // Venues/events visible to non-admin users (hidden items excluded)
+    const visibleVenues = React.useMemo(() => appVenues.filter(v => !v.isHidden), [appVenues]);
     const [appChallenges, setAppChallenges] = useState<Challenge[]>(() => {
         try {
             const saved = localStorage.getItem('wingman_challenges');
@@ -230,10 +232,11 @@ export const App: React.FC = () => {
     });
 
     const [currentPage, setCurrentPage] = useState<Page>(() => {
-        // Deep-link support for /admin — only honoured for admin accounts.
+        // Deep-link support for /admin and /wingman
         try {
             const path = window.location.pathname.replace(/\/+$/, '');
             if (path === '/admin' && currentUser?.role === UserRole.ADMIN) return 'adminDashboard';
+            if (path === '/wingman' && (currentUser?.role === UserRole.WINGMAN || currentUser?.role === UserRole.ADMIN)) return 'wingmanDashboard';
         } catch {}
         return 'home';
     });
@@ -325,6 +328,59 @@ export const App: React.FC = () => {
     const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
     const [appHireRequests, setAppHireRequests] = useState<HireRequest[]>([]);
     const [isMembershipRequestOpen, setIsMembershipRequestOpen] = useState(false);
+
+    const [wingmanRequests, setWingmanRequests] = useState<WingmanRequest[]>(() => {
+        try {
+            const saved = localStorage.getItem('wingman_requests');
+            if (saved) return JSON.parse(saved);
+        } catch {}
+        return [
+            {
+                id: 1,
+                userId: 10,
+                userName: 'Sophia Ross',
+                userEmail: 'sophia@example.com',
+                userPhone: '+13055550143',
+                wingmanId: 1,
+                experienceTitle: 'Wingman @ Vendôme',
+                dateRequested: '2026-06-22',
+                message: 'Hey! I would love to join your table next Monday. Let me know if there is still room.',
+                status: 'pending',
+                timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+            },
+            {
+                id: 2,
+                userId: 11,
+                userName: 'Marcus Vance',
+                userEmail: 'marcus@example.com',
+                userPhone: '+13055550198',
+                wingmanId: 2,
+                experienceTitle: 'Wingman @ Mona Club',
+                dateRequested: '2026-06-23',
+                message: 'Hello, I booked a spot for the Mona Club night, hoping to meet new people!',
+                status: 'pending',
+                timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+            },
+            {
+                id: 3,
+                userId: 10,
+                userName: 'Sophia Ross',
+                userEmail: 'sophia@example.com',
+                userPhone: '+13055550143',
+                wingmanId: 1,
+                experienceTitle: 'Wingman @ Mr. Jones',
+                dateRequested: '2026-06-16',
+                status: 'accepted',
+                timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+            }
+        ];
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('wingman_requests', JSON.stringify(wingmanRequests));
+        } catch {}
+    }, [wingmanRequests]);
 
     // ── Recurring Event System ────────────────────────────────────────────────
     const [instanceBookings, setInstanceBookings] = useState<InstanceBooking[]>(() => {
@@ -685,10 +741,22 @@ export const App: React.FC = () => {
         const email = currentUser.email?.toLowerCase();
         if (!email) return;
         const fresh = appUsers.find(u => u.email?.toLowerCase() === email);
-        if (fresh && fresh.approvalStatus && fresh.approvalStatus !== currentUser.approvalStatus) {
-            setCurrentUser(prev => ({ ...prev, approvalStatus: fresh.approvalStatus }));
+        if (fresh) {
+            let changed = false;
+            const updates: Partial<User> = {};
+            if (fresh.approvalStatus && fresh.approvalStatus !== currentUser.approvalStatus) {
+                updates.approvalStatus = fresh.approvalStatus;
+                changed = true;
+            }
+            if (fresh.role && fresh.role !== currentUser.role) {
+                updates.role = fresh.role;
+                changed = true;
+            }
+            if (changed) {
+                setCurrentUser(prev => ({ ...prev, ...updates }));
+            }
         }
-    }, [appUsers, currentUser.email, currentUser.approvalStatus]);
+    }, [appUsers, currentUser.email, currentUser.approvalStatus, currentUser.role]);
 
 
     // Keep the URL in sync with the admin dashboard so /admin is shareable
@@ -698,7 +766,9 @@ export const App: React.FC = () => {
             const path = window.location.pathname.replace(/\/+$/, '');
             if (currentPage === 'adminDashboard' && path !== '/admin') {
                 window.history.replaceState({}, '', '/admin');
-            } else if (currentPage !== 'adminDashboard' && path === '/admin') {
+            } else if (currentPage === 'wingmanDashboard' && path !== '/wingman') {
+                window.history.replaceState({}, '', '/wingman');
+            } else if (currentPage !== 'adminDashboard' && currentPage !== 'wingmanDashboard' && (path === '/admin' || path === '/wingman')) {
                 window.history.replaceState({}, '', '/');
             }
         } catch {}
@@ -895,6 +965,30 @@ export const App: React.FC = () => {
         setTimeout(() => setToast(null), 3000);
     };
 
+    const handleStartFriendZoneChat = (userId: number, wingmanId: number) => {
+        const existing = friendZoneChats.find(c => 
+            (c.creatorId === wingmanId && c.memberIds.includes(userId)) || 
+            (c.creatorId === userId && c.memberIds.includes(wingmanId)) ||
+            (c.memberIds.includes(wingmanId) && c.memberIds.includes(userId) && c.memberIds.length === 2)
+        );
+        if (existing) {
+            handleNavigate('friendZoneChat', { chatId: existing.id });
+        } else {
+            const newChatId = Date.now();
+            const wingmanObj = appWingmen.find(w => w.id === wingmanId);
+            const userObj = appUsers.find(u => u.id === userId);
+            const newChat: FriendZoneChat = {
+                id: newChatId,
+                name: `${userObj?.name || 'User'} & ${wingmanObj?.name || 'Wingman'}`,
+                creatorId: wingmanId,
+                memberIds: [wingmanId, userId],
+                wingmanIds: [wingmanId]
+            };
+            setFriendZoneChats(prev => [...prev, newChat]);
+            handleNavigate('friendZoneChat', { chatId: newChatId });
+        }
+    };
+
     React.useEffect(() => {
         (window as any).showAppToast = showToast;
     }, []);
@@ -946,18 +1040,24 @@ export const App: React.FC = () => {
         setCartItems(prev => prev.filter(i => !itemIds.includes(i.id)));
 
         const newInstanceBookings: InstanceBooking[] = [];
+        const allInst = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents, true);
         for (const id of itemIds) {
             const meta = sourceMeta[id];
             if (meta) {
+                const matchedInstance = allInst.find(inst => inst.instanceId === meta.instanceId);
+                const matchedCartItem = itemsToBook.find(i => i.id === id);
                 newInstanceBookings.push({
                     id: `ib-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                     instanceId: meta.instanceId,
                     userId: currentUser.id,
                     partySize: meta.partySize,
-                    totalPaid: itemsToBook.find(i => i.id === id)?.fullPrice ?? 0,
+                    totalPaid: matchedCartItem?.fullPrice ?? 0,
                     bookedAt: new Date().toISOString(),
                     guestName: currentUser.name,
                     guestEmail: currentUser.email ?? '',
+                    wingmanId: matchedInstance?.wingmanId,
+                    hostId: matchedInstance?.hostId,
+                    specialRequests: matchedCartItem?.tableDetails?.specialRequests || (matchedCartItem as any)?.specialRequests,
                 });
                 setPendingCartReservations(prev => {
                     const n = { ...prev }; delete n[meta.instanceId]; return n;
@@ -2144,9 +2244,10 @@ export const App: React.FC = () => {
                     events={appEvents}
                 />;
             }
-            case 'featuredVenues':
+            case 'featuredVenues': {
+                const isUserAdmin = currentUser.role === UserRole.ADMIN || !!realAdminUser;
                 return <FeaturedVenuesPage 
-                    venues={appVenues}
+                    venues={isUserAdmin ? appVenues : visibleVenues}
                     onBookVenue={handleBookVenue} 
                     favoriteVenueIds={currentUser.favoriteVenueIds || []} 
                     onToggleFavorite={(id) => handleToggleFavorite(id, 'venue')} 
@@ -2196,6 +2297,7 @@ export const App: React.FC = () => {
                     onNavigateToPlans={() => handleNavigate('checkout', { initialTab: 'cart' })}
                     pendingCartMap={pendingCartReservations}
                 />;
+            }
             case 'eventTimeline':
                 return <WingmanEventFeed
                     currentUser={currentUser}
@@ -2345,6 +2447,8 @@ export const App: React.FC = () => {
                             venues={appVenues} 
                             events={appEvents} 
                             storeItems={appStoreItems} 
+                            wingmanRequests={wingmanRequests}
+                            onViewDashboard={(w) => handleNavigate('wingmanDashboard', { viewAsWingmanId: w.id })} 
                             pendingGroups={appAccessGroups.filter(g => g.status === 'pending')} 
                             invitationRequests={invitationRequests} 
                             pendingTableReservations={cartItems.filter(i => i.type === 'table')} 
@@ -2377,10 +2481,12 @@ export const App: React.FC = () => {
                             onAddEvent={() => { setEventToEdit(null); setIsAdminEditEventOpen(true); }} 
                             onEditEvent={(e) => { setEventToEdit(e); setIsAdminEditEventOpen(true); }} 
                             onDeleteEvent={(e) => { setAppEvents(prev => prev.filter(ev => ev.id !== e.id)); showToast('Event deleted', 'success'); }} 
+                            onToggleHideEvent={(e) => { setAppEvents(prev => prev.map(ev => ev.id === e.id ? { ...ev, isHidden: !ev.isHidden } : ev)); showToast(e.isHidden ? 'Event unhidden' : 'Event hidden', 'success'); }}
                             onPreviewEvent={(e) => handleNavigate('eventTimeline')} 
                             onAddVenue={() => { setVenueToEdit(null); setIsAdminEditVenueOpen(true); }} 
                             onEditVenue={(v) => { setVenueToEdit(v); setIsAdminEditVenueOpen(true); }} 
                             onDeleteVenue={(v) => { setAppVenues(prev => prev.filter(ven => ven.id !== v.id)); showToast('Venue deleted', 'success'); }} 
+                            onToggleHideVenue={(v) => { setAppVenues(prev => prev.map(ven => ven.id === v.id ? { ...ven, isHidden: !ven.isHidden } : ven)); showToast(v.isHidden ? 'Venue unhidden' : 'Venue hidden', 'success'); }}
                             onPreviewVenue={(v) => handleNavigate('venueDetails', { venueId: v.id })} 
                             onAddStoreItem={() => { setStoreItemToEdit(null); setIsAdminEditStoreItemOpen(true); }} 
                             onEditStoreItem={(i) => { setStoreItemToEdit(i); setIsAdminEditStoreItemOpen(true); }} 
@@ -2470,28 +2576,66 @@ export const App: React.FC = () => {
                 );
             }
             case 'wingmanDashboard': {
-                const myWingman = appWingmen.find(p => p.id === currentUser.id);
-                if (!myWingman) return <div>Wingman dashboard unavailable.</div>;
+                if (currentUser.role !== UserRole.WINGMAN && currentUser.role !== UserRole.ADMIN && !realAdminUser) {
+                    setTimeout(() => setCurrentPage('home'), 0);
+                    return null;
+                }
+                const viewAsWingmanId = pageParams.viewAsWingmanId || (currentUser.role === UserRole.WINGMAN ? currentUser.id : undefined);
+                const targetWingmanId = viewAsWingmanId || appWingmen[0]?.id;
+                const viewedWingman = appWingmen.find(p => p.id === targetWingmanId);
+                if (!viewedWingman) return <div className="p-8 text-white">Wingman dashboard unavailable.</div>;
+                const targetWingmanUser = appUsers.find(u => u.id === targetWingmanId) || currentUser;
+
                 return <WingmanDashboard 
-                    wingman={myWingman} 
+                    wingman={viewedWingman} 
+                    wingmanUser={targetWingmanUser}
+                    currentUser={currentUser}
                     onNavigate={handleNavigate} 
-                    wingmanUser={currentUser} 
                     onUpdateUser={handleUpdateUserWithRewardCheck} 
-                    guestlistRequests={guestlistJoinRequests} 
+                    onUpdateWingman={(w) => setAppWingmen(prev => prev.map(p => p.id === w.id ? w : p))}
+                    wingmanRequests={wingmanRequests}
+                    setWingmanRequests={setWingmanRequests}
+                    instanceBookings={instanceBookings}
+                    setInstanceBookings={setInstanceBookings}
                     users={appUsers} 
                     venues={appVenues} 
                     events={appEvents} 
+                    bookedMap={bookedMap}
+                    cancelMap={cancelMap}
+                    forceSoldOutMap={forceSoldOutMap}
+                    customArrivalMap={customArrivalMap}
+                    customInstanceMap={customInstanceMap}
+                    friendZoneChats={friendZoneChats}
+                    friendZoneChatMessages={friendZoneChatMessages}
+                    guestlistChats={guestlistChats}
+                    guestlistChatMessages={guestlistChatMessages}
+                    onSendFriendZoneMessage={(id, text) => {
+                        const newMsg: FriendZoneChatMessage = {
+                            id: Date.now(),
+                            chatId: id,
+                            senderId: currentUser.id,
+                            text,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setFriendZoneChatMessages(prev => [...prev, newMsg]);
+                    }}
+                    onSendGuestlistMessage={(id, text) => {
+                        const newMsg: GuestlistChatMessage = {
+                            id: Date.now(),
+                            chatId: id,
+                            senderId: currentUser.id,
+                            text,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setGuestlistChatMessages(prev => [...prev, newMsg]);
+                    }}
+                    onStartDirectChat={handleStartFriendZoneChat}
                     onViewUser={(u) => setPreviewUser(u)} 
-                    onUpdateRequestStatus={(id, status) => setGuestlistJoinRequests(prev => prev.map(r => r.id === id ? { ...r, attendanceStatus: status } : r))} 
-                    onReviewGuestlistRequest={(id, status) => setGuestlistJoinRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r))} 
-                    bookedItems={bookedItems} 
-                    eventInvitations={mockEventInvitations} 
-                    onSendDirectInvites={(eId, uIds) => { showToast(`Invitations sent to ${uIds.length} member${uIds.length !== 1 ? 's' : ''}.`, 'success'); }} 
-                    wingmen={appWingmen}
+                    isViewedByAdmin={currentUser.role === UserRole.ADMIN || !!realAdminUser}
                 />;
             }
             case 'bookings': {
-                const allInstancesForBookings = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents);
+                const allInstancesForBookings = generateEventFeed(bookedMap, cancelMap, 4, forceSoldOutMap, customArrivalMap, customInstanceMap, appEvents, true);
                 return <BookingsPage
                     onNavigate={handleNavigate}
                     bookedItems={bookedItems}
@@ -2934,8 +3078,9 @@ export const App: React.FC = () => {
                     onToggleBookmarkExperience={handleToggleBookmarkExperience}
                 />;
             case 'venueDetails': {
+                const isUserAdmin = currentUser.role === UserRole.ADMIN || !!realAdminUser;
                 const venue = appVenues.find(v => v.id === pageParams.venueId);
-                if (!venue) return <div>Venue not found</div>;
+                if (!venue || (venue.isHidden && !isUserAdmin)) return <div className="text-white p-8">Venue not found</div>;
                 return <VenueDetailsPage 
                     venue={venue} 
                     onBack={() => handleNavigate('back' as Page)} 
@@ -3087,7 +3232,14 @@ export const App: React.FC = () => {
             }
             setPasscodeAccessActive(true);
             const path = (() => { try { return window.location.pathname.replace(/\/+$/, ''); } catch { return ''; } })();
-            setCurrentPage(path === '/admin' && found.role === UserRole.ADMIN ? 'adminDashboard' : 'home');
+            const isWingmanRole = found.role === UserRole.WINGMAN || found.role === UserRole.ADMIN;
+            setCurrentPage(
+                path === '/admin' && found.role === UserRole.ADMIN 
+                    ? 'adminDashboard' 
+                    : path === '/wingman' && isWingmanRole 
+                        ? 'wingmanDashboard' 
+                        : 'home'
+            );
             return true;
         };
         const handleCreateAccount = () => {
@@ -3332,6 +3484,7 @@ export const App: React.FC = () => {
                         onClose={() => setIsAdminEditEventOpen(false)}
                         event={eventToEdit}
                         venues={appVenues}
+                        wingmen={appWingmen}
                         onSave={(e) => {
                             if (eventToEdit) {
                                 setAppEvents(prev => prev.map(ev => ev.id === e.id ? e : ev));

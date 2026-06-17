@@ -17,26 +17,34 @@ interface ScheduleEntry {
   maxPerBooking?: number;
 }
 
+// ─── Official Wingman Pricing ────────────────────────────────────────────────
+// Restaurant: $450 per 2-person block  → Math.ceil(guests / 2) * 450
+// Yacht:      $400 per person
+// Nightclub:  $500 per person
+// ─────────────────────────────────────────────────────────────────────────────
+const RESTAURANT_BLOCK_PRICE = 450;
+const RESTAURANT_BLOCK_SIZE  = 2;
+
 const PRICE_SCHEDULE: ScheduleEntry[] = [
   // ── Monday ──
-  { id: 'mon-dinner-nobu',           title: 'Wingman Dinner @ Nobu',          pricePerPerson: 400, maxPerBooking: 2 },
+  { id: 'mon-dinner-nobu',           title: 'Wingman Dinner @ Nobu',          pricePerPerson: 450, maxPerBooking: 2 },
   // ── Tuesday ──
   { id: 'tue-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
   // ── Wednesday ──
-  { id: 'wed-dinner-sexy-fish',      title: 'Wingman Dinner @ Sexy Fish',     pricePerPerson: 400, maxPerBooking: 2 },
+  { id: 'wed-dinner-sexy-fish',      title: 'Wingman Dinner @ Sexy Fish',     pricePerPerson: 450, maxPerBooking: 2 },
   // ── Thursday ──
   { id: 'thu-nightclub-liv',         title: 'Wingman @ LIV',                  pricePerPerson: 500 },
   // ── Friday ──
   { id: 'fri-nightclub-e11even',     title: 'Wingman @ E11EVEN',              pricePerPerson: 500 },
   { id: 'fri-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
-  { id: 'fri-yacht-biscayne',        title: 'Friday Yacht — Biscayne Bay',    pricePerPerson: 350 },
+  { id: 'fri-yacht-biscayne',        title: 'Friday Yacht — Biscayne Bay',    pricePerPerson: 400 },
   // ── Saturday ──
   { id: 'sat-nightclub-story',       title: 'Wingman @ Story',                pricePerPerson: 500 },
   { id: 'sat-nightclub-mr-jones',    title: 'Wingman @ Mr. Jones',            pricePerPerson: 500 },
-  { id: 'sat-yacht-miami-beach',     title: 'Saturday Yacht — Miami Beach',   pricePerPerson: 350 },
+  { id: 'sat-yacht-miami-beach',     title: 'Saturday Yacht — Miami Beach',   pricePerPerson: 400 },
   // ── Sunday ──
-  { id: 'sun-dinner-komodo',         title: 'Sunday Dinner @ Komodo',         pricePerPerson: 400, maxPerBooking: 2 },
-  { id: 'sun-yacht-key-biscayne',    title: 'Sunday Yacht — Key Biscayne',    pricePerPerson: 350 },
+  { id: 'sun-dinner-komodo',         title: 'Sunday Dinner @ Komodo',         pricePerPerson: 450, maxPerBooking: 2 },
+  { id: 'sun-yacht-key-biscayne',    title: 'Sunday Yacht — Key Biscayne',    pricePerPerson: 400 },
 ];
 
 // Build a lookup map for O(1) access
@@ -77,24 +85,46 @@ function resolveGenericItemPrice(cartItemId: string, clientUnitPrice: number): n
   }
 
   if (id.startsWith('table-')) {
-    // If clientUnitPrice is exactly 50, it is a deposit booking
+    // Deposit booking: client sends exactly $50
     if (Math.round(clientUnitPrice) === 50) {
       return 50;
     }
-    // Resolve full price server-side based on the table ID in the cartItemId
+
+    // ── New format: table-<venueId>-<date>-<tableId>-exp<type>-guests<N>-<ts> ──
+    // BookingFlow encodes experience type + guest count so we can price server-side.
+    const expTypeMatch = id.match(/-exp(restaurant|nightclub|yacht)-/);
+    const guestsMatch  = id.match(/-guests(\d+)-/);
+    if (expTypeMatch && guestsMatch) {
+      const expType   = expTypeMatch[1] as 'restaurant' | 'nightclub' | 'yacht';
+      const guests    = Math.max(1, parseInt(guestsMatch[1], 10));
+      if (expType === 'restaurant') {
+        return Math.ceil(guests / RESTAURANT_BLOCK_SIZE) * RESTAURANT_BLOCK_PRICE;
+      }
+      if (expType === 'nightclub') {
+        return guests * 500;
+      }
+      if (expType === 'yacht') {
+        return guests * 400;
+      }
+    }
+
+    // ── Legacy format: encoded only -guests<N>- (restaurant only) ──
+    const legacyGuests = id.match(/-guests(\d+)(?:-|$)/);
+    if (legacyGuests || id.includes('general-inquiry') || id.includes('restaurant')) {
+      const guestCount = legacyGuests ? parseInt(legacyGuests[1], 10) : 2;
+      return Math.ceil(Math.max(1, guestCount) / RESTAURANT_BLOCK_SIZE) * RESTAURANT_BLOCK_PRICE;
+    }
+
+    // Named VIP table options (nightclub min-spend tables)
     let minSpend = 0;
-    if (id.includes('-mj-t1-')) {
-      minSpend = 3000;
-    } else if (id.includes('-mj-t2-')) {
-      minSpend = 5000;
-    } else if (id.includes('-t1-')) {
-      minSpend = 5000;
-    } else if (id.includes('-t2-')) {
-      minSpend = 3000;
-    } else if (id.includes('-t3-')) {
-      minSpend = 8000;
-    } else {
-      throw new Error(`Invalid table option in cart: ${cartItemId}`);
+    if      (id.includes('-mj-t1-')) minSpend = 3000;
+    else if (id.includes('-mj-t2-')) minSpend = 5000;
+    else if (id.includes('-t1-'))    minSpend = 5000;
+    else if (id.includes('-t2-'))    minSpend = 3000;
+    else if (id.includes('-t3-'))    minSpend = 8000;
+    else {
+      // Unknown table — reject to prevent $0 bypass
+      throw new Error(`Unrecognised table option in cart: ${cartItemId}`);
     }
     const TAX_SERVICE_RATE = 0.36;
     return minSpend * (1 + TAX_SERVICE_RATE);

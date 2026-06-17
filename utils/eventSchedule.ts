@@ -19,6 +19,10 @@ const IMG = {
 };
 
 // ─── DEFAULT OFFICIAL RECURRING EVENTS ────────────────────────
+// Official pricing policy (2025):
+//  • Nightclub experiences : $500 per person
+//  • Restaurant/Dinner     : $450 flat (includes up to 2 guests)
+//  • Yacht experiences     : $400 per person
 export const DEFAULT_EVENTS: Event[] = [
   // ── MONDAY (Start: 2026-06-15)
   {
@@ -29,12 +33,14 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-15',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 201,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 1,
+    hostId: 1
   },
   {
     id: 'rec-mon-boobytrap',
@@ -44,12 +50,14 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-15',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 202,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 2,
+    hostId: 2
   },
   {
     id: 'rec-mon-e11even',
@@ -59,8 +67,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-15',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '12:00 AM',
@@ -76,12 +84,14 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-16',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 203,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 1,
+    hostId: 1
   },
   {
     id: 'rec-tue-monaclub',
@@ -91,12 +101,14 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-16',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 204,
     arrivalTime: '1:00 AM',
-    recurrence: { frequency: 'weekly', endDate: '2028-06-15' }
+    recurrence: { frequency: 'weekly', endDate: '2028-06-15' },
+    wingmanId: 2,
+    hostId: 2
   },
   {
     id: 'rec-tue-e11even',
@@ -106,8 +118,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-16',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '12:00 AM',
@@ -123,8 +135,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-17',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 205,
     arrivalTime: '1:00 AM',
@@ -138,8 +150,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-17',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 206,
     arrivalTime: '1:00 AM',
@@ -153,8 +165,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-17',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '12:00 AM',
@@ -170,8 +182,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-18',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 207,
     arrivalTime: '1:00 AM',
@@ -185,8 +197,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-18',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 204,
     arrivalTime: '1:00 AM',
@@ -200,8 +212,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-18',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 202,
     arrivalTime: '1:00 AM',
@@ -215,8 +227,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-18',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 208,
     arrivalTime: '1:00 AM',
@@ -230,8 +242,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-18',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '3:00 AM',
@@ -247,8 +259,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 203,
     arrivalTime: '1:00 AM',
@@ -262,8 +274,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 205,
     arrivalTime: '1:00 AM',
@@ -277,8 +289,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 208,
     arrivalTime: '1:00 AM',
@@ -292,8 +304,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 209,
     arrivalTime: '1:00 AM',
@@ -307,8 +319,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 207,
     arrivalTime: '1:00 AM',
@@ -322,8 +334,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 201,
     arrivalTime: '1:00 AM',
@@ -337,8 +349,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 210,
     arrivalTime: '1:00 AM',
@@ -352,8 +364,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '3:00 AM',
@@ -367,8 +379,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 400,
+    priceMale: 450,
+    priceGeneral: 450, // $450 flat — covers up to 2 guests
     capacity: 10,
     venueId: 101,
     arrivalTime: '9:45 PM',
@@ -382,8 +394,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-19',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 350,
+    priceMale: 400,
+    priceGeneral: 400,
     capacity: 12,
     venueId: 301,
     arrivalTime: '4:00 PM',
@@ -399,8 +411,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 203,
     arrivalTime: '1:00 AM',
@@ -414,8 +426,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 205,
     arrivalTime: '1:00 AM',
@@ -429,8 +441,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 208,
     arrivalTime: '1:00 AM',
@@ -444,8 +456,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 209,
     arrivalTime: '1:00 AM',
@@ -459,8 +471,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 207,
     arrivalTime: '1:00 AM',
@@ -474,8 +486,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 201,
     arrivalTime: '1:00 AM',
@@ -489,8 +501,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 210,
     arrivalTime: '1:00 AM',
@@ -504,8 +516,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '3:00 AM',
@@ -519,8 +531,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 400,
+    priceMale: 450,
+    priceGeneral: 450, // $450 flat — covers up to 2 guests
     capacity: 10,
     venueId: 102,
     arrivalTime: '9:45 PM',
@@ -534,8 +546,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-20',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 350,
+    priceMale: 400,
+    priceGeneral: 400,
     capacity: 12,
     venueId: 301,
     arrivalTime: '4:00 PM',
@@ -551,8 +563,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-21',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 208,
     arrivalTime: '1:00 AM',
@@ -566,8 +578,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-21',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 204,
     arrivalTime: '1:00 AM',
@@ -581,8 +593,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-21',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 202,
     arrivalTime: '1:00 AM',
@@ -596,8 +608,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-21',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 100,
+    priceMale: 500,
+    priceGeneral: 500,
     capacity: 5,
     venueId: 211,
     arrivalTime: '3:00 AM',
@@ -611,8 +623,8 @@ export const DEFAULT_EVENTS: Event[] = [
     date: '2026-06-21',
     type: 'EXCLUSIVE',
     priceFemale: 0,
-    priceMale: 100,
-    priceGeneral: 350,
+    priceMale: 400,
+    priceGeneral: 400,
     capacity: 12,
     venueId: 301,
     arrivalTime: '4:00 PM',
@@ -671,7 +683,8 @@ export function generateEventFeed(
   forceSoldOutMap: Record<string, boolean> = {},
   customArrivalMap: Record<string, string> = {},
   customInstanceMap: Record<string, Partial<EventInstance>> = {},
-  eventsListOverride?: Event[]
+  eventsListOverride?: Event[],
+  includeHidden: boolean = false
 ): EventInstance[] {
   const isBrowser = typeof window !== 'undefined';
   const finalEvents = eventsListOverride ?? (isBrowser ? JSON.parse(localStorage.getItem('wingman_events') ?? 'null') : null) ?? DEFAULT_EVENTS;
@@ -689,6 +702,7 @@ export function generateEventFeed(
   const instances: EventInstance[] = [];
 
   for (const event of finalEvents) {
+    if (event.isHidden && !includeHidden) continue;
     const dates: string[] = [];
     const startDate = new Date(event.date + 'T00:00:00');
 
@@ -721,6 +735,7 @@ export function generateEventFeed(
     const storedVenues = isBrowser ? localStorage.getItem('wingman_venues') : null;
     const allVenuesList = storedVenues ? JSON.parse(storedVenues) : venuesMock;
     const venueObj = allVenuesList.find((v: any) => v.id === event.venueId);
+    if (venueObj?.isHidden && !includeHidden) continue;
     const venueName = venueObj?.name ?? `Venue #${event.venueId}`;
     const venueAddress = venueObj?.address ?? venueObj?.location ?? '';
 
@@ -733,6 +748,7 @@ export function generateEventFeed(
     }
 
     // Price
+    // Official pricing: Nightclub $500/person, Dinner $450 flat (≤2 guests), Yacht $400/person
     const pricePerPerson = event.priceGeneral ?? event.priceMale ?? 500;
 
     for (const dateStr of dates) {
@@ -764,6 +780,8 @@ export function generateEventFeed(
         coverImage: overrides.coverImage || event.image,
         status: overrides.status || computeStatus(spotsBooked, overrides.totalCapacity ?? event.capacity ?? (expType === 'Dinner' ? 10 : expType === 'Yacht' ? 12 : 5), cancelled, forceSoldOut),
         isCancelledByAdmin: cancelled,
+        wingmanId: overrides.wingmanId ?? event.wingmanId,
+        hostId: overrides.hostId ?? event.hostId,
       });
     }
   }
@@ -791,7 +809,7 @@ export const WEEKLY_SCHEDULE: WeeklyScheduleEntry[] = DEFAULT_EVENTS.map(event =
   } else if (venueObj?.category?.toLowerCase().includes('yacht')) {
     expType = 'Yacht';
   }
-  const pricePerPerson = event.priceGeneral ?? event.priceMale ?? 500;
+  const pricePerPerson = event.priceGeneral ?? event.priceMale ?? 500; // Official: Nightclub $500, Dinner $450 flat, Yacht $400
   return {
     id: String(event.id),
     dayOfWeek,

@@ -141,7 +141,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'home'}
               onClick={() => handleNavigation('home')}
             />
-            {currentUser.role === UserRole.WINGMAN && (
+            {(currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.ADMIN) && (
               <MenuItem
                 icon={<ChartPieIcon className="w-5 h-5" />}
                 label="Wingman Dashboard"
