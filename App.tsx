@@ -738,11 +738,15 @@ export const App: React.FC = () => {
                     updates.approvalStatus = status;
                     changed = true;
                 }
-                if (role && role !== currentUser.role) {
+                // Never let a server default overwrite a real Admin/Wingman role.
+                // Only apply the server role if one was explicitly stored in the DB
+                // (the function now omits role/accessLevel when no DB record exists).
+                const isAdminLocally = currentUser.role === UserRole.ADMIN;
+                if (role && role !== currentUser.role && !isAdminLocally) {
                     updates.role = role as any;
                     changed = true;
                 }
-                if (accessLevel && accessLevel !== currentUser.accessLevel) {
+                if (accessLevel && accessLevel !== currentUser.accessLevel && !isAdminLocally) {
                     updates.accessLevel = accessLevel as any;
                     changed = true;
                 }

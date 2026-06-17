@@ -49,9 +49,12 @@ export default async (req: Request) => {
   const rolesMap = (rolesRes.data?.value || {}) as Record<string, { role: string; accessLevel: string }>;
   const userRoleData = rolesMap[email];
 
-  return jsonResponse(req, {
-    status: approvalStatus,
-    role: userRoleData?.role || 'User',
-    accessLevel: userRoleData?.accessLevel || 'General Access'
-  });
+  // Only include role/accessLevel when they are explicitly stored in the DB.
+  // Returning a hardcoded default ('User') when no record exists would
+  // silently overwrite a real Admin/Wingman role on the client side.
+  const response: Record<string, string> = { status: approvalStatus };
+  if (userRoleData?.role)        response.role        = userRoleData.role;
+  if (userRoleData?.accessLevel) response.accessLevel = userRoleData.accessLevel;
+
+  return jsonResponse(req, response);
 };
