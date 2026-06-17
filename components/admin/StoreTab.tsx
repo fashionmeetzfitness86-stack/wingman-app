@@ -29,49 +29,69 @@ export const StoreTab: React.FC<StoreTabProps> = ({ storeItems, onAddItem, onEdi
     }, [storeItems, searchTerm, categoryFilter]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="space-y-5">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                {/* Search */}
                 <div className="relative flex-grow">
                     <input
                         type="search"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search store items..."
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 pl-10 focus:ring-[#FFFFFF] focus:border-[#FFFFFF]"
+                        onChange={e => setSearchTerm(e.target.value)}
+                        placeholder="Search store items…"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] focus:border-orange-500/50 text-white placeholder-gray-600 rounded-xl px-4 py-2.5 pl-10 text-sm focus:outline-none transition-all"
                     />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                    </div>
+                    <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
                 </div>
-                <div className="relative md:w-48">
+
+                {/* Category filter */}
+                <div className="relative sm:w-44">
                     <select
                         value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg p-3 appearance-none focus:ring-[#FFFFFF] focus:border-[#FFFFFF] pr-8"
+                        onChange={e => setCategoryFilter(e.target.value)}
+                        className="w-full bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] focus:border-orange-500/50 text-white rounded-xl px-4 py-2.5 pr-9 text-sm appearance-none focus:outline-none transition-all"
                     >
                         <option value="all">All Categories</option>
                         {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
-                    <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
+                    <ChevronDownIcon className="w-4 h-4 text-gray-500 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
                 </div>
-                 <button onClick={onAddItem} className="flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-lg text-sm">
-                    <PlusIcon className="w-5 h-5" />
-                    Add New Item
+
+                {/* Add button */}
+                <button
+                    onClick={onAddItem}
+                    className="flex items-center justify-center gap-2 font-bold py-2.5 px-5 rounded-xl text-sm transition-all active:scale-95 flex-shrink-0"
+                    style={{
+                        background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                        boxShadow: '0 4px 16px rgba(249,115,22,0.3)',
+                        color: '#fff',
+                    }}
+                >
+                    <PlusIcon className="w-4 h-4" />
+                    Add Item
                 </button>
             </div>
-             <div className="space-y-3">
+
+            {/* Items list */}
+            <div className="space-y-3">
                 {filteredItems.length > 0 ? (
                     filteredItems.map(item => (
-                        <AdminStoreItemListItem 
-                            key={item.id} 
-                            item={item} 
-                            onEdit={onEditItem} 
+                        <AdminStoreItemListItem
+                            key={item.id}
+                            item={item}
+                            onEdit={onEditItem}
                             onDelete={onDeleteItem}
                             onPreview={onPreviewItem}
                         />
                     ))
                 ) : (
-                    <p className="text-center text-gray-500 py-8">No store items found.</p>
+                    <div className="text-center py-16 flex flex-col items-center gap-3">
+                        <span className="text-4xl opacity-20">🛍</span>
+                        <p className="text-gray-600 text-sm italic">No store items found.</p>
+                    </div>
                 )}
             </div>
         </div>
