@@ -3221,7 +3221,13 @@ export const App: React.FC = () => {
                     isAdminEditing={isAdminEditing}
                 />;
             }
-            case 'referFriend': return <ReferFriendPage />;
+            case 'referFriend': {
+                if (currentUser.role !== UserRole.ADMIN) {
+                    setTimeout(() => setCurrentPage('home'), 0);
+                    return null;
+                }
+                return <ReferFriendPage />;
+            }
             case 'hireWingman': return <HireWingmanPage
                 currentUser={currentUser}
                 onNavigate={handleNavigate}

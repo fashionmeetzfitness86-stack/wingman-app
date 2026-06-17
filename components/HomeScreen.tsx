@@ -162,10 +162,19 @@ const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ 
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — referral stats are admin-only */}
       <div className="grid grid-cols-3 gap-3">
-        <StatBadge value={user.referralsCount ?? 0} label="Referrals" accent={accent} />
-        <StatBadge value={`$${user.referralEarnings ?? 0}`} label="Earned" accent="#34d399" />
+        {user.role === UserRole.ADMIN ? (
+          <>
+            <StatBadge value={user.referralsCount ?? 0} label="Referrals" accent={accent} />
+            <StatBadge value={`$${user.referralEarnings ?? 0}`} label="Earned" accent="#34d399" />
+          </>
+        ) : (
+          <>
+            <StatBadge value={daysSince(user.joinDate)} label="Days In" accent={accent} />
+            <StatBadge value={user.approvalStatus === 'approved' ? 'Active' : 'Pending'} label="Status" accent={user.approvalStatus === 'approved' ? '#34d399' : '#f59e0b'} />
+          </>
+        )}
         <StatBadge value={daysSince(user.joinDate)} label="Days In" accent="#9ca3af" />
       </div>
 
@@ -175,7 +184,9 @@ const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ 
         <div className="grid grid-cols-2 gap-3">
           <QuickCard id="wingman-hq-btn" icon={<ChartBarIcon className="w-5 h-5" />} label={isWingman ? 'Wingman HQ' : 'Wingman HQ'} sub="Your dashboard" accent={accent} onClick={() => onNavigate('wingmanDashboard')} />
           <QuickCard id="wingman-feed-btn" icon={<SparkleIcon className="w-5 h-5" />} label="Event Feed" sub="Browse & invite" accent="#60a5fa" onClick={() => onNavigate('eventTimeline')} />
-          <QuickCard id="wingman-refer-btn" icon={<UsersIcon className="w-5 h-5" />} label="Refer a Friend" sub="Earn rewards" accent="#34d399" onClick={() => onNavigate('referFriend')} />
+          {user.role === UserRole.ADMIN && (
+            <QuickCard id="wingman-refer-btn" icon={<UsersIcon className="w-5 h-5" />} label="Refer a Friend" sub="Earn rewards" accent="#34d399" onClick={() => onNavigate('referFriend')} />
+          )}
           <QuickCard id="wingman-chats-btn" icon={<BookIcon className="w-5 h-5" />} label="My Bookings" sub="Confirmed plans" accent="#f472b6" onClick={() => onNavigate('checkout')} />
         </div>
       </div>
@@ -244,11 +255,14 @@ const ApprovedMemberHome: React.FC<{ user: User; onNavigate: (p: Page) => void }
         </div>
       )}
 
-      {/* Stats */}
+      {/* Stats — hide referral count from non-admins */}
       <div className="grid grid-cols-3 gap-3">
         <StatBadge value={memberDays} label="Days In" accent={accent} />
         <StatBadge value={user.subscriptionStatus === 'active' ? 'ON' : 'OFF'} label="Sub" accent={user.subscriptionStatus === 'active' ? '#34d399' : '#ef4444'} />
-        <StatBadge value={user.referralsCount ?? 0} label="Referred" accent="#fb923c" />
+        {user.role === UserRole.ADMIN
+          ? <StatBadge value={user.referralsCount ?? 0} label="Referred" accent="#fb923c" />
+          : <StatBadge value={user.approvalStatus === 'approved' ? 'Active' : 'Pending'} label="Status" accent={user.approvalStatus === 'approved' ? '#34d399' : '#f59e0b'} />
+        }
       </div>
 
       {/* Primary CTA */}
