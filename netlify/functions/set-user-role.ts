@@ -12,18 +12,11 @@
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
-// Hardcoded fallback list — covers the case where ADMIN_EMAILS env var
-// is not yet set in Netlify UI (build.environment is build-time only,
-// not necessarily available to function runtime).
-const FALLBACK_ADMINS = ['themainkeys@gmail.com'];
-
 function adminEmails(): string[] {
-  const fromEnv = (process.env.ADMIN_EMAILS || '')
+  return (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
-  // Use env var list if set; otherwise fall back to the hardcoded list.
-  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {
