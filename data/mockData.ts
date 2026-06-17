@@ -19,8 +19,8 @@ export const users: User[] = [
   },
   {
     id: 999, // Super Admin
-    name: 'Admin User',
-    email: 'themainkeys@gmail.com',
+    name: 'Anderson Correavaz',
+    email: 'anderson.correavaz@gmail.com',
     profilePhoto: 'https://i.pravatar.cc/150?u=999',
     accessLevel: UserAccessLevel.ADMIN,
     role: UserRole.ADMIN,

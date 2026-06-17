@@ -3339,7 +3339,7 @@ export const App: React.FC = () => {
             // Search in-memory state first, then fall back to the persisted
             // wingman_users store so onboarding-created accounts are always found
             // even if appUsers state hasn't yet merged the new entry.
-            let found = appUsers.find(u => u.email.toLowerCase() === normalizedEmail);
+            let found: User | undefined = appUsers.find(u => u.email.toLowerCase() === normalizedEmail);
             if (!found) {
                 try {
                     const raw = localStorage.getItem('wingman_users');
@@ -3360,6 +3360,33 @@ export const App: React.FC = () => {
             const legacyOk = !supabaseOk && hasUserPassword(normalizedEmail) && verifyUserPassword(normalizedEmail, password);
 
             if (!supabaseOk && !legacyOk) return false;
+
+            // If auth succeeded but there's no local user record yet (e.g. fresh browser,
+            // cleared localStorage, or email not matching seed data), build one from the
+            // Supabase session so the user can always log in.
+            if (!found && supabaseOk && data.session) {
+                const sbUser = data.session.user;
+                const meta = sbUser.user_metadata ?? {};
+                const newId = Date.now();
+                // Check if this is a known admin email (owner accounts)
+                const ADMIN_EMAILS = ['anderson.correavaz@gmail.com', 'themainkeys@gmail.com'];
+                const isKnownAdmin = ADMIN_EMAILS.includes(normalizedEmail);
+                const fallback: User = {
+                    id: newId,
+                    name: meta.full_name || meta.name || normalizedEmail.split('@')[0],
+                    email: normalizedEmail,
+                    profilePhoto: meta.avatar_url || `https://i.pravatar.cc/150?u=${newId}`,
+                    accessLevel: isKnownAdmin ? UserAccessLevel.ADMIN : UserAccessLevel.GENERAL,
+                    role: isKnownAdmin ? UserRole.ADMIN : UserRole.USER,
+                    status: 'active',
+                    approvalStatus: isKnownAdmin ? 'approved' : 'pending',
+                    subscriptionStatus: 'free_tier',
+                    joinDate: new Date().toISOString().slice(0, 10),
+                };
+                found = fallback;
+                setAppUsers(prev => prev.some(u => u.email.toLowerCase() === normalizedEmail) ? prev : [...prev, fallback]);
+            }
+
             if (!found) return false;
 
             setCurrentUser(found);
@@ -3374,14 +3401,15 @@ export const App: React.FC = () => {
             const path = (() => { try { return window.location.pathname.replace(/\/+$/, ''); } catch { return ''; } })();
             const isWingmanRole = found.role === UserRole.WINGMAN || found.role === UserRole.ADMIN;
             setCurrentPage(
-                path === '/admin' && found.role === UserRole.ADMIN 
-                    ? 'adminDashboard' 
-                    : path === '/wingman' && isWingmanRole 
-                        ? 'wingmanDashboard' 
+                path === '/admin' && found.role === UserRole.ADMIN
+                    ? 'adminDashboard'
+                    : path === '/wingman' && isWingmanRole
+                        ? 'wingmanDashboard'
                         : 'home'
             );
             return true;
         };
+
         const handleCreateAccount = () => {
             setPasscodeAccessActive(true);
             setShowOnboarding(true);
