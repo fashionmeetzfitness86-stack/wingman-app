@@ -141,7 +141,7 @@ const AdminHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ us
 
 /** WINGMAN / WINGMAN VIEW */
 const WingmanHome: React.FC<{ user: User; onNavigate: (p: Page) => void }> = ({ user, onNavigate }) => {
-  const isWingman = user.role === UserRole.WINGMAN;
+  const isWingman = user.role === UserRole.WINGMAN && user.accessLevel === UserAccessLevel.PROMO;
   const accent = isWingman ? '#fb923c' : '#38bdf8';
 
   return (
@@ -382,7 +382,7 @@ const PendingHome: React.FC<{ user: User; onNavigate: (p: Page) => void; onReque
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, currentUser, onOpenMenu, onRequestAccess, isPasscodeUser }) => {
   const isAdmin   = currentUser.role === UserRole.ADMIN;
-  const isWingman = currentUser.role === UserRole.WINGMAN;
+  const isWingman = currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO;
   // All authenticated users (passcode OR any registered account) can browse events.
   // Only explicitly REJECTED users are shown the locked PendingHome.
   // Booking is separately gated in EventDetailPage — pending users can browse but not book.

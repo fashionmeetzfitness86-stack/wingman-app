@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Page, User, Booking, Venue, UserRole } from '../types';
+import { Page, User, Booking, Venue, UserRole, UserAccessLevel } from '../types';
 import { PencilIcon } from './icons/PencilIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
@@ -578,13 +578,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             className="rounded-2xl overflow-hidden"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
           >
-            {user.role === UserRole.WINGMAN && (
+            {((user.role === UserRole.WINGMAN && user.accessLevel === UserAccessLevel.PROMO) || user.role === UserRole.ADMIN) && (
               <NavRow id="profile-wingman-dash" icon={<ChartPieIcon className="w-4.5 h-4.5" />} label="Wingman Dashboard" accent="#fb923c" onClick={() => onNavigate('wingmanDashboard')} />
             )}
             <NavRow id="profile-access-groups" icon={<GroupIcon className="w-4.5 h-4.5" />} label="Access Groups" accent="#60a5fa" onClick={() => onNavigate('accessGroups')} />
             <NavRow id="profile-invitations" icon={<UserPlusIcon className="w-4.5 h-4.5" />} label="Invitations" accent="#4ade80" onClick={() => onNavigate('invitations')} />
             <NavRow id="profile-itineraries" icon={<RouteIcon className="w-4.5 h-4.5" />} label="Itineraries" accent="#a78bfa" onClick={() => onNavigate('myItineraries')} />
-            {user.role === UserRole.WINGMAN && (
+            {((user.role === UserRole.WINGMAN && user.accessLevel === UserAccessLevel.PROMO) || user.role === UserRole.ADMIN) && (
               <NavRow id="profile-wingman-stats" icon={<ChartBarIcon className="w-4.5 h-4.5" />} label="Wingman Stats" accent="#fb923c" onClick={() => onNavigate('wingmanStats')} />
             )}
             <NavRow id="profile-chats" icon={<ChatIcon className="w-4.5 h-4.5" />} label="Chats" accent="#818cf8" onClick={() => onNavigate('eventChatsList')} />

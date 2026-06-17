@@ -11,7 +11,7 @@ import { ProfileIcon } from './icons/ProfileIcon';
 import { AskGabyIcon } from './icons/AskGabyIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { CloseIcon } from './icons/CloseIcon';
-import { Page, User, UserRole } from '../types';
+import { Page, User, UserRole, UserAccessLevel } from '../types';
 import { ChartPieIcon } from './icons/ChartPieIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { FriendsIcon } from './icons/FriendsIcon';
@@ -141,7 +141,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
               isActive={currentPage === 'home'}
               onClick={() => handleNavigation('home')}
             />
-            {(currentUser.role === UserRole.WINGMAN || currentUser.role === UserRole.ADMIN) && (
+            {((currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO) || currentUser.role === UserRole.ADMIN) && (
               <MenuItem
                 icon={<ChartPieIcon className="w-5 h-5" />}
                 label="Wingman Dashboard"

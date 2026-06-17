@@ -236,7 +236,7 @@ export const App: React.FC = () => {
         try {
             const path = window.location.pathname.replace(/\/+$/, '');
             if (path === '/admin' && currentUser?.role === UserRole.ADMIN) return 'adminDashboard';
-            if (path === '/wingman' && (currentUser?.role === UserRole.WINGMAN || currentUser?.role === UserRole.ADMIN)) return 'wingmanDashboard';
+            if (path === '/wingman' && (currentUser?.role === UserRole.ADMIN || (currentUser?.role === UserRole.WINGMAN && currentUser?.accessLevel === UserAccessLevel.PROMO))) return 'wingmanDashboard';
         } catch {}
         return 'home';
     });
@@ -2576,11 +2576,12 @@ export const App: React.FC = () => {
                 );
             }
             case 'wingmanDashboard': {
-                if (currentUser.role !== UserRole.WINGMAN && currentUser.role !== UserRole.ADMIN && !realAdminUser) {
+                const isAuthorizedWingman = currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO;
+                if (!isAuthorizedWingman && currentUser.role !== UserRole.ADMIN && !realAdminUser) {
                     setTimeout(() => setCurrentPage('home'), 0);
                     return null;
                 }
-                const viewAsWingmanId = pageParams.viewAsWingmanId || (currentUser.role === UserRole.WINGMAN ? currentUser.id : undefined);
+                const viewAsWingmanId = pageParams.viewAsWingmanId || ((currentUser.role === UserRole.WINGMAN && currentUser.accessLevel === UserAccessLevel.PROMO) ? currentUser.id : undefined);
                 const targetWingmanId = viewAsWingmanId || appWingmen[0]?.id;
                 const viewedWingman = appWingmen.find(p => p.id === targetWingmanId);
                 if (!viewedWingman) return <div className="p-8 text-white">Wingman dashboard unavailable.</div>;
