@@ -858,7 +858,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             case 'live':
                 return <AdminLiveData />;
             case 'bookings':
-                return <BookingsTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} venues={props.venues} wingmen={props.wingmen} instanceBookings={props.instanceBookings || []} />;
+                return (
+                    <div className="space-y-4">
+                        <div className="flex items-start gap-3 px-1">
+                            <div className="flex-1">
+                                <h3 className="text-base font-black text-white tracking-tight">Bookings</h3>
+                                <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                    Cart-confirmed on this device · For all Stripe-confirmed bookings across devices, see the{' '}
+                                    <button onClick={() => handleGoTo('live')} className="underline underline-offset-2 hover:text-white transition-colors">Live tab</button>
+                                </p>
+                            </div>
+                        </div>
+                        <BookingsTab bookedItems={props.bookedItems} guestlistRequests={props.guestlistRequests} users={props.users} venues={props.venues} wingmen={props.wingmen} instanceBookings={props.instanceBookings || []} />
+                    </div>
+                );
             case 'events':
                 return (
                     <div className="space-y-3">

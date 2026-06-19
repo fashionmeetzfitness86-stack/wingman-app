@@ -14,20 +14,11 @@
  * a missing env var never blocks the user flow.
  */
 
-export default async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
-    });
-  }
+import { jsonResponse, preflight } from './_shared/cors';
 
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
-  }
+export default async (req: Request) => {
+  if (req.method === 'OPTIONS') return preflight(req);
+  if (req.method !== 'POST') return jsonResponse(req, { error: 'Method not allowed' }, 405);
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromAddress = process.env.RESEND_FROM || 'WINGMAN Miami <onboarding@wingman-app.com>';
@@ -35,9 +26,7 @@ export default async (req: Request) => {
   // Fail silently — a missing email key should never break the auth flow
   if (!apiKey) {
     console.warn('[Wingman] RESEND_API_KEY not configured — welcome email skipped');
-    return new Response(JSON.stringify({ ok: true, skipped: true }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse(req, { ok: true, skipped: true });
   }
 
   let email = '';
@@ -49,7 +38,7 @@ export default async (req: Request) => {
   }
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return new Response(JSON.stringify({ error: 'Valid email required' }), { status: 400 });
+    return jsonResponse(req, { error: 'Valid email required' }, 400);
   }
 
   const html = `
@@ -264,19 +253,13 @@ Questions? Reply to this email or contact your host.
       const errText = await res.text();
       console.error('[Wingman] Resend API error:', res.status, errText);
       // Return 200 — don't block the user flow for an email failure
-      return new Response(JSON.stringify({ ok: false, reason: 'email_send_failed' }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
+      return jsonResponse(req, { ok: false, reason: 'email_send_failed' });
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse(req, { ok: true });
   } catch (err: any) {
     console.error('[Wingman] send-welcome-email exception:', err?.message);
     // Fail silently
-    return new Response(JSON.stringify({ ok: false, reason: 'exception' }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse(req, { ok: false, reason: 'exception' });
   }
 };

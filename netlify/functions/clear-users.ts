@@ -2,20 +2,26 @@
  * clear-users.ts
  * ─────────────────────────────────────────────────────────────
  * Wipes all rows from user_profiles and passcode_leads so the
- * admin can start fresh. Protected by x-admin-email header
- * validated against ADMIN_EMAILS env var.
+ * admin can start fresh. Protected by Bearer token verified
+ * against ADMIN_EMAILS env var OR the hardcoded FALLBACK_ADMINS
+ * list — consistent with all other admin-protected functions.
  *
- * Env: ADMIN_EMAILS, SUPABASE_URL, SUPABASE_SERVICE_KEY
+ * Env: ADMIN_EMAILS (optional), SUPABASE_URL, SUPABASE_SERVICE_KEY
  */
 
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+// Primary source: ADMIN_EMAILS env var (comma-separated).
+// Fallback ensures admin access even if env var is missing at runtime.
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
+
 function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS || '')
+  const fromEnv = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
+  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {
@@ -37,9 +43,6 @@ export default async (req: Request) => {
 
   // ── Validate caller is an admin ───────────────────────────────
   const allowed = adminEmails();
-  if (allowed.length === 0) {
-    return jsonResponse(req, { error: 'ADMIN_EMAILS not configured on the server' }, 503);
-  }
   if (!allowed.includes(email)) {
     return jsonResponse(req, { error: 'Forbidden' }, 403);
   }
