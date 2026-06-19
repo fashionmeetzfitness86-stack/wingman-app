@@ -1144,7 +1144,12 @@ export const App: React.FC = () => {
         if (item.type === 'storeItem' && item.storeItemDetails) {
             return item.storeItemDetails.item.price;
         }
-        return item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+        // Only Yacht venue bookings may use a deposit — all other categories pay in full
+        const isYacht = item.type === 'table' && item.tableDetails?.venue?.category === 'Yacht';
+        if (isYacht && item.paymentOption === 'deposit') {
+            return item.depositPrice ?? 0;
+        }
+        return item.fullPrice ?? 0;
     };
 
     const handleConfirmCheckout = async (paymentMethod: 'tokens' | 'usd' | 'cashapp', itemIds: string[]) => {
@@ -3482,7 +3487,11 @@ export const App: React.FC = () => {
                             setIsCartOpen(false);
                             handleCheckout();
                         }}
-                        totalPrice={cartItems.reduce((sum, item) => sum + (item.paymentOption === 'full' ? (item.fullPrice || 0) : (item.depositPrice || 0)), 0)} 
+                        totalPrice={cartItems.reduce((sum, item) => {
+                            const isYacht = item.type === 'table' && item.tableDetails?.venue?.category === 'Yacht';
+                            const price = (isYacht && item.paymentOption === 'deposit') ? (item.depositPrice || 0) : (item.fullPrice || 0);
+                            return sum + price;
+                        }, 0)}
                     />
 
                     <NotificationsPanel 
