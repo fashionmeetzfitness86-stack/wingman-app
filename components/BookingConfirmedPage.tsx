@@ -125,9 +125,6 @@ export const BookingConfirmedPage: React.FC<BookingConfirmedPageProps> = ({ item
                                                     <p className="font-black text-sm">{item.name}</p>
                                                     <p className="text-xs text-gray-500">{item.date || item.sortableDate || 'No Date'}</p>
                                                     {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
-                                                    {item.paymentOption === 'deposit' && (
-                                                        <span className="text-[10px] font-bold uppercase bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">Deposit</span>
-                                                    )}
                                                 </div>
                                                 <p className={`font-mono font-bold text-sm flex-shrink-0 ${itemDisplayPrice === 'FREE' ? 'text-green-600' : ''}`}>
                                                     {itemDisplayPrice}

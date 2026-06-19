@@ -103,7 +103,7 @@ export interface TableOption {
 export interface Venue {
   id: number;
   name: string;
-  category: 'Nightclub' | 'Restaurant' | 'Lounge' | 'Beach Club' | 'Pool Party' | 'Luxury Restaurant' | 'Waterfront Restaurant' | 'Yacht Experience' | 'After Hours Nightclub';
+  category: 'Nightclub' | 'Restaurant' | 'Lounge' | 'Beach Club' | 'Pool Party' | 'Luxury Restaurant' | 'Waterfront Restaurant' | 'Yacht Experience' | 'After Hours Nightclub' | 'Yacht';
   location: string;
   musicType: string;
   vibe: string;
@@ -132,6 +132,9 @@ export interface Venue {
   searchTags?: string[];
   adminNotes?: string;
   isHidden?: boolean; // Admin-controlled visibility toggle
+  // Yacht-specific pricing
+  pricePerPerson?: number;   // Per-person charter rate
+  yachtPrice4Hours?: number; // Full yacht rate for a 4-hour charter
 }
 
 export interface Wingman {
