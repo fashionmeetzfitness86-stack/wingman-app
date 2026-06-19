@@ -727,9 +727,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
 
     const isLegacyActive = activeLegacyTab !== null;
 
-    // Search bar visibility: show for events, users, and all legacy tabs with lists
+    // Search bar visibility: show for events, users, and all legacy tabs with lists.
+    // 'store' is excluded — StoreTab renders its own search + category filter toolbar.
     const showSearch = (!isLegacyActive && (activeTab === 'events' || activeTab === 'users'))
-        || (isLegacyActive && activeLegacyTab !== 'analytics' && activeLegacyTab !== 'wingmanStats' && activeLegacyTab !== 'pushNotifications');
+        || (isLegacyActive && activeLegacyTab !== 'analytics' && activeLegacyTab !== 'wingmanStats' && activeLegacyTab !== 'pushNotifications' && activeLegacyTab !== 'store');
 
     const renderFilters = () => {
         const tab = isLegacyActive ? activeLegacyTab : activeTab;

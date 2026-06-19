@@ -18,11 +18,16 @@
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+// Hardcoded fallback — mirrors get-leads.ts so both admin emails always work
+// even when ADMIN_EMAILS env var isn't available at function runtime.
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
+
 function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS || '')
+  const fromEnv = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
+  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {
