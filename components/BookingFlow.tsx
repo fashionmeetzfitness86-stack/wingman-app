@@ -448,8 +448,8 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] text-gray-600 uppercase tracking-wide">Est. Total</p>
-                  <p className="text-sm font-black text-amber-400">${wingmanTotal.toLocaleString()}</p>
+                  <p className="text-[9px] text-gray-600 uppercase tracking-wide">{isYachtVenue ? 'Charter Rate' : 'Est. Total'}</p>
+                  <p className="text-sm font-black" style={{ color: isYachtVenue ? '#00D4FF' : '#F59E0B' }}>${displayTotal.toLocaleString()}</p>
                 </div>
               </div>
             </button>
@@ -473,14 +473,30 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
           <DetailRow label="Wingman" value={wingman.name} />
           <DetailRow label="Guests" value={Math.max(1, totalGuests)} />
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', marginTop: '10px' }} className="space-y-2">
-            <DetailRow label="Pricing" value={wingmanPriceLabel} />
-            <DetailRow label={wingmanPriceBreakdown} value={`$${wingmanTotal.toLocaleString()}`} />
-            <div className="flex justify-between items-center pt-1">
-              <p className="text-xs font-black text-white">Total</p>
-              <p className="text-base font-black text-amber-400">
-                ${wingmanTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </div>
+            {isYachtVenue ? (
+              <>
+                <DetailRow label="Pricing" value="Flat Charter Rate" />
+                <DetailRow label={`4-hr block · up to ${YACHT_MAX_GUESTS} guests`} value={`$${displayTotal.toLocaleString()}`} />
+                <div className="flex justify-between items-center pt-1">
+                  <p className="text-xs font-black text-white">Charter Total</p>
+                  <p className="text-base font-black" style={{ color: '#00D4FF' }}>
+                    ${displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <p className="text-[10px] pt-0.5" style={{ color: 'rgba(0,212,255,0.5)' }}>$600 deposit or pay in full at checkout</p>
+              </>
+            ) : (
+              <>
+                <DetailRow label="Pricing" value={wingmanPriceLabel} />
+                <DetailRow label={wingmanPriceBreakdown} value={`$${displayTotal.toLocaleString()}`} />
+                <div className="flex justify-between items-center pt-1">
+                  <p className="text-xs font-black text-white">Total</p>
+                  <p className="text-base font-black text-amber-400">
+                    ${displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -546,7 +562,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
         className="w-full font-black py-4 rounded-2xl text-white text-sm transition-all hover:opacity-90 active:scale-[0.98]"
         style={{ background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', boxShadow: '0 8px 28px rgba(224,64,251,0.35)' }}
       >
-        Confirm &amp; Add to Plans — ${wingmanTotal.toLocaleString()}
+        Confirm &amp; Add to Plans — ${displayTotal.toLocaleString()}
       </button>
       <p className="text-center text-[10px] text-gray-700 mt-2">Reserved instantly · Pay at checkout</p>
     </div>
@@ -602,20 +618,31 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
                     <p className="text-[10px] font-semibold" style={{ color: '#E040FB' }}>
                       at {selectedVenue.name}
                     </p>
-                    {/* ── Live pricing pill — always visible ── */}
+                    {/* ── Live pricing pill ── */}
                     {totalGuests > 0 ? (
-                      <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
-                        style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)' }}
-                      >
-                        🍽 ${wingmanTotal.toLocaleString()} · {wingmanPriceBreakdown}
-                      </span>
+                      isYachtVenue ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                          style={{ background: 'rgba(0,212,255,0.12)', color: '#00D4FF', border: '1px solid rgba(0,212,255,0.25)' }}
+                        >
+                          ⚓ ${displayTotal.toLocaleString()} · Flat Rate
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                          style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)' }}
+                        >
+                          🍽 ${displayTotal.toLocaleString()} · {wingmanPriceBreakdown}
+                        </span>
+                      )
                     ) : (
                       <span
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
-                        style={{ background: 'rgba(245,158,11,0.10)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}
+                        style={isYachtVenue
+                          ? { background: 'rgba(0,212,255,0.10)', color: '#00D4FF', border: '1px solid rgba(0,212,255,0.2)' }
+                          : { background: 'rgba(245,158,11,0.10)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}
                       >
-                        {wingmanPriceLabel}
+                        {isYachtVenue ? '⚓ Charter · Flat Rate' : wingmanPriceLabel}
                       </span>
                     )}
                   </div>
