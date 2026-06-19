@@ -139,9 +139,7 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({
         );
     }
 
-    const displayPrice = item.paymentOption === 'full'
-        ? (item.fullPrice != null ? `$${item.fullPrice.toLocaleString()}` : '—')
-        : (item.depositPrice != null ? `$${item.depositPrice.toLocaleString()}` : '—');
+    const displayPrice = item.fullPrice != null ? `$${item.fullPrice.toLocaleString()}` : '—';
 
     return (
         <>
@@ -244,27 +242,8 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Payment option toggle (table items only) */}
-                    {!isBooked && item.type === 'table' && (
-                        <div
-                            className="flex mt-2 rounded-xl overflow-hidden p-0.5"
-                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}
-                        >
-                            {(['deposit', 'full'] as const).map(opt => (
-                                <button
-                                    key={opt}
-                                    onClick={() => onUpdatePaymentOption(item.id, opt)}
-                                    className="flex-1 py-1 text-[10px] font-black uppercase tracking-wide rounded-lg transition-all duration-200"
-                                    style={item.paymentOption === opt
-                                        ? { background: 'linear-gradient(135deg,#E040FB,#7B61FF)', color: '#fff' }
-                                        : { color: '#6B7280' }
-                                    }
-                                >
-                                    {opt === 'deposit' ? 'Deposit' : 'Full Pay'}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+
+
 
                     {/* Details toggle */}
                     <button

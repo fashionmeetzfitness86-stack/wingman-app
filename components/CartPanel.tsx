@@ -97,10 +97,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           <>
             <div className="flex-grow overflow-y-auto px-4 py-4 space-y-3 no-scrollbar">
               {cartItems.map(item => {
-                const price = item.paymentOption === 'full'
-                  ? item.fullPrice
-                  : item.depositPrice;
-                const isDeposit = item.paymentOption === 'deposit';
+                const price = item.fullPrice;
                 const isWatchlist = item.isPlaceholder;
 
                 return (
@@ -195,16 +192,13 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                       style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
                     >
                       <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                        {isDeposit ? 'Deposit' : 'Total'}
+                        Total
                       </span>
                       <div className="flex items-baseline gap-1">
                         {item.paymentMethod === 'tokens' ? (
                           <span className="text-sm font-black text-[#B89B4D]">{item.fullPrice?.toLocaleString()} TMKC</span>
                         ) : (
                           <span className="text-sm font-black text-white">${price?.toFixed(2)}</span>
-                        )}
-                        {isDeposit && (
-                          <span className="text-[10px] text-[#8A8E99]">/ ${item.fullPrice?.toFixed(2)} full</span>
                         )}
                       </div>
                     </div>
