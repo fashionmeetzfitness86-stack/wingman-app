@@ -1,11 +1,10 @@
-fix: loosen passcode validation to allow special characters
+fix: audit cleanup - passcode tooltip, push campaigns persistence
 
-Allow any printable non-whitespace characters in passcodes (e.g. wingman2026!).
-Previously restricted to A-Z and 0-9 only, which rejected passwords with ! @ # etc.
+AccessControlTab.tsx
+- Fix passcode rules tooltip: was "6-20 chars, letters/numbers only"
+- Now correctly says "6-30 characters (case-sensitive), any chars no spaces"
 
-Changes:
-- update-passcode.ts: remove toUpperCase and alphanumeric regex, allow 6-30 chars with no spaces
-- validate-passcode.ts: remove toUpperCase for case-sensitive matching (preserves special chars)
-- AccessControlTab.tsx: remove client-side alphanumeric guard, stop auto-uppercasing input, raise maxLength to 30
-
-Users entering the passcode must now match case exactly (wingman2026! != WINGMAN2026!).
+App.tsx
+- Persist pushCampaigns to localStorage on create, toggle, and delete
+- Campaigns now survive page refresh (previously wiped on every reload)
+- Fix TypeScript type error: cast toggled status as 'active' | 'inactive' literal

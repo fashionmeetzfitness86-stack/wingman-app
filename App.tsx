@@ -305,7 +305,12 @@ export const App: React.FC = () => {
     });
     const [appAccessGroups, setAppAccessGroups] = useState<AccessGroup[]>(accessGroups);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
-    const [pushCampaigns, setPushCampaigns] = useState<PushCampaign[]>([]);
+    const [pushCampaigns, setPushCampaigns] = useState<PushCampaign[]>(() => {
+        try {
+            const saved = localStorage.getItem('wingman_push_campaigns');
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
     const [appItineraries, setAppItineraries] = useState<Itinerary[]>(itineraries);
 
     // Group notification preferences: { [groupId]: notificationsOn }
@@ -2011,7 +2016,11 @@ export const App: React.FC = () => {
 
 
     const handleCreatePushCampaign = (campaign: PushCampaign) => {
-        setPushCampaigns(prev => [campaign, ...prev]);
+        setPushCampaigns(prev => {
+            const next = [campaign, ...prev];
+            try { localStorage.setItem('wingman_push_campaigns', JSON.stringify(next)); } catch {}
+            return next;
+        });
         showToast('Push notification campaign started!', 'success');
         // Simulate immediate notification for demo
         setNotifications(prev => [{
@@ -2100,13 +2109,23 @@ export const App: React.FC = () => {
     };
     
     const handleToggleCampaignStatus = (campaignId: string) => {
-        setPushCampaigns(prev => prev.map(c => 
-            c.id === campaignId ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' } : c
-        ));
+        setPushCampaigns(prev => {
+            const next = prev.map(c =>
+                c.id === campaignId
+                    ? { ...c, status: (c.status === 'active' ? 'inactive' : 'active') as 'active' | 'inactive' }
+                    : c
+            );
+            try { localStorage.setItem('wingman_push_campaigns', JSON.stringify(next)); } catch {}
+            return next;
+        });
     };
 
     const handleDeleteCampaign = (campaignId: string) => {
-        setPushCampaigns(prev => prev.filter(c => c.id !== campaignId));
+        setPushCampaigns(prev => {
+            const next = prev.filter(c => c.id !== campaignId);
+            try { localStorage.setItem('wingman_push_campaigns', JSON.stringify(next)); } catch {}
+            return next;
+        });
         showToast('Campaign deleted.', 'success');
     };
 

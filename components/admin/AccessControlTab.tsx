@@ -312,8 +312,8 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
             style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
           >
             <ul className="space-y-0.5">
-              <li>• Letters and numbers only (no spaces)</li>
-              <li>• 6 – 20 characters</li>
+              <li>• Any characters allowed — no spaces</li>
+              <li>• 6 – 30 characters (case-sensitive)</li>
               <li>• Paste the code to your private channel after updating</li>
             </ul>
           </div>
