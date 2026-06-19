@@ -12,17 +12,28 @@
  *
  * Env:
  *   ADMIN_EMAILS          — comma-separated allowlist, e.g. "you@x.com,ops@x.com"
+ *                           Must be set in Netlify UI → Environment Variables (not
+ *                           only in netlify.toml [build.environment], which is
+ *                           build-time only and unavailable to functions at runtime).
  *   SUPABASE_URL + SUPABASE_SERVICE_KEY  (see _shared/supabaseAdmin)
  */
 
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+// Hardcoded fallback — mirrors get-leads.ts / set-approval.ts / set-user-role.ts /
+// delete-profile.ts so the admin email always works even when ADMIN_EMAILS is not
+// available at function runtime (e.g. only set in netlify.toml [build.environment]).
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
+
 function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS || '')
+  const fromEnv = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
+  // Use the env-var list when present; fall back to the hardcoded list so the
+  // function never becomes inaccessible due to a missing runtime variable.
+  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {
@@ -41,10 +52,9 @@ export default async (req: Request) => {
   if (userErr || !email) return jsonResponse(req, { error: 'Unauthorized' }, 401);
 
   // ── Authorize against the allowlist ───────────────────────────
+  // adminEmails() always returns at least FALLBACK_ADMINS, so allow.length
+  // will never be 0. The 503 branch is intentionally removed.
   const allow = adminEmails();
-  if (allow.length === 0) {
-    return jsonResponse(req, { error: 'ADMIN_EMAILS not configured on the server' }, 503);
-  }
   if (!allow.includes(email)) {
     return jsonResponse(req, { error: 'Forbidden' }, 403);
   }

@@ -122,49 +122,49 @@ const EventCard: React.FC<{
   return (
     <div
       onClick={onOpen}
-      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.015] active:scale-[0.99]"
-      style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.07)' }}
+      className="group relative rounded-2xl overflow-hidden cursor-pointer"
+      style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onOpen()}
       aria-label={`View ${instance.title}`}
     >
-      {/* Cover image */}
-      <div className="relative h-36 sm:h-40 overflow-hidden">
+      {/* ── Cover image ── */}
+      <div className="relative h-48 sm:h-52 overflow-hidden">
         <img
           src={instance.coverImage}
           alt={instance.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%)' }} />
 
         {/* Type badge — top left */}
         <div
           className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
-          style={{ background: tc.bg, color: tc.color, border: `1px solid ${tc.color}30` }}
+          style={{ background: tc.bg, color: tc.color, border: `1px solid ${tc.color}30`, backdropFilter: 'blur(4px)' }}
         >
           {tc.icon} {tc.label}
         </div>
 
-        {/* Day label — top right */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
-          <span className="text-xs font-bold text-white bg-black/50 rounded-full px-2.5 py-1">
+        {/* Day label + bookmark — top right */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <span className="text-xs font-bold text-white rounded-full px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
             {daysUntilLabel(instance.date)}
           </span>
           <button
             onClick={e => { e.stopPropagation(); onToggleBookmark(e); }}
-            className="p-1.5 rounded-full transition-colors"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
+            className="p-2 rounded-full transition-all"
+            style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
             aria-label={isBookmarked ? 'Remove from watchlist' : 'Save to watchlist'}
           >
             <IconBookmark className="w-4 h-4" filled={isBookmarked}
-              style={{ color: isBookmarked ? '#E040FB' : 'rgba(255,255,255,0.7)' } as React.CSSProperties}
+              style={{ color: isBookmarked ? '#E040FB' : 'white' } as React.CSSProperties}
             />
           </button>
         </div>
 
-        {/* Booked badge */}
+        {/* Booked badge — bottom right */}
         {isBooked && (
           <div
             className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white"
@@ -173,71 +173,77 @@ const EventCard: React.FC<{
             <IconCheck className="w-3.5 h-3.5" /> Booked
           </div>
         )}
+        {/* Title + venue overlay — bottom left */}
+        <div className="absolute bottom-3 left-4 right-16">
+          <h3 className="text-lg font-black text-white leading-tight">{instance.title}</h3>
+          <p className="text-xs text-gray-400 mt-0.5 truncate">{instance.venue}</p>
+        </div>
       </div>
 
-      {/* Body */}
-      <div className="p-3 sm:p-4">
-        <h3 className="font-bold text-white text-base leading-tight mb-0.5 truncate">{instance.title}</h3>
-        <p className="text-xs text-gray-500 mb-2 truncate">{instance.venue}</p>
+      {/* ── Meta strip ── */}
+      <div className="px-4 py-3 flex items-center gap-3 flex-wrap" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-xs text-gray-400">{formatEventDate(instance.date)}</span>
+        <span className="text-xs text-gray-700">·</span>
+        <span className="text-xs text-gray-400">{instance.arrivalTime || instance.time}</span>
+        <span className="text-xs text-gray-700">·</span>
+        <span
+          className="text-xs flex items-center gap-1"
+          style={{
+            color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
+            fontWeight: spotsLeft <= 2 ? 700 : 400,
+          }}
+        >
+          <IconUsers className="w-3 h-3" />
+          {spotsLeft <= 0
+            ? 'No spots left'
+            : spotsLeft === 1
+            ? '🔴 1 spot left!'
+            : spotsLeft === 2
+            ? `⚡ 2 spots left`
+            : spotsLeft <= 5
+            ? `${spotsLeft} spots left`
+            : `${spotsLeft} of ${instance.totalCapacity} spots`}
+        </span>
+        <span
+          className="ml-auto text-[10px] font-bold rounded-full px-2.5 py-0.5"
+          style={{ background: `${sc.color}18`, color: sc.color, border: `1px solid ${sc.color}30` }}
+        >
+          {sc.label}
+        </span>
+      </div>
 
-        {/* Date + time row */}
-        <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-          <span>{formatEventDate(instance.date)}</span>
-          <span className="w-1 h-1 rounded-full bg-gray-700" />
-          <span>{instance.arrivalTime || instance.time}</span>
+      {/* ── Capacity bar ── */}
+      <div className="px-4 pt-2.5 pb-1">
+        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${pct}%`,
+              background: pct >= 100 ? '#EF4444' : pct >= 90 ? '#EF4444' : pct >= 70 ? '#E040FB' : '#22c55e',
+            }}
+          />
         </div>
+      </div>
 
-        {/* Capacity bar + urgency label */}
-        <div className="mb-2">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs flex items-center gap-1" style={{
-              color: spotsLeft <= 1 ? '#EF4444' : spotsLeft <= 2 ? '#E040FB' : spotsLeft <= 5 ? '#F59E0B' : '#6B7280',
-              fontWeight: spotsLeft <= 2 ? 700 : 400,
-            }}>
-              <IconUsers className="w-3 h-3" />
-              {spotsLeft <= 0
-                ? 'No spots left'
-                : spotsLeft === 1
-                ? '🔴 1 spot left!'
-                : spotsLeft === 2
-                ? '⚡ 2 spots left'
-                : spotsLeft <= 5
-                ? `${spotsLeft} spots left`
-                : `${spotsLeft} of ${instance.totalCapacity} spots`}
-            </span>
-            <span className="text-xs font-bold" style={{ color: sc.color }}>{sc.label}</span>
-          </div>
-          <div className="h-1 rounded-full bg-gray-800/60 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${pct}%`,
-                background: pct >= 100 ? '#EF4444' : pct >= 90 ? '#EF4444' : pct >= 70 ? '#E040FB' : '#22c55e'
-              }}
-            />
-          </div>
+      {/* ── Price + CTA ── */}
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div>
+          <span className="text-xl font-black text-white">${instance.pricePerPerson.toLocaleString()}</span>
+          <span className="text-xs text-gray-500 ml-1">/ person</span>
         </div>
-
-        {/* Price + CTA */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-lg font-black text-white">${instance.pricePerPerson.toLocaleString()}</span>
-            <span className="text-xs text-gray-500"> / person</span>
-          </div>
-          <button
-            onClick={e => { e.stopPropagation(); onOpen(); }}
-            className="text-xs font-bold rounded-full px-4 py-2 transition-all"
-            style={
-              isBooked
-                ? { background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
-                : instance.status === 'sold-out' || instance.status === 'cancelled'
-                ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)', cursor: 'default' }
-                : { background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 4px 12px rgba(224,64,251,0.25)' }
-            }
-          >
-            {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve Spot'}
-          </button>
-        </div>
+        <button
+          onClick={e => { e.stopPropagation(); onOpen(); }}
+          className="text-sm font-bold rounded-full px-5 py-2 transition-all"
+          style={
+            isBooked
+              ? { background: 'rgba(224,64,251,0.12)', color: '#E040FB', border: '1px solid rgba(224,64,251,0.3)' }
+              : instance.status === 'sold-out' || instance.status === 'cancelled'
+              ? { background: 'rgba(255,255,255,0.04)', color: '#6B7280', border: '1px solid rgba(255,255,255,0.08)', cursor: 'default' }
+              : { background: 'linear-gradient(135deg, #E040FB, #7B61FF, #00D4FF)', color: '#fff', boxShadow: '0 4px 12px rgba(224,64,251,0.25)' }
+          }
+        >
+          {isBooked ? 'View Booking' : instance.status === 'sold-out' ? 'Sold Out' : instance.status === 'cancelled' ? 'Cancelled' : 'Reserve Spot'}
+        </button>
       </div>
     </div>
   );
@@ -483,7 +489,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
         {/* ── Event grid (hidden when Schedule tab is active) ── */}
         {typeFilter !== 'Schedule' && (visible.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map(instance => (
               <EventCard
                 key={instance.instanceId}

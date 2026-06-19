@@ -349,46 +349,8 @@ export const App: React.FC = () => {
             const saved = localStorage.getItem('wingman_requests');
             if (saved) return JSON.parse(saved);
         } catch {}
-        return [
-            {
-                id: 1,
-                userId: 10,
-                userName: 'Sophia Ross',
-                userEmail: 'sophia@example.com',
-                userPhone: '+13055550143',
-                wingmanId: 1,
-                experienceTitle: 'Wingman @ Vendôme',
-                dateRequested: '2026-06-22',
-                message: 'Hey! I would love to join your table next Monday. Let me know if there is still room.',
-                status: 'pending',
-                timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-            },
-            {
-                id: 2,
-                userId: 11,
-                userName: 'Marcus Vance',
-                userEmail: 'marcus@example.com',
-                userPhone: '+13055550198',
-                wingmanId: 2,
-                experienceTitle: 'Wingman @ Mona Club',
-                dateRequested: '2026-06-23',
-                message: 'Hello, I booked a spot for the Mona Club night, hoping to meet new people!',
-                status: 'pending',
-                timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-            },
-            {
-                id: 3,
-                userId: 10,
-                userName: 'Sophia Ross',
-                userEmail: 'sophia@example.com',
-                userPhone: '+13055550143',
-                wingmanId: 1,
-                experienceTitle: 'Wingman @ Mr. Jones',
-                dateRequested: '2026-06-16',
-                status: 'accepted',
-                timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
-            }
-        ];
+        // No demo data — real requests come from actual users
+        return [];
     });
 
     useEffect(() => {
@@ -537,13 +499,19 @@ export const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally once on mount
 
-    // ── One-time purge of test accounts (runs once per device) ──────────────
+    // ── One-time purge of test/demo accounts (runs once per device) ─────────
+    // v2: expanded to include fake example.com seed users removed in June 2026
     useEffect(() => {
-        if (localStorage.getItem('wm_purge_v1') === 'done') return;
+        if (localStorage.getItem('wm_purge_v2') === 'done') return;
         const purgeEmails = [
+            // Previous purge list
             'djeemo4@gmail.com',
             'fashionmeetzfitness86@gmail.com',
             'andersonjeemo@gmail.com',
+            // Fake seed users removed June 2026
+            'anderson@example.com',
+            'sophia@example.com',
+            'marcus@example.com',
         ];
         // 1. Remove from wingman_users
         try {
@@ -563,9 +531,11 @@ export const App: React.FC = () => {
                 localStorage.setItem('wm_passcode_leads', JSON.stringify(filtered));
             }
         } catch {}
-        // 3. Remove from React state
+        // 3. Clear cached wingman_requests — removes any stale fake requests
+        try { localStorage.removeItem('wingman_requests'); } catch {}
+        // 4. Remove from React state
         setAppUsers(prev => prev.filter(u => !purgeEmails.includes((u.email || '').toLowerCase())));
-        // 4. Fire-and-forget: delete from Supabase (include auth token so the function can authorize)
+        // 5. Fire-and-forget: delete from Supabase (include auth token so the function can authorize)
         void (async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
@@ -580,8 +550,8 @@ export const App: React.FC = () => {
                 }
             } catch { /* silent — local purge already done */ }
         })();
-        // Mark done so this never runs again
-        localStorage.setItem('wm_purge_v1', 'done');
+        // Mark done so this never runs again on this device
+        localStorage.setItem('wm_purge_v2', 'done');
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
