@@ -17,7 +17,8 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Invalid request body' }, 400);
   }
 
-  const inputPasscode = (body.passcode || '').trim().toUpperCase();
+  // Case-sensitive match — preserve exact characters including specials
+  const inputPasscode = (body.passcode || '').trim();
   if (!inputPasscode) {
     return jsonResponse(req, { error: 'Passcode required' }, 400);
   }
@@ -34,7 +35,7 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Query failed' }, 500);
   }
 
-  const activePasscode = data?.value ? String(data.value).trim().toUpperCase() : 'WINGMAN2025';
+  const activePasscode = data?.value ? String(data.value).trim() : 'WINGMAN2025';
   const isValid = inputPasscode === activePasscode;
 
   return jsonResponse(req, { ok: isValid });

@@ -145,7 +145,7 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
 
   const handleSave = async () => {
     setError('');
-    const trimmed = newCode.trim().toUpperCase();
+    const trimmed = newCode.trim();
     if (!trimmed) {
       setError('Passcode cannot be empty.');
       return;
@@ -154,12 +154,12 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
       setError('Passcode must be at least 6 characters.');
       return;
     }
-    if (trimmed.length > 20) {
-      setError('Passcode must be 20 characters or fewer.');
+    if (trimmed.length > 30) {
+      setError('Passcode must be 30 characters or fewer.');
       return;
     }
-    if (!/^[A-Z0-9]+$/.test(trimmed)) {
-      setError('Only letters and numbers are allowed.');
+    if (/\s/.test(trimmed)) {
+      setError('Passcode cannot contain spaces.');
       return;
     }
 
@@ -282,9 +282,9 @@ export const AccessControlTab: React.FC<{ passcodLeads?: PasscodeLead[] }> = ({ 
               type="text"
               id="admin-passcode-input"
               value={newCode}
-              onChange={e => { setNewCode(e.target.value.toUpperCase()); setError(''); setSaved(false); }}
+              onChange={e => { setNewCode(e.target.value); setError(''); setSaved(false); }}
               placeholder="Enter new passcode…"
-              maxLength={20}
+              maxLength={30}
               className="flex-1 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none"
               style={{
                 background: 'rgba(255,255,255,0.05)',

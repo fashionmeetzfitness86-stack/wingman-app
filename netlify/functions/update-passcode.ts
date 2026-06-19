@@ -43,9 +43,10 @@ export default async (req: Request) => {
     return jsonResponse(req, { error: 'Invalid request body' }, 400);
   }
 
-  const newPasscode = (body.passcode || '').trim().toUpperCase();
-  if (!newPasscode || newPasscode.length < 6 || newPasscode.length > 20 || !/^[A-Z0-9]+$/.test(newPasscode)) {
-    return jsonResponse(req, { error: 'Invalid passcode format (6-20 alphanumeric chars)' }, 400);
+  // Keep exact case — case-sensitive match. Strip whitespace only.
+  const newPasscode = (body.passcode || '').trim();
+  if (!newPasscode || newPasscode.length < 6 || newPasscode.length > 30 || /\s/.test(newPasscode)) {
+    return jsonResponse(req, { error: 'Invalid passcode (6-30 chars, no spaces)' }, 400);
   }
 
   // Upsert the passcode setting

@@ -1,27 +1,11 @@
-feat: admin refinements, dual-admin access, store and approvals redesign
+fix: loosen passcode validation to allow special characters
 
-Security / Admin Access
-- Add anderson.correavaz@gmail.com to FALLBACK_ADMINS in all 7 Netlify functions
-- Add FALLBACK_ADMINS pattern to get-passcode.ts and update-passcode.ts (previously had no fallback)
-- Both admin emails now have identical backend authorization
+Allow any printable non-whitespace characters in passcodes (e.g. wingman2026!).
+Previously restricted to A-Z and 0-9 only, which rejected passwords with ! @ # etc.
 
-Admin Dashboard - Approvals Tab (ManagementTab.tsx)
-- Passcode Gate Leads table now shows Name + Email + Status + Captured columns
-- Add StatusPill, SectionHeader, EmptyState shared UI components
-- Redesign MemberAccessCard and ApplicationCard with platform-style dark cards
-- Replace inline status spans with color-coded StatusPill component
+Changes:
+- update-passcode.ts: remove toUpperCase and alphanumeric regex, allow 6-30 chars with no spaces
+- validate-passcode.ts: remove toUpperCase for case-sensitive matching (preserves special chars)
+- AccessControlTab.tsx: remove client-side alphanumeric guard, stop auto-uppercasing input, raise maxLength to 30
 
-Admin Dashboard - Store Tab (StoreTab.tsx + AdminStoreItemListItem.tsx)
-- Remove duplicate outer search bar above Store tab (AdminDashboard.tsx)
-- Redesign store item cards: thumbnail with hover zoom, category pills, gold TMKC badge
-- Replace dropdown category filter with pill buttons (All / Merchandise / NFT / Perk)
-- Replace orange CTA with platform gradient (purple to violet to cyan)
-
-Event Timeline (WingmanEventFeed.tsx)
-- Rebuild layout to match Venues page: full-width cards, tall cover photos, gradient overlays
-
-Data Cleanup (App.tsx, mockData.ts)
-- Remove all fake/demo seed users and example.com records
-- Implement wm_purge_v2 localStorage purge on first load
-
-Build: npx tsc --noEmit passes with 0 errors
+Users entering the passcode must now match case exactly (wingman2026! != WINGMAN2026!).
