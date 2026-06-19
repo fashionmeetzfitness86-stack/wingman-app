@@ -1,22 +1,8 @@
 import { Venue, Wingman, Booking, Event, Challenge, TableOption, Experience, UserAccessLevel, User, UserRole, Bottle, StoreItem, Transaction, AccessGroup, GroupPost, Itinerary, AppNotification, GuestlistChat, GuestlistChatMessage, WingmanApplication, EventInvitationRequest, EventInvitation, EventChat, EventChatMessage, GuestlistJoinRequest, DataExportRequest, FriendZoneChat, FriendZoneChatMessage, PaymentMethod, WingmanChat, WingmanChatMessage } from '../types';
 
-// Mock Users — seed entries
+// Mock Users — only the two real admin accounts are seeded.
+// All demo/fake users (example.com records) were removed.
 export const users: User[] = [
-  {
-    id: 1, // Wingman host
-    name: 'Anderson',
-    email: 'anderson@example.com',
-    profilePhoto: 'https://i.pravatar.cc/150?u=1',
-    accessLevel: UserAccessLevel.PROMO,
-    role: UserRole.WINGMAN,
-    city: 'Miami',
-    joinDate: '2022-11-01',
-    instagramHandle: 'anderson_promo',
-    phoneNumber: '+15550999',
-    status: 'active',
-    approvalStatus: 'approved',
-    subscriptionStatus: 'active'
-  },
   {
     id: 998, // Super Admin — secondary email
     name: 'Anderson Correavaz',
@@ -42,83 +28,6 @@ export const users: User[] = [
     status: 'active',
     approvalStatus: 'approved',
     subscriptionStatus: 'active'
-  },
-  {
-    id: 10,
-    name: 'Sophia Ross',
-    email: 'sophia@example.com',
-    profilePhoto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    accessLevel: UserAccessLevel.APPROVED_GIRL,
-    role: UserRole.USER,
-    city: 'Miami',
-    joinDate: '2026-01-15',
-    instagramHandle: 'sophia_ross',
-    tiktokHandle: 'sophia_travels',
-    phoneNumber: '+13055550143',
-    status: 'active',
-    approvalStatus: 'approved',
-    subscriptionStatus: 'active',
-    bio: 'Miami local lover of electronic music, beaches, and art. Always exploring the best rooftop views.',
-    dob: '1998-07-22',
-    ethnicity: 'White',
-    appearance: {
-      height: "5'7\"",
-      eyeColor: 'Blue',
-      hairColor: 'Blonde',
-      build: 'Slender'
-    },
-    preferences: {
-      music: ['EDM', 'House'],
-      activities: ['Dancing', 'Rooftop Views'],
-      personality: 'The Social Connector',
-      timeOfDay: 'Nighttime'
-    },
-    emergencyContact: 'John Ross (Father) - +13055550100',
-    uploadedDocuments: [
-      'https://example.com/docs/sophia_id_front.jpg',
-      'https://example.com/docs/sophia_id_back.jpg'
-    ],
-    verificationStatus: 'verified',
-    tokenBalance: 250,
-    favoriteVenueIds: [208, 301]
-  },
-  {
-    id: 11,
-    name: 'Marcus Vance',
-    email: 'marcus@example.com',
-    profilePhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    accessLevel: UserAccessLevel.GENERAL,
-    role: UserRole.USER,
-    city: 'Miami',
-    joinDate: '2026-06-10',
-    instagramHandle: 'marcus_vance',
-    tiktokHandle: '',
-    phoneNumber: '+13055550198',
-    status: 'active',
-    approvalStatus: 'pending',
-    subscriptionStatus: 'free_tier',
-    bio: 'Tech entrepreneur visiting Miami for the summer. Looking for good vibes and great connections.',
-    dob: '1992-11-03',
-    ethnicity: 'Black or African American',
-    appearance: {
-      height: "6'1\"",
-      eyeColor: 'Brown',
-      hairColor: 'Black',
-      build: 'Athletic'
-    },
-    preferences: {
-      music: ['Hip-Hop', 'Open Format'],
-      activities: ['Dining & Party', 'Live Music'],
-      personality: 'The Adventurous Explorer',
-      timeOfDay: 'Both'
-    },
-    emergencyContact: 'Sarah Vance (Sister) - +12125550199',
-    uploadedDocuments: [
-      'https://example.com/docs/marcus_id_front.jpg'
-    ],
-    verificationStatus: 'unverified',
-    tokenBalance: 0,
-    favoriteVenueIds: [204]
   }
 ];
 

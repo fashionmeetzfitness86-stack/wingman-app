@@ -349,46 +349,8 @@ export const App: React.FC = () => {
             const saved = localStorage.getItem('wingman_requests');
             if (saved) return JSON.parse(saved);
         } catch {}
-        return [
-            {
-                id: 1,
-                userId: 10,
-                userName: 'Sophia Ross',
-                userEmail: 'sophia@example.com',
-                userPhone: '+13055550143',
-                wingmanId: 1,
-                experienceTitle: 'Wingman @ Vendôme',
-                dateRequested: '2026-06-22',
-                message: 'Hey! I would love to join your table next Monday. Let me know if there is still room.',
-                status: 'pending',
-                timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-            },
-            {
-                id: 2,
-                userId: 11,
-                userName: 'Marcus Vance',
-                userEmail: 'marcus@example.com',
-                userPhone: '+13055550198',
-                wingmanId: 2,
-                experienceTitle: 'Wingman @ Mona Club',
-                dateRequested: '2026-06-23',
-                message: 'Hello, I booked a spot for the Mona Club night, hoping to meet new people!',
-                status: 'pending',
-                timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-            },
-            {
-                id: 3,
-                userId: 10,
-                userName: 'Sophia Ross',
-                userEmail: 'sophia@example.com',
-                userPhone: '+13055550143',
-                wingmanId: 1,
-                experienceTitle: 'Wingman @ Mr. Jones',
-                dateRequested: '2026-06-16',
-                status: 'accepted',
-                timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
-            }
-        ];
+        // No demo/seed requests — starts empty on a fresh device.
+        return [];
     });
 
     useEffect(() => {
@@ -582,6 +544,45 @@ export const App: React.FC = () => {
         })();
         // Mark done so this never runs again
         localStorage.setItem('wm_purge_v1', 'done');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ── One-time purge of demo/seed data (example.com) — runs once per device ──
+    // Returning devices may have the old Sophia/Marcus/Anderson demo records
+    // cached in localStorage. Strip every example.com record so the platform
+    // shows only real users and requests.
+    useEffect(() => {
+        if (localStorage.getItem('wm_purge_v2') === 'done') return;
+        const isDemo = (email?: string) => (email || '').toLowerCase().endsWith('@example.com');
+        // 1. wingman_users
+        try {
+            const raw = localStorage.getItem('wingman_users');
+            if (raw) {
+                const arr = JSON.parse(raw) as { email?: string }[];
+                localStorage.setItem('wingman_users', JSON.stringify(arr.filter(u => !isDemo(u.email))));
+            }
+        } catch {}
+        // 2. wm_passcode_leads
+        try {
+            const raw = localStorage.getItem('wm_passcode_leads');
+            if (raw) {
+                const arr = JSON.parse(raw) as { email?: string }[];
+                localStorage.setItem('wm_passcode_leads', JSON.stringify(arr.filter(l => !isDemo(l.email))));
+            }
+        } catch {}
+        // 3. wingman_requests (Sophia/Marcus demo requests)
+        try {
+            const raw = localStorage.getItem('wingman_requests');
+            if (raw) {
+                const arr = JSON.parse(raw) as { userEmail?: string }[];
+                localStorage.setItem('wingman_requests', JSON.stringify(arr.filter(r => !isDemo(r.userEmail))));
+            }
+        } catch {}
+        // 4. Remove from React state
+        setAppUsers(prev => prev.filter(u => !isDemo(u.email)));
+        setWingmanRequests(prev => prev.filter(r => !isDemo(r.userEmail)));
+        // Mark done so this never runs again
+        localStorage.setItem('wm_purge_v2', 'done');
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -5,6 +5,7 @@ import { CloseIcon } from '../icons/CloseIcon';
 import { SendInvitations } from './SendInvitations';
 import { PlusIcon } from '../icons/PlusIcon';
 import { getPasscodeLeads, type PasscodeLead } from '../../utils/accessControl';
+import { StatusPill, SectionHeader, EmptyState } from './shared';
 
 interface ManagementTabProps {
     wingmanApplications: WingmanApplication[];
@@ -48,12 +49,8 @@ const MemberAccessCard: React.FC<{
                     )}
                 </div>
             </div>
-            <span className={`flex-shrink-0 px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
-                request.status === 'pending'  ? 'bg-[#1A1810] border border-[#333020] text-[#B89B4D]' :
-                request.status === 'approved' ? 'bg-[#051A10] border border-[#0A3A20] text-[#4DB87C]' :
-                'bg-[#1A0505] border border-[#3A1010] text-[#D45050]'
-            }`}>
-                {request.status}
+            <span className="flex-shrink-0">
+                <StatusPill status={request.status} />
             </span>
         </div>
         <p className="text-sm text-[#8A8E99] leading-relaxed border-l-2 border-[#1C1D22] pl-3 italic">
@@ -86,11 +83,7 @@ const ApplicationCard: React.FC<{
                 <p className="font-bold text-white text-lg">{app.stageName || app.fullName}</p>
                 <p className="text-[10px] text-[#5D616B] font-semibold uppercase tracking-wider mt-0.5">Applied on: {new Date(app.submissionDate).toLocaleDateString()}</p>
             </div>
-            <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
-                app.status === 'pending' ? 'bg-[#1A1810] border border-[#333020] text-[#B89B4D]' :
-                app.status === 'approved' ? 'bg-[#051A10] border border-[#0A3A20] text-[#4DB87C]' :
-                'bg-[#1A0505] border border-[#3A1010] text-[#D45050]'
-            }`}>{app.status}</span>
+            <StatusPill status={app.status} />
         </div>
         <div className="mt-4 text-sm text-[#8A8E99] space-y-1">
             <p><strong className="text-white font-medium">Experience:</strong> {app.experienceYears}</p>
@@ -145,31 +138,34 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
     return (
         <div className="space-y-12">
 
-            {/* ── Passcode Leads (email capture from welcome gate) ─ */}
+            {/* ── Passcode Gate Leads (name + email capture from welcome gate) ─ */}
             <div>
-                <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-xl font-bold">Passcode Email Leads</h3>
-                    <span className="bg-[#1A1810] border border-[#333020] text-[#B89B4D] text-xs font-bold px-2 py-0.5 rounded-full">
-                        {passcodeleads.length} captured
-                    </span>
-                </div>
-                <p className="text-[11px] text-[#5D616B] mb-4">Emails entered at the passcode gate. Stored locally — connect Supabase to sync across devices.</p>
+                <SectionHeader
+                    title="Passcode Gate Leads"
+                    count={passcodeleads.length}
+                    countLabel="captured"
+                    subtitle="Names and emails entered at the passcode gate. Stored locally — connect Supabase to sync across devices."
+                />
                 {passcodeleads.length > 0 ? (
-                    <div className="bg-[#0F1014] rounded-md border border-[#1C1D22] overflow-hidden">
+                    <div className="bg-[#0F1014] rounded-xl border border-[#1C1D22] overflow-hidden">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-[#1C1D22]">
-                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">#</th>
+                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Name</th>
                                     <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Email</th>
+                                    <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Status</th>
                                     <th className="text-left text-[10px] font-bold text-[#5D616B] uppercase tracking-wider px-4 py-2.5">Captured</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {passcodeleads.map((lead, i) => (
+                                {passcodeleads.map((lead) => (
                                     <tr key={lead.email} className="border-b border-[#1C1D22] last:border-0 hover:bg-[#141418] transition-colors">
-                                        <td className="px-4 py-2.5 text-[#5D616B] text-xs">{i + 1}</td>
-                                        <td className="px-4 py-2.5 text-white font-medium">{lead.email}</td>
-                                        <td className="px-4 py-2.5 text-[#8A8E99] text-xs">
+                                        <td className="px-4 py-2.5 text-white font-medium whitespace-nowrap">
+                                            {lead.fullName?.trim() || <span className="text-[#5D616B] italic font-normal">—</span>}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-[#C4C8D2]">{lead.email}</td>
+                                        <td className="px-4 py-2.5"><StatusPill status={lead.status} /></td>
+                                        <td className="px-4 py-2.5 text-[#8A8E99] text-xs whitespace-nowrap">
                                             {new Date(lead.capturedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </td>
                                     </tr>
@@ -178,22 +174,17 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                         </table>
                     </div>
                 ) : (
-                    <div className="bg-[#0F1014] border border-[#1C1D22] p-8 rounded-md text-center text-[#5D616B] font-semibold text-sm">
-                        No leads captured yet. Leads appear here when users enter their email at the passcode gate.
-                    </div>
+                    <EmptyState message="No leads captured yet. Leads appear here when users enter their name and email at the passcode gate." />
                 )}
             </div>
 
             {/* ── Member Access Requests (new system) ───────────── */}
             <div>
-                <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-xl font-bold">Member Access Requests</h3>
-                    {pendingMembershipRequests.length > 0 && (
-                        <span className="bg-white text-black hover:bg-gray-200 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                            {pendingMembershipRequests.length} pending
-                        </span>
-                    )}
-                </div>
+                <SectionHeader
+                    title="Member Access Requests"
+                    count={pendingMembershipRequests.length > 0 ? pendingMembershipRequests.length : undefined}
+                    countLabel="pending"
+                />
                 <div className="space-y-3">
                     {pendingMembershipRequests.length > 0
                         ? pendingMembershipRequests.map(r => (
@@ -204,7 +195,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                                 onReject={() => onRejectMembershipRequest(r.id)}
                             />
                         ))
-                        : <div className="bg-gray-800 p-8 rounded-xl text-center text-gray-500 text-sm">No pending member access requests.</div>
+                        : <EmptyState message="No pending member access requests." />
                     }
                 </div>
                 {processedMembershipRequests.length > 0 && (
@@ -232,7 +223,7 @@ export const ManagementTab: React.FC<ManagementTabProps> = (props) => {
                             onApprove={() => onApproveWingmanApplication(app.id)} 
                             onReject={() => onRejectWingmanApplication(app.id)}
                         />
-                    )) : <div className="bg-gray-800 p-8 rounded-lg text-center text-gray-400">No pending wingman applications.</div>}
+                    )) : <EmptyState message="No pending wingman applications." />}
                 </div>
 
                 {processedApplications.length > 0 && (

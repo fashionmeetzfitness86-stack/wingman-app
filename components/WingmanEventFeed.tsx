@@ -483,7 +483,7 @@ export const WingmanEventFeed: React.FC<WingmanEventFeedProps> = ({
 
         {/* ── Event grid (hidden when Schedule tab is active) ── */}
         {typeFilter !== 'Schedule' && (visible.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map(instance => (
               <EventCard
                 key={instance.instanceId}

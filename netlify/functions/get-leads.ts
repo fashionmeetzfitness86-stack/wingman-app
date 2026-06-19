@@ -20,7 +20,7 @@ import { jsonResponse, preflight } from './_shared/cors';
 // is not yet set in Netlify UI (e.g. it was only added to netlify.toml
 // build.environment which is build-time only, not function runtime).
 // Add additional admin emails here if needed.
-const FALLBACK_ADMINS = ['themainkeys@gmail.com'];
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
 
 function adminEmails(): string[] {
   const fromEnv = (process.env.ADMIN_EMAILS || '')

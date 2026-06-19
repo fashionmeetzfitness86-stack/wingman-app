@@ -1,11 +1,18 @@
 import { getSupabaseAdmin } from './_shared/supabaseAdmin';
 import { jsonResponse, preflight } from './_shared/cors';
 
+// Hardcoded fallback — mirrors get-leads.ts so the admin emails always work
+// even when ADMIN_EMAILS env var isn't available at function runtime.
+// Without this, this endpoint would 503 ("not configured") if the env var
+// were ever missing in the Netlify UI.
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
+
 function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS || '')
+  const fromEnv = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
+  return fromEnv.length > 0 ? fromEnv : FALLBACK_ADMINS;
 }
 
 export default async (req: Request) => {

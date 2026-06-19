@@ -14,7 +14,7 @@ import { jsonResponse, preflight } from './_shared/cors';
 
 // Hardcoded fallback — mirrors get-leads.ts so the admin email always works
 // even when ADMIN_EMAILS env var isn't available at function runtime.
-const FALLBACK_ADMINS = ['themainkeys@gmail.com'];
+const FALLBACK_ADMINS = ['themainkeys@gmail.com', 'anderson.correavaz@gmail.com'];
 
 function adminEmails(): string[] {
   const fromEnv = (process.env.ADMIN_EMAILS || '')
