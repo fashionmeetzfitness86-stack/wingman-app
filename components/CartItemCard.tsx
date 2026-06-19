@@ -139,7 +139,12 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({
         );
     }
 
-    const displayPrice = item.fullPrice != null ? `$${item.fullPrice.toLocaleString()}` : '—';
+    const isYacht = item.type === 'table' && item.tableDetails?.venue?.category === 'Yacht';
+    const displayPrice = isYacht
+        ? (item.paymentOption === 'full'
+            ? (item.fullPrice != null ? `$${item.fullPrice.toLocaleString()}` : '—')
+            : (item.depositPrice != null ? `$${item.depositPrice.toLocaleString()}` : '—'))
+        : (item.fullPrice != null ? `$${item.fullPrice.toLocaleString()}` : '—');
 
     return (
         <>
@@ -244,8 +249,27 @@ export const CartItemCard: React.FC<CartItemCardProps> = ({
 
 
 
-
-                    {/* Details toggle */}
+                    {/* Payment option toggle — Yacht only (large charter price) */}
+                    {!isBooked && isYacht && item.depositPrice != null && (
+                        <div
+                            className="flex mt-2 rounded-xl overflow-hidden p-0.5"
+                            style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.12)' }}
+                        >
+                            {(['deposit', 'full'] as const).map(opt => (
+                                <button
+                                    key={opt}
+                                    onClick={() => onUpdatePaymentOption(item.id, opt)}
+                                    className="flex-1 py-1.5 text-[10px] font-black uppercase tracking-wide rounded-lg transition-all duration-200"
+                                    style={item.paymentOption === opt
+                                        ? { background: 'linear-gradient(135deg,#00D4FF,#7B61FF)', color: '#fff', boxShadow: '0 0 10px rgba(0,212,255,0.3)' }
+                                        : { color: '#6B7280' }
+                                    }
+                                >
+                                    {opt === 'deposit' ? `$${item.depositPrice?.toLocaleString()} Deposit` : 'Pay in Full'}
+                                </button>
+                            ))}
+                        </div>
+                    )}                   {/* Details toggle */}
                     <button
                         onClick={() => setIsDetailsOpen(!isDetailsOpen)}
                         className="w-full flex items-center justify-center gap-1 mt-2.5 pt-2.5 text-[10px] font-semibold transition-colors"

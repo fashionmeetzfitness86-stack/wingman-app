@@ -29,6 +29,7 @@ interface BookingFlowProps {
 
 const DEPOSIT_AMOUNT = 50;
 const LARGE_GROUP_MAX_GUESTS = 20;
+const YACHT_MAX_GUESTS = 13;
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const TAX_SERVICE_RATE = 0.36;
@@ -61,8 +62,10 @@ const StyledInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasE
 // ─── Guest stepper ──────────────────────────────────────────
 const GuestStepper: React.FC<{
   label: string; icon: string; value: number | '';
-  onChange: (v: number | '') => void; hasError?: boolean;
-}> = ({ label, icon, value, onChange, hasError }) => (
+  onChange: (v: number | '') => void; hasError?: boolean; maxTotal?: number; currentTotal?: number;
+}> = ({ label, icon, value, onChange, hasError, maxTotal, currentTotal }) => {
+  const atMax = maxTotal != null && currentTotal != null && currentTotal >= maxTotal;
+  return (
   <div
     className="flex-1 flex items-center justify-between rounded-xl px-4 py-3"
     style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${hasError ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)'}` }}
@@ -82,14 +85,19 @@ const GuestStepper: React.FC<{
       <span className="text-white font-black text-sm w-4 text-center">{value === '' ? 0 : value}</span>
       <button
         type="button"
-        onClick={() => onChange(Math.min(LARGE_GROUP_MAX_GUESTS, Number(value || 0) + 1))}
-        className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-lg leading-none transition-all hover:opacity-80"
-        style={{ background: 'rgba(255,255,255,0.1)' }}
+        onClick={() => {
+          if (atMax) return;
+          onChange(Math.min(LARGE_GROUP_MAX_GUESTS, Number(value || 0) + 1));
+        }}
+        disabled={atMax}
+        className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-lg leading-none transition-all"
+        style={{ background: atMax ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)', opacity: atMax ? 0.35 : 1 }}
         aria-label={`Increase ${label}`}
       >+</button>
     </div>
   </div>
-);
+  );
+};
 
 export const BookingFlow: React.FC<BookingFlowProps> = ({
   wingman, onClose, onAddToCart, currentUser, initialVenue, initialDate,
@@ -179,10 +187,17 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
     () => getPriceBreakdown(experienceType, Math.max(1, totalGuests)),
     [experienceType, totalGuests]
   );
+  const isYachtVenue = useMemo(() => selectedVenue?.category === 'Yacht', [selectedVenue]);
+  const guestCap = isYachtVenue ? YACHT_MAX_GUESTS : LARGE_GROUP_MAX_GUESTS;
   const restaurantBlocks = useMemo(
     () => Math.ceil(Math.max(1, totalGuests) / RESTAURANT_BLOCK_SIZE),
     [totalGuests]
   );
+
+  // For Yacht: price is always the flat charter rate regardless of guest count
+  const displayTotal = isYachtVenue
+    ? (selectedVenue?.yachtPrice4Hours ?? wingmanTotal)
+    : wingmanTotal;
 
   const handleVenueSelect = (venue: Venue) => { setSelectedVenue(venue); setStep(2); };
   const handleTableSelect = (table: TableOption) => { setSelectedTable(table); setStep(4); };
@@ -210,6 +225,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
       (window as any).showAppToast?.("Please enter the guest's name and email.");
       return;
     }
+    const isYacht = selectedVenue.category === 'Yacht';
     const cartItem: CartItem = {
       id: `table-${selectedVenue.id}-${selectedDate}-${selectedTable.id}-exp${experienceType}-guests${Math.max(1, totalGuests)}-${Date.now()}`,
       type: 'table',
@@ -218,9 +234,9 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
       date: new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
       sortableDate: selectedDate,
       quantity: 1,
-      fullPrice: wingmanTotal,
-      depositPrice: DEPOSIT_AMOUNT,
-      paymentOption: 'full',
+      fullPrice: isYacht ? (selectedVenue.yachtPrice4Hours ?? wingmanTotal) : wingmanTotal,
+      depositPrice: isYacht ? 600 : undefined,
+      paymentOption: isYacht ? 'deposit' : 'full',
       tableDetails: {
         venue: selectedVenue,
         tableOption: selectedTable,
@@ -310,11 +326,18 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
       <div>
         <label className="block text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Guests</label>
         <div className="flex gap-3">
-          <GuestStepper label="Men" icon="♂" value={numberOfMaleGuests} onChange={setNumberOfMaleGuests} hasError={!!errors.guests} />
-          <GuestStepper label="Women" icon="♀" value={numberOfFemaleGuests} onChange={setNumberOfFemaleGuests} hasError={!!errors.guests} />
+          <GuestStepper label="Men"   icon="♂" value={numberOfMaleGuests}   onChange={setNumberOfMaleGuests}   hasError={!!errors.guests} maxTotal={guestCap} currentTotal={totalGuests} />
+          <GuestStepper label="Women" icon="♀" value={numberOfFemaleGuests} onChange={setNumberOfFemaleGuests} hasError={!!errors.guests} maxTotal={guestCap} currentTotal={totalGuests} />
         </div>
         {totalGuests > 0 && (
-          <p className="text-[10px] text-gray-600 mt-2 text-center">{totalGuests} guest{totalGuests !== 1 ? 's' : ''} total</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[10px] text-gray-600">{totalGuests} guest{totalGuests !== 1 ? 's' : ''} total</p>
+            {isYachtVenue && (
+              <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: totalGuests >= guestCap ? '#EF4444' : 'rgba(0,212,255,0.6)' }}>
+                {totalGuests >= guestCap ? '⚠ Max capacity reached' : `${guestCap - totalGuests} spots left`}
+              </p>
+            )}
+          </div>
         )}
         {errors.guests && (
           <div className="flex items-center gap-1.5 text-red-400 text-xs mt-2 animate-fade-in">
@@ -325,27 +348,47 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
       </div>
 
       {totalGuests > 0 && (
-        <div
-          className="rounded-2xl px-4 py-3"
-          style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.18)' }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Experience Pricing</p>
-              <p className="text-[11px] text-amber-400/60 mt-0.5">
-                {wingmanPriceBreakdown}
-              </p>
+        isYachtVenue ? (
+          // ── Yacht: flat charter price card (cyan) ──
+          <div
+            className="rounded-2xl px-4 py-3"
+            style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.15)' }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#00D4FF' }}>⚓ Charter Pricing</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'rgba(0,212,255,0.55)' }}>
+                  Flat rate · {totalGuests} guest{totalGuests !== 1 ? 's' : ''} · max {guestCap}
+                </p>
+                <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>$600 deposit or pay in full at checkout</p>
+              </div>
+              <p className="text-xl font-black" style={{ color: '#00D4FF' }}>${displayTotal.toLocaleString()}</p>
             </div>
-            <p className="text-xl font-black text-amber-400">${wingmanTotal.toLocaleString()}</p>
           </div>
-          {experienceType === 'restaurant' && (
-            <div className="flex gap-2 mt-2">
-              {Array.from({ length: restaurantBlocks }).map((_, i) => (
-                <div key={i} className="flex-1 h-1 rounded-full" style={{ background: 'rgba(245,158,11,0.4)' }} />
-              ))}
+        ) : (
+          // ── Standard: per-guest amber pricing card ──
+          <div
+            className="rounded-2xl px-4 py-3"
+            style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.18)' }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Experience Pricing</p>
+                <p className="text-[11px] text-amber-400/60 mt-0.5">
+                  {wingmanPriceBreakdown}
+                </p>
+              </div>
+              <p className="text-xl font-black text-amber-400">${displayTotal.toLocaleString()}</p>
             </div>
-          )}
-        </div>
+            {experienceType === 'restaurant' && (
+              <div className="flex gap-2 mt-2">
+                {Array.from({ length: restaurantBlocks }).map((_, i) => (
+                  <div key={i} className="flex-1 h-1 rounded-full" style={{ background: 'rgba(245,158,11,0.4)' }} />
+                ))}
+              </div>
+            )}
+          </div>
+        )
       )}
 
       <button
