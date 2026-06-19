@@ -133,7 +133,6 @@ export interface Venue {
   adminNotes?: string;
   isHidden?: boolean; // Admin-controlled visibility toggle
   // Yacht-specific pricing
-  pricePerPerson?: number;   // Per-person charter rate
   yachtPrice4Hours?: number; // Full yacht rate for a 4-hour charter
 }
 

@@ -143,7 +143,6 @@ export const AdminEditVenueModal: React.FC<AdminEditVenueModalProps> = ({ venue,
   const [guestlistCapacity, setGuestlistCapacity] = useState<number | ''>('');
   const [tableOptions, setTableOptions] = useState<TableOption[]>([]);
   const [saved, setSaved] = useState(false);
-  const [pricePerPerson, setPricePerPerson] = useState<number | ''>('');
   const [yachtPrice4Hours, setYachtPrice4Hours] = useState<number | ''>('');
 
   useEffect(() => {
@@ -161,7 +160,6 @@ export const AdminEditVenueModal: React.FC<AdminEditVenueModalProps> = ({ venue,
     setIsGuestlistAvailable(venue?.isGuestlistAvailable || false);
     setGuestlistCapacity(venue?.guestlistCapacity || '');
     setTableOptions(venue?.tableOptions ? JSON.parse(JSON.stringify(venue.tableOptions)) : []);
-    setPricePerPerson(venue?.pricePerPerson ?? '');
     setYachtPrice4Hours(venue?.yachtPrice4Hours ?? '');
   }, [venue, isOpen]);
 
@@ -226,7 +224,6 @@ export const AdminEditVenueModal: React.FC<AdminEditVenueModalProps> = ({ venue,
       tableOptions,
       isGuestlistAvailable,
       guestlistCapacity: Number(guestlistCapacity) || undefined,
-      pricePerPerson: category === 'Yacht' ? (Number(pricePerPerson) || undefined) : undefined,
       yachtPrice4Hours: category === 'Yacht' ? (Number(yachtPrice4Hours) || undefined) : undefined,
     };
     onSave(venueData);
@@ -310,67 +307,35 @@ export const AdminEditVenueModal: React.FC<AdminEditVenueModalProps> = ({ venue,
                     Charter Pricing
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Price Per Person</Label>
-                    <div className="relative">
-                      <span
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-black"
-                        style={{ color: '#00D4FF' }}
-                      >$</span>
-                      <input
-                        type="number"
-                        value={String(pricePerPerson)}
-                        onChange={e => setPricePerPerson(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="0"
-                        min="0"
-                        className="appearance-none w-full"
-                        style={{ ...baseInput, paddingLeft: 28 }}
-                        onFocus={e => { e.currentTarget.style.border = '1px solid rgba(0,212,255,0.5)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1)'; }}
-                        onBlur={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}
-                      />
-                    </div>
-                    <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>Per guest rate</p>
+                <div>
+                  <Label>Full Charter Price (4 Hours)</Label>
+                  <div className="relative">
+                    <span
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-black"
+                      style={{ color: '#00D4FF' }}
+                    >$</span>
+                    <input
+                      type="number"
+                      value={String(yachtPrice4Hours)}
+                      onChange={e => setYachtPrice4Hours(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0"
+                      min="0"
+                      className="appearance-none w-full"
+                      style={{ ...baseInput, paddingLeft: 28 }}
+                      onFocus={e => { e.currentTarget.style.border = '1px solid rgba(0,212,255,0.5)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1)'; }}
+                      onBlur={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    />
                   </div>
-                  <div>
-                    <Label>Yacht Price (4 Hours)</Label>
-                    <div className="relative">
-                      <span
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-black"
-                        style={{ color: '#00D4FF' }}
-                      >$</span>
-                      <input
-                        type="number"
-                        value={String(yachtPrice4Hours)}
-                        onChange={e => setYachtPrice4Hours(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="0"
-                        min="0"
-                        className="appearance-none w-full"
-                        style={{ ...baseInput, paddingLeft: 28 }}
-                        onFocus={e => { e.currentTarget.style.border = '1px solid rgba(0,212,255,0.5)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1)'; }}
-                        onBlur={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}
-                      />
-                    </div>
-                    <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>Full yacht charter · 4-hr block</p>
-                  </div>
+                  <p className="text-[10px] mt-1.5" style={{ color: 'rgba(255,255,255,0.25)' }}>Full yacht charter · 4-hr block · $600 deposit at checkout</p>
                 </div>
-                {(pricePerPerson !== '' || yachtPrice4Hours !== '') && (
+                {yachtPrice4Hours !== '' && (
                   <div
                     className="rounded-xl px-4 py-3 flex items-center justify-between"
                     style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.1)' }}
                   >
                     <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Pricing preview</p>
-                    <div className="flex items-center gap-4">
-                      {pricePerPerson !== '' && (
-                        <div className="text-right">
-                          <p className="text-xs font-black text-white">${Number(pricePerPerson).toLocaleString()}<span className="text-[10px] font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>/person</span></p>
-                        </div>
-                      )}
-                      {yachtPrice4Hours !== '' && (
-                        <div className="text-right">
-                          <p className="text-xs font-black text-white">${Number(yachtPrice4Hours).toLocaleString()}<span className="text-[10px] font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>/4 hrs</span></p>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <p className="text-xs font-black text-white">${Number(yachtPrice4Hours).toLocaleString()}<span className="text-[10px] font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}> full · </span><span style={{ color: '#00D4FF' }}>$600 deposit</span></p>
                     </div>
                   </div>
                 )}
