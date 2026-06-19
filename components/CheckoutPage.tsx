@@ -95,7 +95,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   const totalCostUSD = useMemo(() =>
     selectedItems.reduce((total, item) => {
-      const price = item.paymentOption === 'full' ? item.fullPrice ?? 0 : item.depositPrice ?? 0;
+      const isYacht = item.type === 'table' && item.tableDetails?.venue?.category === 'Yacht';
+      const price = (isYacht && item.paymentOption === 'deposit') ? (item.depositPrice ?? 0) : (item.fullPrice ?? 0);
       return total + price;
     }, 0),
   [selectedItems]);
@@ -294,7 +295,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       <div key={item.id} className="flex justify-between items-center">
                         <p className="text-gray-400 truncate pr-3 flex-1">{item.name}</p>
                         <p className="text-white font-semibold flex-shrink-0">
-                          ${(item.paymentOption === 'full' ? item.fullPrice : item.depositPrice)?.toLocaleString() ?? '0'}
+                          ${((item.type === 'table' && item.tableDetails?.venue?.category === 'Yacht' && item.paymentOption === 'deposit') ? item.depositPrice : item.fullPrice)?.toLocaleString() ?? '0'}
                         </p>
                       </div>
                     ))}
